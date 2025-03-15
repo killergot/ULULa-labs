@@ -1,10 +1,35 @@
 from fastapi import FastAPI, HTTPException
 from typing import List,Optional
 from fastapi.middleware.cors import CORSMiddleware
+import uvicorn
 
-from .validation.users import UserSignIn,UserSignUp
+from validation.users import UserSignIn,UserSignUp
+from sqlalchemy import create_engine,  MetaData, Table, insert, select
+from sqlalchemy_utils import database_exists, create_database
+from sqlalchemy.orm import Session
+
+
+
 
 app = FastAPI()
+
+
+def connection_to_db():
+    engine = create_engine("postgresql://ulula_server_admin:ulula_server_password@localhost/ulula_helper_db")
+    print(database_exists(engine.url))
+    return engine
+
+def insert_to_general_users(mail, passw, role):
+    engine = connection_to_db()
+    metadata = MetaData()
+    # Отражение существующей таблицы
+    table = Table("uses_general_table", metadata, autoload_with=engine)
+    with engine.connect() as connection:
+       stmt = insert(table).values(email=mail, role=int(3), passsword=passw)
+       print (mail, passw, role)
+       connection.execute(stmt)
+       connection.commit()
+    engine.dispose()
 
 #CORS нужен для связки front'a и back'а
 app.add_middleware(
@@ -18,10 +43,23 @@ app.add_middleware(
 # Временное хранилище пользователей в памяти
 users: List[dict] = []
 
+
+
 # Вспомогательные функции
 def find_user_by_email(email: str) -> Optional[dict]:
-    return next((user for user in users if user["email"] == email), None)
-
+    engine = connection_to_db()
+    metadata = MetaData()
+    # Отражение существующей таблицы
+    table = Table("uses_general_table", metadata, autoload_with=engine)
+    with engine.connect() as connection:
+       query = select(table.c.role, table.c.passsword).where(table.c.email == email)
+       rez = connection.execute(query)
+       connection.commit()
+    #engine.dispose()
+    result_list = [row._asdict() for row in rez]
+    if not result_list:
+            return None
+    return result_list[0]
 
 # Ручки API
 @app.post("/signup")
@@ -39,7 +77,11 @@ async def signup(user_data: UserSignUp):
         "password": user_data.password,  # В реальном приложении нужно хэшировать!
         "role": user_data.role
     }
-
+    try:
+        #connection_to_db()
+        insert_to_general_users(user_data.email, user_data.password, user_data.role)
+    except Exception as e:
+        return {"message": "error"+str(e)}
     users.append(new_user)
     return {"message": "User created successfully"}
 
@@ -54,9 +96,9 @@ async def signin(credentials: UserSignIn):
             status_code=404,
             detail="User not found"
         )
-
+    
     # Проверка пароля
-    if user["password"] != credentials.password:
+    if user["passsword"] != credentials.password:
         raise HTTPException(
             status_code=401,
             detail="Incorrect password"
@@ -65,7 +107,7 @@ async def signin(credentials: UserSignIn):
     return {
         "message": "Login successful",
         "user": {
-            "email": user["email"],
+            "email": credentials.email,
             "role": user["role"]
         }
     }
@@ -73,3 +115,6 @@ async def signin(credentials: UserSignIn):
 @app.get("/all_users")
 async def sign():
     return users
+
+if __name__ == "main":
+    uvicorn.run("main:app")
