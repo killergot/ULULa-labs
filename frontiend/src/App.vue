@@ -1,5 +1,10 @@
 <template>
     <div class="container">
+
+        <a href="http://127.0.0.1:8000/auth/login_oauth" class="oauth-button">
+           Login with OAuth
+        </a>
+
         <form @submit.prevent="handleSubmit">
         <input checked id="signin" name="action" type="radio" value="signin" v-model="action">
         <label for="signin">Sign in</label>
@@ -124,9 +129,22 @@
     this.isLoading = true;
 
     try {
-      let url = 'http://127.0.0.1:8000';
+      let url = 'http://127.0.0.1:8000/auth';
       let payload = {};
-
+      var response = 0;
+      if (this.action === 'signin') {
+        url += '/login';
+        payload = new URLSearchParams();
+        payload.append("username", this.email);
+        payload.append("password", this.password);
+          response = await fetch(url, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded'
+          },
+          body: payload
+        });
+      }
       if (this.action === 'signup') {
         url += '/signup';
         payload = {
@@ -134,22 +152,15 @@
           password: this.password,
           role: this.selectedRole
         };
-      } else if (this.action === 'signin') {
-        url += '/signin';
-        payload = {
-          email: this.email,
-          password: this.password
-        };
-      }
-
-      const response = await fetch(url, {
+        response = await fetch(url, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
         },
         body: JSON.stringify(payload)
       });
-
+      }
+      
       const data = await response.json();
 
       if (response.ok) {
@@ -201,6 +212,7 @@
 }
 
   .container {
+    position: relative;
     background-color: #007BA5;
     background-size: cover;
     height: 100vh;
@@ -345,5 +357,30 @@ button:hover {
   position: absolute;
   bottom: 20px;
   color: #fff;
+}
+.oauth-button {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  padding: 10px 20px;
+  background-color: #4285f4;
+  color: white;
+  text-decoration: none;
+  border-radius: 4px;
+  font-size: 14px;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.oauth-button:hover {
+  background-color: #357abd;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+  transform: translateY(-1px);
+}
+
+.oauth-button:active {
+  transform: translateY(0);
 }
 </style>
