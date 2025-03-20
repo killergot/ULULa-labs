@@ -27,36 +27,8 @@ async def login_for_access_token(
         form_data: OAuth2PasswordRequestForm = Depends(),
         db: Session = Depends(get_db)
 ):
-    # Ищем пользователя по email
-    user = db.query(User).filter(User.email == form_data.username).first()
+    return UserService.login_pass(form_data, db)
 
-    # Проверяем пароль (рекомендуется добавить хеширование!)
-    if not user or user.password != form_data.password:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Неверный email или пароль",
-        )
-
-    # Создаем JWT токен и сессию
-    access_token = create_access_token(str(user.id))
-    expires_at = datetime.utcnow() + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
-
-    try:
-        session = UserSession(
-            user_id=user.id,
-            token=access_token,
-            expires_at=expires_at
-        )
-        db.add(session)
-        db.commit()
-    except Exception as e:
-        db.rollback()
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=str(e) + 'Какая-то ошибка при добавлении сессии пользователя в BD'
-        )
-
-    return {"access_token": access_token, "token_type": "bearer"}
 
 @router.get("/login_oauth")
 async def login_oauth(request: Request):
@@ -66,41 +38,7 @@ async def login_oauth(request: Request):
 @router.get("/callback")
 async def auth_callback(request: Request,
                         db: Session = Depends(get_db)):
-    try:
-        print("Авторизация началась...")
-        token = await oauth.yandex.authorize_access_token(request)
-        print(f"Полученный токен: {token}")
-
-        userinfo = await oauth.yandex.get("https://login.yandex.ru/info", token=token)
-        user_data = userinfo.json()
-        print(f"Информация о пользователе: {user_data}")
-        user = UserCreate(
-            email=user_data["default_email"],
-            auth_provider='yandex',
-            provider_id='yandex'
-        )
-        UserService.create_user(db, user)
-        user = db.query(User).filter(User.email == user_data["default_email"]).first()
-        print(f'{user.id =}')
-        try:
-            session = UserSession(
-                user_id= user.id,
-                token=token['access_token'],
-                expires_at=datetime.fromtimestamp(token['expires_at'])
-            )
-            db.add(session)
-            db.commit()
-        except Exception as e:
-            print('Тут какая-то поломка', e)
-            db.rollback()
-            raise HTTPException(
-                status_code=500,
-                detail=str(e) + 'Какая-то ошибка при добавлении сессии пользователя в BD'
-            )
-        return {"access_token": token, "user_data": user_data}
-    except Exception as e:
-        print(e)
-        raise HTTPException(status_code=400, detail="Ошибкаdsfds авторизации")
+    return UserService.auth_callback(request,db)
 
 @router.post("/logout")
 async def logout(
