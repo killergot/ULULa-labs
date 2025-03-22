@@ -12,7 +12,7 @@ from app.services.oauth import oauth
 from app.services.jwt import create_access_token, ACCESS_TOKEN_EXPIRE_MINUTES, get_current_user, oauth2_scheme
 from app.services.oauth import REDIRECT_URI
 from app.shemas.auth import UserCreate, UserResponse, Token
-from app.database.crud.auth import UserService
+from app.crud.auth import UserService
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
