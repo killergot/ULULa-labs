@@ -15,7 +15,7 @@ class User(Base):
     role: Mapped[str] = mapped_column(String(50), default='user', nullable=False)  # Роль пользователя
     is_active: Mapped[bool] = mapped_column(Boolean, default=False)  # Подтверждение email
     auth_provider: Mapped[str] = mapped_column(String(50), nullable=True)  # Провайдер OAuth
-    provider_id: Mapped[str] = mapped_column(String(255), unique=True, nullable=True)  # ID у провайдера OAuth
+    provider_id: Mapped[str] = mapped_column(String(255), nullable=True)  # ID у провайдера OAuth
     is_2fa_enabled: Mapped[bool] = mapped_column(Boolean, default=False)  # Флаг двухфакторной аутентификации
     two_factor_secret: Mapped[str] = mapped_column(Text, nullable=True)  # Секрет для TOTP (Google Authenticator)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)

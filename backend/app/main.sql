@@ -8,7 +8,7 @@ CREATE TABLE users (
     role VARCHAR(50) NOT NULL DEFAULT 'user',  -- Роль пользователя (например, user, admin)
     is_active BOOLEAN DEFAULT FALSE,           -- Подтверждение email
     auth_provider VARCHAR(50) NULL,            -- Название OAuth-провайдера (google, github и т.д.)
-    provider_id VARCHAR(255) NULL UNIQUE,      -- ID пользователя у OAuth-провайдера
+    provider_id VARCHAR(255) NULL,      -- ID пользователя у OAuth-провайдера
     is_2fa_enabled BOOLEAN DEFAULT FALSE,       -- Флаг включенной двухфакторной аутентификации
     two_factor_secret TEXT,                    -- Секрет для TOTP (например, для Google Authenticator)
     created_at TIMESTAMP DEFAULT now(),

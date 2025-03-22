@@ -22,14 +22,6 @@ class UserService:
                 detail="Email already registered"
             )
 
-        # Проверка уникальности provider_id для OAuth
-        if user.provider_id:
-            if db.query(User).filter(User.provider_id == user.provider_id).first():
-                raise HTTPException(
-                    status_code=status.HTTP_400_BAD_REQUEST,
-                    detail="Provider ID already exists"
-                )
-
         # Создание объекта пользователя
         db_user = User(**user.model_dump())
 

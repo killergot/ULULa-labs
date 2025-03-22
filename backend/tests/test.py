@@ -8,8 +8,8 @@ import os
 app = FastAPI()
 app.add_middleware(SessionMiddleware, secret_key="ed824e2aeb61264270ace597e10bb55f")
 # Настройки OAuth2 для Mail.ru
-MAILRU_CLIENT_ID = "a9e81891c8c742dc8cf988a6816424a6"
-MAILRU_CLIENT_SECRET = "12d4e2b6f8874a88aba7245116071425"
+MAILRU_CLIENT_ID = "1111"
+MAILRU_CLIENT_SECRET = "1111"
 REDIRECT_URI = "http://localhost:8000/auth/callback"
 
 oauth = OAuth()
