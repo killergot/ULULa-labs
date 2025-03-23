@@ -15,6 +15,7 @@ class DB:
 class Config:
     database: DB
     yandex_secret: str
+    jwt_secret: str
 
 
 
@@ -26,4 +27,5 @@ def load_config(path: Optional[str] = None) -> Config:
                           DB_HOST=env('DB_HOST'),
                           DB_USER=env('DB_USER'),
                           DB_PASS=str(env('DB_PASS'))),
-                  yandex_secret = env('YANDEX_SECRET'))
+                  yandex_secret = env('YANDEX_SECRET'),
+                  jwt_secret = env('JWT_SECRET'))
