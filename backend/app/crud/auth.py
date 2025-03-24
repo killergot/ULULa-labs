@@ -21,7 +21,7 @@ class UserService:
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail="Email already registered"
             )
-
+        user.password = sha256(user.password.encode()).hexdigest()
         # Создание объекта пользователя
         db_user = User(**user.model_dump())
 
@@ -44,7 +44,8 @@ class UserService:
         user = db.query(User).filter(User.email == form_data.username).first()
 
         # Проверяем пароль (рекомендуется добавить хеширование!)
-        if not user or user.password != form_data.password:
+
+        if not user or user.password != sha256(form_data.password.encode()).hexdigest():
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="Неверный email или пароль",
