@@ -41,5 +41,9 @@ class Token(BaseModel):
     access_token: str
     token_type: str
 
+class TwoFactorRequest(BaseModel):
+    session_token: str
+    detail: str = "2FA required. Check your email."
+
 class TokenData(BaseModel):
     user_id: Optional[str] = None
