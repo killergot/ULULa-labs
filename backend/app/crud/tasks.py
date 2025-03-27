@@ -13,6 +13,17 @@ from hashlib import sha256
 class TaskService:
 
     @classmethod
+    def read_task(cls,db: Session, id: int):
+        # Создание задачи
+            task = db.query(Task).filter(Task.task_id==id).first()
+            if not task:
+                raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Task not exist"
+            )
+            return task
+
+    @classmethod
     def create_task(cls,db: Session, id: UUID, deadline: Date,  description: str):
         # Создание задачи
             db_task = Task(user_id=id, deadline=deadline, description=description)
@@ -31,25 +42,24 @@ class TaskService:
     
     @classmethod
     def delete_task(cls,db: Session, id: int):
-        # Создание задачи
-            db_task = Task(user_id=id, deadline=deadline, description=description)
+            task = db.query(Task).filter(Task.task_id==id).first()
+            if not task:
+                raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Task not exist"
+            )
             try:
-                db.add(db_task)
+                db.delete(task)
                 db.commit()
-                db.refresh(db_task)
+                return {"Result:" "Success delete"}
             except Exception as e:
                 db.rollback()
-                raise HTTPException(
-                    status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                    detail=str(e)
-                )
-
-            return db_task
+                raise e
     
 
     @classmethod
     def update_task(cls,db: Session, id: int, deadline: Date,  description: str):
-        existing_task = db.query(Task).filter(Task.id == id).first()
+        existing_task = db.query(Task).filter(Task.task_id == id).first()
         db_task = Task(task_id=id)
         if existing_task:
             # Студент с таким ID уже существует, обновляем group_number

@@ -13,7 +13,7 @@ from crud.schedule import ScheduleService
 router = APIRouter(prefix="/schedule", tags=["schedule"])
 
 @router.post("/add_schadule", response_model=None, status_code=status.HTTP_201_CREATED)
-async def create_student(group_number: str, week_number: int,
+async def create_chedule(group_number: str, week_number: int,
                         monday: dict | None = None,
                         tuesday: dict | None = None,
                         wednesday: dict | None = None,
@@ -46,9 +46,35 @@ async def create_student(group_number: str, week_number: int,
         )
     
 
+@router.get("/read_schedule")
+async def read_schedule(group_number: str, week_number: int, db: Session = Depends(get_db)):
+    try:
+        schedule = ScheduleService.is_schedule_exist(db, group_number, week_number)
+    except HTTPException as e:
+        raise HTTPException(status_code=404, detail="Schedule not found")
+    if schedule: 
+        response_data = {
+        "group_number": schedule.group_number,
+        "week_number": schedule.week_number,
+        "monday": schedule.monday,
+        "tuesday": schedule.tuesday,
+        "wednesday": schedule.wednesday,
+        "thursday": schedule.thursday,
+        "friday": schedule.friday,
+        "saturday": schedule.saturday,
+        "sunday": schedule.sunday
+            }
+    else: 
+        response_data = {
+            "Result: this schedule not exist(("
+        }
+    return response_data
 
-@router.post("/update_schadule", response_model=None, status_code=status.HTTP_201_CREATED)
-async def create_student(group_number: str, week_number: int,
+
+
+
+@router.patch("/update_schadule", response_model=None, status_code=status.HTTP_201_CREATED)
+async def update_schedule(group_number: str, week_number: int,
                         monday: dict | None = None,
                         tuesday: dict | None = None,
                         wednesday: dict | None = None,
@@ -79,3 +105,13 @@ async def create_student(group_number: str, week_number: int,
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=str(e)
         )
+    
+
+    
+@router.delete("/del_schedule")
+async def delete_schedule(group_number: str, week_number: int, db: Session = Depends(get_db)):
+    try:
+        ScheduleService.delete_schedule(db, group_number, week_number)
+    except HTTPException as e:
+        raise HTTPException(status_code=404, detail= "Schedule not found")
+    return {"message": "Schedule deleted successfully"}
