@@ -211,8 +211,11 @@ async handleSubmit() {
 
       // отображение окна ввода кода двухфакторной аутентификации, надо сделать работу с сервером
       if (this.action === 'signin') {
+        if (data.session_token) {
+          // Сохраняем токен в localStorage
+          localStorage.setItem('session_token', data.session_token);
+        }
         this.showTwoFactor = true;
-
       }
 
     } else {
@@ -236,8 +239,16 @@ async handleSubmit() {
   },
 
   // проверка кода двухфакторной аутентификации (сделала для примера)
-  verifyTwoFactorCode() {
-    if (this.twoFactorCode === "123456") {
+  async verifyTwoFactorCode() {
+    const sessionToken = localStorage.getItem('session_token');
+    const formData = new FormData();
+    formData.append('session_token', sessionToken);
+    formData.append('code', this.twoFactorCode);
+    const response = await fetch('http://127.0.0.1:8000/auth/verify-2fa', {
+    method: 'POST',
+    body: formData
+  });
+  if (response.ok) {
       this.showTwoFactor = false;
       this.twoFactorCode = '';
       this.messageText = 'Two-factor authentication passed!';
@@ -254,8 +265,6 @@ async handleSubmit() {
       this.showMessage = false;
       this.messageText = '';
     }
-
-
 }
 };
 </script>
