@@ -137,7 +137,9 @@ class UserService:
             print(f"Полученный токен: {token}")
 
             userinfo = await oauth.yandex.get("https://login.yandex.ru/info", token=token)
+            print(1)
             user_data = userinfo.json()
+            print(2)
             print(f"Информация о пользователе: {user_data}")
             user = UserCreate(
                 email=user_data["default_email"],

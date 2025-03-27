@@ -20,7 +20,7 @@ async def send_2fa_email(email: str, code: str):
     SMTP_PASSWORD = config.smtp.PASS
 
     msg = MIMEText(f"Your verification code: {code}")
-    msg["Subject"] = "Your 2FA Code"
+    msg["Subject"] = "ULULa manager BUGAGA"
     msg["From"] = SMTP_USER
     msg["To"] = email
 
