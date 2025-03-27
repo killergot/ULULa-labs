@@ -7,9 +7,9 @@ from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
 from starlette.requests import Request
 from uuid import UUID, uuid4
-from database.models.schedule import Schedule
-from database.psql import get_db
-from crud.schedule import ScheduleService
+from app.database.models.schedule import Schedule
+from app.database.psql import get_db
+from app.crud.schedule import ScheduleService
 
 router = APIRouter(prefix="/schedule", tags=["schedule"])
 

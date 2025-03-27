@@ -6,9 +6,9 @@ from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
 from starlette.requests import Request
 from uuid import UUID, uuid4
-from database.models.tasks import Task
-from database.psql import get_db
-from crud.tasks import TaskService
+from app.database.models.tasks import Task
+from app.database.psql import get_db
+from app.crud.tasks import TaskService
 
 router = APIRouter(prefix="/tasks", tags=["Tasks"])
 

@@ -6,9 +6,9 @@ from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
 from starlette.requests import Request
 from uuid import UUID, uuid4
-from database.models.students import Student
-from database.psql import get_db
-from crud.students import StudentService
+from app.database.models.students import Student
+from app.database.psql import get_db
+from app.crud.students import StudentService
 
 router = APIRouter(prefix="/students", tags=["students"])
 
