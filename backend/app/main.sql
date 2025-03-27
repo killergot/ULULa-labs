@@ -1,5 +1,3 @@
-
-
 -- 1. Таблица пользователей (users)
 CREATE TABLE users (
     id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
@@ -14,6 +12,51 @@ CREATE TABLE users (
     created_at TIMESTAMP DEFAULT now(),
     updated_at TIMESTAMP DEFAULT now()
 );
+
+CREATE TABLE users (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    email VARCHAR(255) NOT NULL UNIQUE,
+    password TEXT,
+    role VARCHAR(50) NOT NULL DEFAULT 'user',
+    is_active BOOLEAN NOT NULL DEFAULT FALSE,
+    auth_provider VARCHAR(50),
+    provider_id VARCHAR(255),
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Создание таблицы для хранения кодов двухфакторной аутентификации
+CREATE TABLE two_factor_codes (
+    id SERIAL PRIMARY KEY,
+    user_id UUID NOT NULL,
+    code VARCHAR(6) NOT NULL,
+    expires_at TIMESTAMP NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT fk_two_factor_codes_user
+        FOREIGN KEY (user_id)
+        REFERENCES users(id)
+        ON DELETE CASCADE
+);
+
+-- Создание индекса для ускорения поиска по user_id
+CREATE INDEX idx_two_factor_codes_user_id ON two_factor_codes(user_id);
+
+-- Создание таблицы для хранения временных сессий ожидания 2FA
+CREATE TABLE pending_2fa_sessions (
+    session_token VARCHAR(36) PRIMARY KEY,
+    user_id UUID NOT NULL,
+    expires_at TIMESTAMP NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT fk_pending_2fa_sessions_user
+        FOREIGN KEY (user_id)
+        REFERENCES users(id)
+        ON DELETE CASCADE
+);
+
+-- Создание индекса для ускорения поиска по user_id
+CREATE INDEX idx_pending_2fa_sessions_user_id ON pending_2fa_sessions(user_id);
 
 -- 2. Таблица сессий (user_sessions)
 CREATE TABLE user_sessions (

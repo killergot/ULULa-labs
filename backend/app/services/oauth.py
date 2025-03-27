@@ -1,7 +1,10 @@
 from authlib.integrations.starlette_client import OAuth
+from app.config.config import load_config
+
+config = load_config()
 
 YANDEX_CLIENT_ID = "a9e81891c8c742dc8cf988a6816424a6"
-YANDEX_CLIENT_SECRET = "12d4e2b6f8874a88aba7245116071425"
+YANDEX_CLIENT_SECRET = config.yandex_secret
 REDIRECT_URI = "http://localhost:8000/auth/callback"
 
 oauth = OAuth()

@@ -1,6 +1,6 @@
 from datetime import datetime, timedelta
 
-from fastapi import Depends, HTTPException,status
+from fastapi import Depends, HTTPException, status, BackgroundTasks, Form
 from fastapi.routing import APIRouter
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
@@ -11,7 +11,7 @@ from app.database.psql import get_db
 from app.services.oauth import oauth
 from app.services.jwt import create_access_token, ACCESS_TOKEN_EXPIRE_MINUTES, get_current_user, oauth2_scheme
 from app.services.oauth import REDIRECT_URI
-from app.shemas.auth import UserCreate, UserResponse, Token
+from app.shemas.auth import UserCreate, Token, TwoFactorRequest, UserResponse
 from app.crud.auth import UserService
 
 router = APIRouter(prefix="/auth", tags=["auth"])
@@ -22,13 +22,21 @@ async def create_user(user: UserCreate, db: Session = Depends(get_db)):
     return UserService.create_user(db, user)
 
 
-@router.post("/login", response_model=Token)
+@router.post("/login", response_model=TwoFactorRequest)
 async def login_for_access_token(
+        background_tasks: BackgroundTasks,
         form_data: OAuth2PasswordRequestForm = Depends(),
         db: Session = Depends(get_db)
 ):
-    return UserService.login_pass(form_data, db)
+    return UserService.login_pass(form_data, db, background_tasks)
 
+@router.post("/verify-2fa", response_model=Token)
+async def verify(
+        session_token: str = Form(...),
+        code: str = Form(...),
+        db: Session = Depends(get_db)
+):
+    return UserService.verify_2fa(session_token,code,db)
 
 @router.get("/login_oauth")
 async def login_oauth(request: Request):
