@@ -7,6 +7,7 @@ from services.jwt import create_access_token, ACCESS_TOKEN_EXPIRE_MINUTES
 from services.oauth import oauth
 from shemas.auth import UserCreate
 from hashlib import sha256
+from typing import Optional
 
 class ScheduleService:
     @classmethod
@@ -15,13 +16,13 @@ class ScheduleService:
 
     @classmethod
     def create_schedule(cls,db: Session, group_number: str, week_number: int,
-                        monday: dict | None = None,
-                        tuesday: dict | None = None,
-                        wednesday: dict | None = None,
-                        thursday: dict | None = None,
-                        friday: dict | None = None,
-                        saturday: dict | None = None,
-                        sunday: dict | None = None):
+                        monday: Optional[dict] = None,
+                        tuesday: Optional[dict] = None,
+                        wednesday: Optional[dict] = None,
+                        thursday: Optional[dict] = None,
+                        friday: Optional[dict] = None,
+                        saturday: Optional[dict] = None,
+                        sunday: Optional[dict] = None):
         if cls.is_schedule_exist(db, group_number, week_number):
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
@@ -51,13 +52,13 @@ class ScheduleService:
     @classmethod
     #добавить логику изменения при отсутствующих параметрах???
     def update_schedule(cls,db: Session, group_number: str, week_number: int,
-                        monday: dict | None = None,
-                        tuesday: dict | None = None,
-                        wednesday: dict | None = None,
-                        thursday: dict | None = None,
-                        friday: dict | None = None,
-                        saturday: dict | None = None,
-                        sunday: dict | None = None):
+                        monday: Optional[dict] = None,
+                        tuesday: Optional[dict] = None,
+                        wednesday: Optional[dict] = None,
+                        thursday: Optional[dict] = None,
+                        friday: Optional[dict] = None,
+                        saturday: Optional[dict] = None,
+                        sunday: Optional[dict] = None):
         existing_schedule = cls.is_schedule_exist(db, group_number, week_number)
         if existing_schedule:
             existing_schedule.monday=monday
