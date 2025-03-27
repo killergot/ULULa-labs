@@ -10,12 +10,19 @@ class DB:
     DB_USER : str
     DB_PASS : str
 
+@dataclass
+class SMTP:
+    USER : str
+    PASS : str
+
 
 @dataclass
 class Config:
     database: DB
     yandex_secret: str
     jwt_secret: str
+    smtp: SMTP
+
 
 
 
@@ -28,4 +35,8 @@ def load_config(path: Optional[str] = None) -> Config:
                           DB_USER=env('DB_USER'),
                           DB_PASS=str(env('DB_PASS'))),
                   yandex_secret = env('YANDEX_SECRET'),
-                  jwt_secret = env('JWT_SECRET'))
+                  jwt_secret = env('JWT_SECRET'),
+                  smtp = SMTP(
+                      USER=env('SMTP_USER'),
+                      PASS=env('SMTP_PASS')
+                  ))

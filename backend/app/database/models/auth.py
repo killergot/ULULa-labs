@@ -16,8 +16,6 @@ class User(Base):
     is_active: Mapped[bool] = mapped_column(Boolean, default=False)  # Подтверждение email
     auth_provider: Mapped[str] = mapped_column(String(50), nullable=True)  # Провайдер OAuth
     provider_id: Mapped[str] = mapped_column(String(255), nullable=True)  # ID у провайдера OAuth
-    is_2fa_enabled: Mapped[bool] = mapped_column(Boolean, default=False)  # Флаг двухфакторной аутентификации
-    two_factor_secret: Mapped[str] = mapped_column(Text, nullable=True)  # Секрет для TOTP (Google Authenticator)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
     updated_at: Mapped[datetime] = mapped_column(DateTime, onupdate=datetime.utcnow)
 
@@ -26,7 +24,10 @@ class User(Base):
     password_resets: Mapped[list["PasswordReset"]] = relationship("PasswordReset", back_populates="user", cascade="all, delete-orphan")
     oauth_accounts: Mapped[list["OAuthAccount"]] = relationship("OAuthAccount", back_populates="user", cascade="all, delete-orphan")
     oauth_tokens: Mapped[list["OAuthToken"]] = relationship("OAuthToken", back_populates="user", cascade="all, delete-orphan")
-    two_factor_codes: Mapped[list["TwoFactorCode"]] = relationship("TwoFactorCode", back_populates="user", cascade="all, delete-orphan")
+    two_factor_codes: Mapped[list["TwoFactorCode"]] = relationship("TwoFactorCode", back_populates="user",
+                                                                   cascade="all, delete-orphan")
+    pending_2fa_sessions: Mapped[list["Pending2FASession"]] = relationship("Pending2FASession", back_populates="user",
+                                                                           cascade="all, delete-orphan")
 
 
 # Модель сессий пользователей (user_sessions)
@@ -83,14 +84,24 @@ class OAuthToken(Base):
     user: Mapped["User"] = relationship("User", back_populates="oauth_tokens")
 
 
-# Модель для двухфакторной аутентификации (например, временные коды)
 class TwoFactorCode(Base):
-    __tablename__ = 'two_factor_codes'
+    __tablename__ = "two_factor_codes"
 
-    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    user_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey('users.id', ondelete='CASCADE'), nullable=False)
-    code: Mapped[str] = mapped_column(String(6), nullable=False)  # Временный код для 2FA
-    expires_at: Mapped[datetime] = mapped_column(DateTime, nullable=False)  # Время, когда код истечет
-    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(UUID(as_uuid=True), ForeignKey("users.id"))
+    code = Column(String(6))
+    expires_at = Column(DateTime)
+    created_at = Column(DateTime, default=datetime.utcnow)
 
-    user: Mapped["User"] = relationship("User", back_populates="two_factor_codes")
+    user = relationship("User", back_populates="two_factor_codes")
+
+
+class Pending2FASession(Base):
+    __tablename__ = "pending_2fa_sessions"
+
+    session_token = Column(String(36), primary_key=True)
+    user_id = Column(UUID(as_uuid=True), ForeignKey("users.id"))
+    expires_at = Column(DateTime)
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+    user = relationship("User", back_populates="pending_2fa_sessions")
