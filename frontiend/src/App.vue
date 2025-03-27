@@ -210,7 +210,10 @@ async handleSubmit() {
       alert(`Success: ${data.message}`);
 
       // отображение окна ввода кода двухфакторной аутентификации, надо сделать работу с сервером
-      this.showTwoFactor = true;
+      if (this.action === 'signin') {
+        this.showTwoFactor = true;
+
+      }
 
     } else {
       alert(`Error: ${data.message}`);
