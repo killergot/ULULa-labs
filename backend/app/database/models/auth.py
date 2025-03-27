@@ -1,10 +1,10 @@
 from sqlalchemy import Column, String, Integer, Boolean, ForeignKey, Text, TIMESTAMP, DateTime
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship, Mapped, mapped_column
-from app.database.psql import Base
+from database.psql import Base
 import uuid
 from datetime import datetime
-
+#from database.models.students import Student
 # Модель пользователей (users)
 class User(Base):
     __tablename__ = 'users'
@@ -22,6 +22,8 @@ class User(Base):
     updated_at: Mapped[datetime] = mapped_column(DateTime, onupdate=datetime.utcnow)
 
     # Определение отношений
+    students: Mapped[list["database.models.students.Student"]] = relationship("database.models.students.Student", back_populates="user", cascade="all, delete-orphan")
+    tasks: Mapped[list["database.models.tasks.Task"]] = relationship("database.models.tasks.Task", back_populates="user", cascade="all, delete-orphan")
     sessions: Mapped[list["UserSession"]] = relationship("UserSession", back_populates="user", cascade="all, delete-orphan")
     password_resets: Mapped[list["PasswordReset"]] = relationship("PasswordReset", back_populates="user", cascade="all, delete-orphan")
     oauth_accounts: Mapped[list["OAuthAccount"]] = relationship("OAuthAccount", back_populates="user", cascade="all, delete-orphan")

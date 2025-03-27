@@ -2,10 +2,10 @@ from datetime import datetime, timedelta
 
 from fastapi import HTTPException,status
 from sqlalchemy.orm import Session
-from app.database.models.auth import User, UserSession
-from app.services.jwt import create_access_token, ACCESS_TOKEN_EXPIRE_MINUTES
-from app.services.oauth import oauth
-from app.shemas.auth import UserCreate
+from database.models.auth import User, UserSession
+from services.jwt import create_access_token, ACCESS_TOKEN_EXPIRE_MINUTES
+from services.oauth import oauth
+from shemas.auth import UserCreate
 from hashlib import sha256
 
 class UserService:

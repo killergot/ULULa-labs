@@ -6,13 +6,13 @@ from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
 from starlette.requests import Request
 
-from app.database.models.auth import User, UserSession
-from app.database.psql import get_db
-from app.services.oauth import oauth
-from app.services.jwt import create_access_token, ACCESS_TOKEN_EXPIRE_MINUTES, get_current_user, oauth2_scheme
-from app.services.oauth import REDIRECT_URI
-from app.shemas.auth import UserCreate, UserResponse, Token
-from app.crud.auth import UserService
+from database.models.auth import User, UserSession
+from database.psql import get_db
+from services.oauth import oauth
+from services.jwt import create_access_token, ACCESS_TOKEN_EXPIRE_MINUTES, get_current_user, oauth2_scheme
+from services.oauth import REDIRECT_URI
+from shemas.auth import UserCreate, UserResponse, Token
+from crud.auth import UserService
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
