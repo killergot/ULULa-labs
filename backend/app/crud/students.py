@@ -9,6 +9,11 @@ from app.shemas.auth import UserCreate
 from hashlib import sha256
 
 class StudentService:
+    @classmethod
+    def is_student_exist(cls,db: Session, id: UUID):
+                student =  db.query(Student).filter(Student.id == id).first()
+                return student
+            
 
     @classmethod
     def create_student(cls,db: Session, id: UUID, group_number: str):
@@ -42,3 +47,31 @@ class StudentService:
                 )
 
             return db_student
+
+
+    @classmethod
+    def read_student(cls,db: Session, id: UUID, group_number: str):
+        # Создание объекта пользователя
+        existing_student = db.query(Student).filter(Student.id == id).first()
+        if existing_student:
+            # Студент с таким ID уже существует, обновляем group_number
+            return existing_student
+        else:
+            return {"Result:": "student not found"}
+
+
+
+    @classmethod
+    def delete_student(cls,db: Session, id: UUID):
+        # Создание объекта пользователя
+        existing_student = db.query(Student).filter(Student.id == id).first()
+        if existing_student:
+            try:
+                db.delete(existing_student)
+                db.commit()
+                return {"Result:" "Success delete"}
+            except Exception as e:
+                db.rollback()
+                raise e
+        else:
+            return {"Result:": "Student not found"}

@@ -84,3 +84,25 @@ class ScheduleService:
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail="Schedule not registered yet"
             )
+        
+
+    @classmethod
+    #добавить логику изменения при отсутствующих параметрах???
+    def delete_schedule(cls,db: Session, group_number: str, week_number: int):
+        existing_schedule = cls.is_schedule_exist(db, group_number, week_number)
+        if existing_schedule:
+            try:
+                db.delete(existing_schedule)
+                db.commit()  # Commit without add() when updating
+                return {"Result:" "Success delete"}
+            except Exception as e:
+                db.rollback()
+                raise HTTPException(
+                    status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                    detail=str(e)
+                )
+        else:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Schedule not registered yet"
+            )
