@@ -1,7 +1,8 @@
 from sqlalchemy import Column, String, Integer, Boolean, ForeignKey, Text, TIMESTAMP, DateTime, Date
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship, Mapped, mapped_column
-from database.psql import Base
+from app.database.psql import Base
+from sqlalchemy.orm import configure_mappers
 import uuid
 from datetime import datetime
 
@@ -28,4 +29,4 @@ class Task(Base):
     )
 
     # Опциональная связь с пользователем
-    user: Mapped["database.models.auth.User"] = relationship("database.models.auth.User", back_populates="tasks")
+    user: Mapped["app.database.models.auth.User"] = relationship("app.database.models.auth.User", back_populates="tasks")

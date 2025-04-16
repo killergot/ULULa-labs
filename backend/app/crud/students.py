@@ -2,10 +2,10 @@ from datetime import datetime, timedelta
 from sqlalchemy.dialects.postgresql import UUID
 from fastapi import HTTPException,status
 from sqlalchemy.orm import Session
-from database.models.students import Student
-from services.jwt import create_access_token, ACCESS_TOKEN_EXPIRE_MINUTES
-from services.oauth import oauth
-from shemas.auth import UserCreate
+from app.database.models.students import Student
+from app.services.jwt import create_access_token, ACCESS_TOKEN_EXPIRE_MINUTES
+from app.services.oauth import oauth
+from app.shemas.auth import UserCreate
 from hashlib import sha256
 
 class StudentService:
@@ -13,7 +13,11 @@ class StudentService:
     def is_student_exist(cls,db: Session, id: UUID):
                 student =  db.query(Student).filter(Student.id == id).first()
                 return student
-            
+
+    @classmethod
+    def read_groups(cls, db:Session):
+        group = db.query(Student.group_number).all()
+        return group
 
     @classmethod
     def create_student(cls,db: Session, id: UUID, group_number: str):

@@ -2,15 +2,23 @@ from datetime import datetime, timedelta
 
 from fastapi import Depends, HTTPException,status
 from fastapi.routing import APIRouter
-from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
-from starlette.requests import Request
-from uuid import UUID, uuid4
-from database.models.schedule import Schedule
-from database.psql import get_db
-from crud.schedule import ScheduleService
+from app.database.models.schedule import Schedule
+from app.database.psql import get_db
+from app.crud.schedule import ScheduleService
+from app.services.get_schedule import load_schedule_for_group, load_all_schedule
 
 router = APIRouter(prefix="/schedule", tags=["schedule"])
+
+
+@router.get("/load_schedule")
+async def load_schedule():
+    try:
+        load_all_schedule()
+    except Exception as e:
+        return {"Error when load schedule: ", e}
+    return {"Result": "schedule was successfully load"}
+
 
 @router.post("/add_schadule", response_model=None, status_code=status.HTTP_201_CREATED)
 async def create_chedule(group_number: str, week_number: int,

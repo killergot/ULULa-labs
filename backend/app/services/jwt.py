@@ -4,9 +4,9 @@ from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from jose import JWTError, jwt
 from sqlalchemy.orm import Session
 
-from database.models.auth import User, UserSession
-from database.psql import get_db
-from config.config import load_config
+from app.database.models.auth import User, UserSession
+from app.database.psql import get_db
+from app.config.config import load_config
 
 config = load_config()
 

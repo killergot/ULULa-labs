@@ -3,7 +3,7 @@ from sqlalchemy import Column, String, Integer, Boolean, ForeignKey, Text, TIMES
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.types import JSON
 from sqlalchemy.orm import relationship, Mapped, mapped_column
-from database.psql import Base
+from app.database.psql import Base
 import uuid
 from datetime import datetime
 
@@ -18,6 +18,7 @@ from datetime import datetime
 
 class Schedule(Base):
     __tablename__ = 'schedule'
+    __table_args__ = {"extend_existing": True}
     #from database.models.auth import User
     group_number: Mapped[str] = mapped_column(String(20),  ForeignKey('students.group_number', ondelete='CASCADE'), primary_key=True)
     week_number: Mapped[int] = mapped_column(Integer, primary_key=True)
@@ -32,4 +33,4 @@ class Schedule(Base):
     updated_at: Mapped[datetime] = mapped_column(DateTime, onupdate=datetime.utcnow)
 
 
-    students: Mapped["database.models.students.Student"] = relationship("database.models.students.Student", back_populates="schedule")  # type: ignore
+    students: Mapped["app.database.models.students.Student"] = relationship("app.database.models.students.Student", back_populates="schedule")  # type: ignore

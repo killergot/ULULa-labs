@@ -2,7 +2,7 @@
 from sqlalchemy import Column, String, Integer, Boolean, ForeignKey, Text, TIMESTAMP, DateTime
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship, Mapped, mapped_column
-from database.psql import Base
+from app.database.psql import Base
 import uuid
 from datetime import datetime
 
@@ -21,4 +21,4 @@ class Student(Base):
 
 
     user: Mapped["database.models.auth.User"] = relationship("database.models.auth.User", back_populates="students")  # type: ignore
-    schedule: Mapped["database.models.schedule.Schedule"] = relationship("database.models.schedule.Schedule", back_populates="students")  
+    schedule: Mapped["app.database.models.schedule.Schedule"] = relationship("app.database.models.schedule.Schedule", back_populates="students")
