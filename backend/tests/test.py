@@ -6,7 +6,7 @@ from starlette.responses import RedirectResponse
 import os
 
 app = FastAPI()
-app.add_middleware(SessionMiddleware, secret_key="ed824e2aeb61264270ace597e10bb55f")
+app.add_middleware(SessionMiddleware, secret_key="1111")
 # Настройки OAuth2 для Mail.ru
 MAILRU_CLIENT_ID = "1111"
 MAILRU_CLIENT_SECRET = "1111"

@@ -2,11 +2,20 @@ from datetime import datetime, timedelta
 
 from fastapi import Depends, HTTPException,status
 from fastapi.routing import APIRouter
+from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
 from app.database.models.schedule import Schedule
 from app.database.psql import get_db
 from app.crud.schedule import ScheduleService
 from app.services.get_schedule import load_schedule_for_group, load_all_schedule
+from starlette.requests import Request
+from uuid import UUID, uuid4
+
+from typing_extensions import Optional
+
+from app.database.models.schedule import Schedule
+from app.database.psql import get_db
+from app.crud.schedule import ScheduleService
 
 router = APIRouter(prefix="/schedule", tags=["schedule"])
 
@@ -21,14 +30,14 @@ async def load_schedule():
 
 
 @router.post("/add_schadule", response_model=None, status_code=status.HTTP_201_CREATED)
-async def create_chedule(group_number: str, week_number: int,
-                        monday: dict | None = None,
-                        tuesday: dict | None = None,
-                        wednesday: dict | None = None,
-                        thursday: dict | None = None,
-                        friday: dict | None = None,
-                        saturday: dict | None = None,
-                        sunday: dict | None = None,
+async def create_student(group_number: str, week_number: int,
+                        monday: Optional[dict] = None,
+                        tuesday: Optional[dict] = None,
+                        wednesday: Optional[dict] = None,
+                        thursday: Optional[dict] = None,
+                        friday: Optional[dict] = None,
+                        saturday: Optional[dict] = None,
+                        sunday: Optional[dict] = None,
                         db: Session = Depends(get_db)) -> dict[str, any]:
     try:
         schedule = ScheduleService.create_schedule(db, group_number, week_number, monday, tuesday, wednesday, thursday, friday, saturday, sunday)
@@ -79,17 +88,15 @@ async def read_schedule(group_number: str, week_number: int, db: Session = Depen
     return response_data
 
 
-
-
-@router.patch("/update_schadule", response_model=None, status_code=status.HTTP_201_CREATED)
-async def update_schedule(group_number: str, week_number: int,
-                        monday: dict | None = None,
-                        tuesday: dict | None = None,
-                        wednesday: dict | None = None,
-                        thursday: dict | None = None,
-                        friday: dict | None = None,
-                        saturday: dict | None = None,
-                        sunday: dict | None = None,
+@router.post("/update_schadule", response_model=None, status_code=status.HTTP_201_CREATED)
+async def create_student(group_number: str, week_number: int,
+                        monday: Optional[dict] = None,
+                        tuesday: Optional[dict] = None,
+                        wednesday: Optional[dict] = None,
+                        thursday: Optional[dict] = None,
+                        friday: Optional[dict] = None,
+                        saturday: Optional[dict] = None,
+                        sunday: Optional[dict] = None,
                         db: Session = Depends(get_db)) -> dict[str, any]:
     try:
         schedule = ScheduleService.update_schedule(db, group_number, week_number, monday, tuesday, wednesday, thursday, friday, saturday, sunday)
@@ -113,9 +120,9 @@ async def update_schedule(group_number: str, week_number: int,
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=str(e)
         )
-    
 
-    
+
+
 @router.delete("/del_schedule")
 async def delete_schedule(group_number: str, week_number: int, db: Session = Depends(get_db)):
     try:
