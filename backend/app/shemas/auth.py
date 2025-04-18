@@ -1,15 +1,18 @@
-from pydantic import BaseModel, EmailStr, field_validator
+from pydantic import BaseModel, EmailStr, field_validator, Field
 from typing import Optional, Literal
 from datetime import datetime
-from uuid import UUID, uuid4
+from uuid import UUID
+
+MIN_LEN_PASS: int = 2
 
 class UserBase(BaseModel):
     email: EmailStr
-    role: Optional[str] = 'user'
+    role: int = 0
     auth_provider: Optional[Literal['google', 'facebook', 'github','yandex']] = None
     provider_id: Optional[str] = None
 
     @field_validator('provider_id')
+    @classmethod
     def check_provider(cls, v, values):
         if values.data.get('auth_provider') and not v:
             raise ValueError('provider_id required for OAuth')
@@ -17,33 +20,37 @@ class UserBase(BaseModel):
             raise ValueError('auth_provider required when provider_id is set')
         return v
 
+class UserIn(UserBase):
+    password: str =  Field(min_length=MIN_LEN_PASS,default=None)
 
-class UserCreate(UserBase):
-    password: Optional[str] = None
+class UserLogin(BaseModel):
+    email: EmailStr
+    password: str
 
-    @field_validator('password')
-    def check_password(cls, v, values):
-        if not v and not values.data.get('auth_provider'):
-            raise ValueError('Password is required for non-OAuth registration')
-        return v
+class UserUpdateIn(BaseModel):
+    id: UUID
+    password: str
 
 
-class UserResponse(UserBase):
+
+class UserOut(UserBase):
     id: UUID
     is_active: bool
     created_at: datetime
     updated_at: Optional[datetime]
 
-    class Config:
-        from_attributes = True  # Вместо orm_mode в Pydantic v2
+    model_config = {
+        'from_attributes': True
+    }
 
-class Token(BaseModel):
+class TokenOut(BaseModel):
     access_token: str
     token_type: str
 
-class TwoFactorRequest(BaseModel):
+    model_config = {
+        'from_attributes': True
+    }
+
+class TwoFactorOut(BaseModel):
     session_token: str
     detail: str = "2FA required. Check your email."
-
-class TokenData(BaseModel):
-    user_id: Optional[str] = None

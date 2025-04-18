@@ -15,11 +15,18 @@ class SecretKeys:
     jwt : str
     yandex : str
 
+@dataclass
+class SMTP:
+    user : str
+    password : str
 
 @dataclass
 class Config:
     database: DB
     secret_keys: SecretKeys
+    smtp: SMTP
+
+
 
 
 
@@ -32,4 +39,6 @@ def load_config(path: Optional[str] = None) -> Config:
                           user=env('DB_USER'),
                           password=str(env('DB_PASS'))),
                   secret_keys = SecretKeys(yandex = env('YANDEX_SECRET'),
-                          jwt = env('JWT_SECRET')))
+                          jwt = env('JWT_SECRET')),
+                  smtp=SMTP(user=env('SMTP_USER'),
+                            password=str(env('SMTP_PASS'))))

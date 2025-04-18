@@ -1,4 +1,4 @@
-from app.db.psql import AsyncSessionLocal
+from app.database.psql import AsyncSessionLocal
 
 
 async def get_db():

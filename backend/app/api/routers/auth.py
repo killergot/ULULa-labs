@@ -1,24 +1,22 @@
 from fastapi import Depends, status, HTTPException
 from fastapi.routing import APIRouter
 
-from sqlalchemy.ext.asyncio import AsyncSession
-
-from app.api.depencies.guard import require_role
 from app.api.depencies.services import get_auth_service
-from app.api.depencies.db import get_db
-from app.services.role_service import ADMIN_ROLE
+from app.database import create_db
 
 from app.shemas.user import UserOut, UserIn, UserLogin, UserSessionOut
 from app.services import AuthService
 
 router = APIRouter(prefix="/auth", tags=["authentication"])
 
+@router.post("/create_db")
+async def create():
+    await create_db()
+
 @router.post("/signup", response_model=UserOut,
-             status_code=status.HTTP_201_CREATED
-             ,dependencies=[Depends(require_role(ADMIN_ROLE))],
+             status_code=status.HTTP_201_CREATED,
              summary='Register a new user',
-             description='Create a new user in database. Requre email and password.\n'
-                         '- Only administrators can create new users.')
+             description='Create a new user in database. Requre email and password.\n')
 async def create_user(user: UserIn, service: AuthService = Depends(get_auth_service)):
     return await service.register(user)
 

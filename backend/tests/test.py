@@ -1,49 +1,43 @@
-from fastapi import FastAPI, Depends, HTTPException
-from authlib.integrations.starlette_client import OAuth
-from starlette.middleware.sessions import SessionMiddleware
-from starlette.requests import Request
-from starlette.responses import RedirectResponse
-import os
+import csv
+import random
 
-app = FastAPI()
-app.add_middleware(SessionMiddleware, secret_key="1111")
-# Настройки OAuth2 для Mail.ru
-MAILRU_CLIENT_ID = "1111"
-MAILRU_CLIENT_SECRET = "1111"
-REDIRECT_URI = "http://localhost:8000/auth/callback"
+# Списки для генерации
+first_names = [
+    "Алексей", "Михаил", "Иван", "Никита", "Дмитрий",
+    "Сергей", "Егор", "Артем", "Максим", "Олег",
+    "Александр", "Антон", "Ярослав", "Богдан", "Владимир"
+]
 
-oauth = OAuth()
-oauth.register(
-    name="yandex",
-    client_id=MAILRU_CLIENT_ID,
-    client_secret=MAILRU_CLIENT_SECRET,
-    authorize_url="https://oauth.yandex.ru/authorize",
-    access_token_url="https://oauth.yandex.ru/token",
-    userinfo_endpoint="https://login.yandex.ru/info",
-    client_kwargs={"scope": "login:email login:info"}
-)
+last_initials = ["А.", "Б.", "В.", "Г.", "Д.", "Е.", "Ж.", "З.", "И.", "К."]
 
-# URL для начала авторизации
-@app.get("/auth/login")
-async def login(request: Request):
-    redirect_uri = REDIRECT_URI
-    return await oauth.yandex.authorize_redirect(request, redirect_uri)
+regions = [
+    "город Москва", "Санкт-Петербург", "Московская область", "Татарстан",
+    "Свердловская область", "Чеченская Республика", "Краснодарский край",
+    "Хабаровский край", "Ярославская область", "Челябинская область",
+    "Удмуртская Республика", "Республика Мордовия", "Вологодская область"
+]
 
-# Callback-обработчик
-@app.get("/auth/callback")
-async def auth_callback(request: Request):
-    try:
-        print("Авторизация началась...")
-        token = await oauth.yandex.authorize_access_token(request)
-        print(f"Полученный токен: {token}")
+statuses = ["Победитель", "Призер", ""]
 
-        userinfo = await oauth.yandex.get("https://login.yandex.ru/info", token=token)
-        user_data = userinfo.json()
-        print(f"Информация о пользователе: {user_data}")
-        return {"access_token": token, "user_data": user_data}
-    except Exception as e:
-        raise HTTPException(status_code=400, detail="Ошибкаdsfds авторизации")
 
-if __name__ == "__main__":
-    import uvicorn
-    uvicorn.run(app,log_level='debug')
+def generate_name():
+    return f"{random.choice(first_names)} {random.choice(last_initials)}"
+
+
+def generate_olymp_csv(n):
+    with open("olymp.csv", mode="w", encoding="utf-8", newline="") as file:
+        writer = csv.writer(file)
+        writer.writerow(["Имя", "Регион", "Балл", "Статус"])
+
+        for _ in range(n):
+            name = generate_name()
+            region = random.choice(regions)
+            score = random.randint(300, 500)
+            status = random.choices(statuses, weights=[0.1, 0.3, 0.6])[0]  # Победитель реже
+            writer.writerow([name, region, score, status])
+
+
+# Пример вызова
+generate_olymp_csv(100)  # создаст 100 строк в olymp.csv
+
+import pandas as pd

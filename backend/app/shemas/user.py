@@ -2,8 +2,8 @@ from datetime import datetime
 from typing import Optional
 
 from pydantic import BaseModel, EmailStr, Field, model_validator
-
 MIN_LEN_PASS: int = 2
+
 
 class PasswordValidatorMixin(BaseModel):
     password: str = Field(min_length=MIN_LEN_PASS)
@@ -18,7 +18,7 @@ class UserIn(UserBase,PasswordValidatorMixin):
     pass
 
 
-class UserUpdateIn(PasswordValidatorMixin):
+class UserUpdateIn(BaseModel):
     id: int
     full_name: Optional[str] = None
     password: Optional[str] = Field(min_length=MIN_LEN_PASS,default=None)

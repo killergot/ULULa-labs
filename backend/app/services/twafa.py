@@ -2,7 +2,7 @@ import random
 import smtplib
 import uuid
 from email.mime.text import MIMEText
-from app.config.config import load_config
+from app.core.config import load_config
 
 def generate_2fa_code() -> str:
     return str(random.randint(100000, 999999))

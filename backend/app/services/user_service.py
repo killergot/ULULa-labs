@@ -1,17 +1,20 @@
+from uuid import UUID
+
 from fastapi import  HTTPException, status
 
 from app.repositoryes.user_repository import UserRepository
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.shemas.user import UserOut, UserUpdateIn
+from app.shemas.auth import UserOut, UserUpdateIn
 from app.utils.hash import get_hash
+from app.database import User
 
 
 class UserService:
     def __init__(self, db: AsyncSession):
         self.repo = UserRepository(db)
 
-    async def _get_user(self, user_id: int):
+    async def _get_user(self, user_id: UUID) -> User:
         user = await self.repo.get_by_id(user_id)
         if not user:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
@@ -25,7 +28,7 @@ class UserService:
                                 detail="User not found")
         return UserOut.model_validate(user)
 
-    async def get_user_by_id(self, id: int):
+    async def get_user_by_id(self, id: UUID):
         user = await self._get_user(id)
         return UserOut.model_validate(user)
 
@@ -34,7 +37,7 @@ class UserService:
         result = [{'id': user.id, 'email': user.email, 'role': user.role} for user in users]
         return result
 
-    async def del_user_by_id(self, id: int):
+    async def del_user_by_id(self, id: UUID):
         _ = await self._get_user(id)
         if not await self.repo.delete(id):
             raise HTTPException(status_code=status.HTTP_500_NOT_FOUND,

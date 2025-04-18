@@ -6,11 +6,11 @@ from sqlalchemy.orm import Session
 
 from app.database.models.auth import User, UserSession
 from app.database.psql import get_db
-from app.config.config import load_config
+from app.core.config import load_config
 
 config = load_config()
 
-SECRET_KEY = config.jwt_secret # Замените на случайную строку
+SECRET_KEY = config.secret_keys.jwt # Замените на случайную строку
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 30 * 24 * 60  # 30 дней
 
