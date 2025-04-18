@@ -4,7 +4,7 @@ from fastapi.routing import APIRouter
 from app.api.depencies.services import get_auth_service
 from app.database import create_db
 
-from app.shemas.user import UserOut, UserIn, UserLogin, UserSessionOut
+from app.shemas.auth import UserOut, UserIn, UserLogin, TokenOut
 from app.services import AuthService
 
 router = APIRouter(prefix="/auth", tags=["authentication"])
@@ -20,7 +20,7 @@ async def create():
 async def create_user(user: UserIn, service: AuthService = Depends(get_auth_service)):
     return await service.register(user)
 
-@router.post("/login", response_model=UserSessionOut, status_code=status.HTTP_201_CREATED,
+@router.post("/login", response_model=TokenOut, status_code=status.HTTP_201_CREATED,
              summary='Login a user',
              description='Check credentials for a user and get token if successful')
 async def login(user: UserLogin, service: AuthService = Depends(get_auth_service)):

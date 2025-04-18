@@ -9,7 +9,7 @@ from app.api.depencies.guard import get_current_user, require_role
 from app.api.depencies.services import get_user_service
 from app.services import user_service
 from app.services.role_service import ADMIN_ROLE
-from app.shemas.user import UserOut, UserUpdateIn
+from app.shemas.auth import UserOut, UserUpdateIn
 
 router = APIRouter(prefix="/users", tags=["users"])
 

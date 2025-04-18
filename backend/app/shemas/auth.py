@@ -7,7 +7,7 @@ MIN_LEN_PASS: int = 2
 
 class UserBase(BaseModel):
     email: EmailStr
-    role: int = 0
+    role: Optional[int] = 0
     auth_provider: Optional[Literal['google', 'facebook', 'github','yandex']] = None
     provider_id: Optional[str] = None
 
@@ -28,13 +28,13 @@ class UserLogin(BaseModel):
     password: str
 
 class UserUpdateIn(BaseModel):
-    id: UUID
+    id: int
     password: str
 
 
 
 class UserOut(UserBase):
-    id: UUID
+    id: int
     is_active: bool
     created_at: datetime
     updated_at: Optional[datetime]
@@ -45,7 +45,7 @@ class UserOut(UserBase):
 
 class TokenOut(BaseModel):
     access_token: str
-    token_type: str
+    expires_at: datetime
 
     model_config = {
         'from_attributes': True

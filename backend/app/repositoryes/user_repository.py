@@ -21,7 +21,7 @@ class UserRepository(TemplateRepository):
         user = await self.db.execute(data)
         return user.scalars().first()
 
-    async def get_by_id(self, user_id: UUID):
+    async def get_by_id(self, user_id: int):
         return await self.db.get(User, user_id)
 
     async def create(self,email: str,
@@ -40,7 +40,7 @@ class UserRepository(TemplateRepository):
 
         return new_user
 
-    async def update(self, user_id: UUID, password: str):
+    async def update(self, user_id: int, password: str):
         user = await self.get_by_id(user_id)
         user.password = password
         await self.db.commit()
@@ -48,7 +48,7 @@ class UserRepository(TemplateRepository):
         return user
 
     @except_handler
-    async def delete(self, user_id: UUID) -> bool:
+    async def delete(self, user_id: int) -> bool:
         await self.db.delete(await self.get_by_id(user_id))
         await self.db.commit()
         return True

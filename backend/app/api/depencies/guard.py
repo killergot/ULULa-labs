@@ -5,7 +5,7 @@ from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from app.api.depencies.services import get_user_service
 from app.core.security import decode_access_token
 from app.services.user_service import UserService
-from app.shemas.user import UserOut
+from app.shemas.auth import UserOut
 
 security = HTTPBearer()
 
@@ -28,7 +28,6 @@ async def get_current_user(
     if not user:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
                             detail="User not found")
-
     return user
 
 def require_role(req_role: int):

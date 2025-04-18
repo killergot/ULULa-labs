@@ -4,3 +4,4 @@ venv/
 ulula_venv/
 app/.env
 .venv
+*.log
