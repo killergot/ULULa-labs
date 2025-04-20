@@ -3,14 +3,30 @@
     <button @click="$emit('toggle')">
         <span v-if="!collapsed">❮</span>
         <span v-else>❯</span>
-      </button>
-      <nav v-show="!collapsed" class="menu">
-        <ul>
-          <li v-for="item in items" :key="item.name">
-            <router-link :to="item.link" >{{ item.name }}</router-link>
-          </li>
-        </ul>
-      </nav>
+      </button> 
+      <div v-show="!collapsed">
+        <nav class="menu">
+            <ul>
+            <li v-for="item in pages" :key="item.name">
+                <router-link :to="item.link" >{{ item.name }}</router-link>
+            </li>
+            </ul>
+        </nav>
+        
+        <hr class="divider">
+
+        <div class="folders-section">
+            <ul>
+                <li v-for="item in folders" :key="item.name" class="folder-item">
+                    <span class="folder-icon">📁</span>
+                    <span class="folder-name">{{ item.name }}</span>
+                </li>
+            </ul>
+                <button @click="addFolder" class="add-folder-btn">
+                    + folder    
+                </button>
+            </div>
+        </div>
     </div>
   </template>
   
@@ -19,11 +35,16 @@
     name: 'SidebarMenu',
     data() {
       return {
-        items: [
+        pages: [
           { name: 'Home', link: '/' },
-          { name: 'Profile', link: '/test' },
+          { name: 'test', link: '/test' },
           { name: 'test2', link: '/test2' }
-        ]
+        ],
+        folders: [
+            { name: 'Личные' },
+            { name: 'Рабочие' }
+        ],
+        counter: 1
       }
     },
     props: {
@@ -32,6 +53,13 @@
         default: false
       }
     },
+    methods: {
+        addFolder() {
+        this.folders.push({
+            name: `Новая папка ${this.counter++}`
+        })
+        }
+    }
   }
   </script>
   
@@ -74,4 +102,60 @@
     color: inherit;
     text-decoration: none;
   }
+
+  .divider {
+  border: 0;
+  border-top: 1px solid #46637f;
+  margin: 1rem 0;
+}
+
+.folders-section {
+  padding: 0 1rem;
+}
+
+.folder-item {
+  display: flex;
+  align-items: center;
+  margin: 0.5rem 0;
+  padding: 0.5rem;
+  border-radius: 4px;
+  transition: background-color 0.2s;
+}
+
+.folder-item:hover {
+  background-color: #40576b;
+}
+
+.folder-icon {
+  margin-right: 0.5rem;
+  font-size: 1.2rem;
+}
+
+.folder-name {
+  font-size: 0.9rem;
+}
+
+.add-folder-btn {
+  width: 100%;
+  padding: 0.5rem;
+  margin-top: 1rem;
+  background-color: #46637f;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.add-folder-btn:hover {
+  background-color: #567892;
+}
+
+button {
+  background: none;
+  border: none;
+  color: inherit;
+  cursor: pointer;
+  padding: 0.5rem;
+}
   </style>
