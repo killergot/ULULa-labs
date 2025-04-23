@@ -7,6 +7,10 @@ from app.database import create_db
 from app.shemas.auth import UserOut, UserIn, UserLogin, TokenOut
 from app.services import AuthService
 
+
+from app.database.models import schedule
+from app.database.models import students
+
 router = APIRouter(prefix="/auth", tags=["authentication"])
 
 @router.post("/create_db")

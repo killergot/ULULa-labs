@@ -25,6 +25,7 @@ CREATE TABLE users (
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
+
 -- Создание таблицы для хранения кодов двухфакторной аутентификации
 CREATE TABLE two_factor_codes (
     id SERIAL PRIMARY KEY,
@@ -96,17 +97,29 @@ CREATE TABLE oauth_tokens (
     created_at TIMESTAMP DEFAULT now()
 );
 
+-- 5. Таблица групп
+CREATE TABLE groups (
+    group_number VARCHAR(50) UNIQUE NOT NULL, --Настоящий номер группы, например, 5151003/10801
+    group_id UUID PRIMARY KEY DEFAULT gen_random_uuid()  --UUID, в других таблицах используем его
+    created_at TIMESTAMP DEFAULT now(),
+    updated_at TIMESTAMP DEFAULT now()
+);
 
-CREATE TABLE students (
-    id UUID PRIMARY KEY,
-    group_number VARCHAR(50),
+
+
+CREATE TABLE students ( --таблица для хранения информации о студентах (пока только id студента и номер группы)
+    id UUID PRIMARY KEY, -- и это должен быть внешний ключ на id студента
+    FOREIGN KEY (id) REFERENCES users(id),
+    group_id UUID NOT NULL, --теперь ссылаемся на id группы, а не на номер
+    FOREIGN KEY (group_id) REFERENCES groups(group_id), --и делаем её внешним ключом
     created_at TIMESTAMP DEFAULT now(),
     updated_at TIMESTAMP DEFAULT now()
 );
 
 
 CREATE TABLE schedule (
-    group_number VARCHAR(20) NOT NULL,
+    group_id UUID  NOT NULL, --теперь ссылаемся на id группы, а не на номер
+    FOREIGN KEY (group_id) REFERENCES groups(group_id), --и делаем её внешним ключом
     week_number INT NOT NULL CHECK (week_number BETWEEN 1 AND 4),
     monday JSON,
     tuesday JSON, 
@@ -117,7 +130,7 @@ CREATE TABLE schedule (
     sunday JSON,
     created_at TIMESTAMP DEFAULT now(),
     updated_at TIMESTAMP DEFAULT now(),
-    PRIMARY KEY (group_number, week_number)
+    PRIMARY KEY (group_id, week_number)
 );
 
 
@@ -128,10 +141,8 @@ CREATE TABLE tasks (
     description VARCHAR(100) NOT NULL,
     created_at TIMESTAMP DEFAULT now(),
     updated_at TIMESTAMP DEFAULT now(),
-    -- Опционально: внешний ключ на таблицу пользователей
     FOREIGN KEY (user_id) REFERENCES users(id)
 );
-
 
 
 

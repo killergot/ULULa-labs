@@ -5,6 +5,7 @@ from sqlalchemy import select
 
 from uuid import UUID
 from app.database.models.auth import User
+from app.database.models.groups import Group
 from app.repositoryes.template import TemplateRepository
 from app.core.except_handler import except_handler
 
@@ -40,6 +41,7 @@ class UserRepository(TemplateRepository):
 
         return new_user
 
+    @except_handler
     async def update(self, user_id: int, password: str):
         user = await self.get_by_id(user_id)
         user.password = password

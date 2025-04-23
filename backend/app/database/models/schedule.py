@@ -32,5 +32,3 @@ class Schedule(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
     updated_at: Mapped[datetime] = mapped_column(DateTime, onupdate=datetime.utcnow)
 
-
-    students: Mapped["app.database.models.students.Student"] = relationship("app.database.models.students.Student", back_populates="schedule")  # type: ignore

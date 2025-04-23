@@ -3,9 +3,7 @@ from sqlalchemy.dialects.postgresql import UUID
 from fastapi import HTTPException,status
 from sqlalchemy.orm import Session
 from app.database.models.students import Student
-from app.services.jwt import create_access_token, ACCESS_TOKEN_EXPIRE_MINUTES
-from app.services.oauth import oauth
-from app.shemas.auth import UserCreate
+
 from hashlib import sha256
 
 class StudentService:

@@ -21,7 +21,7 @@ class User(Base):
     updated_at: Mapped[datetime] = mapped_column(DateTime, onupdate=datetime.utcnow, nullable=True)
 
     # Определение отношений
-    # students: Mapped[list["database.models.students.Student"]] = relationship("database.models.students.Student", back_populates="user", cascade="all, delete-orphan")
+    students: Mapped[list["database.models.students.Student"]] = relationship("database.models.students.Student", back_populates="user", cascade="all, delete-orphan")
     # tasks: Mapped[list["app.database.models.tasks.Task"]] = relationship("app.database.models.tasks.Task", back_populates="user", cascade="all, delete-orphan")
     sessions: Mapped[list["UserSession"]] = relationship("UserSession", back_populates="user", cascade="all, delete-orphan")
     two_factor_codes: Mapped[list["TwoFactorCode"]] = relationship("TwoFactorCode", back_populates="user",
