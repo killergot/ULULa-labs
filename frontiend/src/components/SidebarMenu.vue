@@ -37,8 +37,11 @@
       return {
         pages: [
           { name: 'Home', link: '/' },
+          { name: 'my profile', link: '/userPage' },
+          { name: 'registration', link: '/regPage' },
           { name: 'test', link: '/test' },
-          { name: 'test2', link: '/test2' }
+          { name: 'test2', link: '/test2' },
+          
         ],
         folders: [
             { name: 'Личные' },
