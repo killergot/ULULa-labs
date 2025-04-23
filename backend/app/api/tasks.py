@@ -48,6 +48,15 @@ async def read_task(task_id: int, db: Session = Depends(get_db)):
         }
     return response_data
 
+
+@router.get("/all")
+async def read_task(db: Session = Depends(get_db)):
+    try:
+        tasks = TaskService.get_all(db)
+    except HTTPException as e:
+        raise HTTPException(status_code=404, detail="Task not found")
+    return tasks
+
 @router.delete("/del_task")
 async def delete_task(task_id: int, db: Session = Depends(get_db)):
     try:
