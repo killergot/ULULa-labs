@@ -1,6 +1,5 @@
 <template>
   <div id="app" :class="{ 'menu-collapsed': isCollapsed }">
-    <!-- Левое меню -->
     <SidebarMenu
       v-if="showSidebar()"
       :collapsed="isCollapsed"
