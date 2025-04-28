@@ -20,7 +20,7 @@ class Schedule(Base):
     __tablename__ = 'schedule'
     __table_args__ = {"extend_existing": True}
     #from database.models.auth import User
-    group_number: Mapped[str] = mapped_column(String(20),  ForeignKey('students.group_number', ondelete='CASCADE'), primary_key=True)
+   # group_number: Mapped[str] = mapped_column(String(20),  ForeignKey('students.group_number', ondelete='CASCADE'), primary_key=True)
     week_number: Mapped[int] = mapped_column(Integer, primary_key=True)
     monday: Mapped[dict] = mapped_column(JSON, nullable=True)
     tuesday: Mapped[dict] = mapped_column(JSON, nullable=True)

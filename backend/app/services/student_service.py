@@ -1,7 +1,5 @@
 from uuid import UUID
-
 from fastapi import  HTTPException, status
-
 from app.repositoryes.student_repository import Repository
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.shemas.students import StudentBase
@@ -36,31 +34,56 @@ class StudentService:
 
     async def _create_student(self, student: StudentBase):#создаём нового студента
         #проверка, что студент ещё не существует
-        if await self.repo.get_group(student.group_id):
+        if await self.repo.get_by_id(student.student_id):
             raise HTTPException(status_code=status.HTTP_409_CONFLICT,
                                 detail='Student already exist')
+        #Проверка, существует ли группа
+        #Если нет - создание группы
      #Мб стоит объединить создание и обновление всё же???
         #создание студента
-        await self.repo.create(student.student_id, student.group_id)
+        new_student = await self.repo.create(student.student_id, student.group_id)
 
-    """
-    
-    async def _get_group(self, user_id: int) -> int: #Возвращаем id группы по id студента
-        user = await self.repo.get_by_id(user_id)
-        if not user:
+        return new_student
+
+
+    async def delete_student(self, student_id: int):  # удаляем студента
+        # проверка, что студент существует
+        if not await self.repo.get_by_id(student_id):
+            raise HTTPException(status_code=status.HTTP_409_CONFLICT,
+                                detail='Student is not exist')
+        #Попытка удаления
+        await self.repo.delete(student_id)
+
+
+    async def get_group(self, student_id: int) -> int:  # Возвращаем id группы по id студента
+        student = await self.repo.get_by_id(student_id)
+        if not student:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
-                                detail="User not found")
-        return user
+                                detail="Student not found")
+        return student.group_id
 
-    async def _set_group(self, student: int) -> int: #Устанавливаем параметры (пока только номер группы)
-        user = await self.repo.get_by_id(user_id)
-        if not user:
+
+    async def update_group(self, student_id, group_id): #обновляем номер группы
+        student = await self.repo.get_by_id(student_id)
+        if not student:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
-                                detail="User not found")
-        return user
+                                detail="Student not found")
+        student = await self.repo.update(student_id, group_id)
 
-    async def _get_students_by_grouo() -> int: #Выводим список id студентов по группе
 
-    async def _get_all() -> int:  # Выводим список всех студентов
+    async def get_all(self):
+        students = await self.repo.get_all()
+        if not students:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
+                                detail="Students not found")
 
-"""
+        return students
+
+
+    async def get_by_group(self, id: int):
+        students = await self.repo.get_by_group(id)
+        if not students:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
+                                detail="Students not found")
+        print(students)
+        return students

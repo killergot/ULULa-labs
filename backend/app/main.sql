@@ -1,6 +1,6 @@
 -- 1. Таблица пользователей (users)
 CREATE TABLE users (
-    id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+    id SERIAL PRIMARY KEY,
     email VARCHAR(255) UNIQUE NOT NULL,
     password TEXT,                           -- Может быть NULL, если пользователь зарегистрирован через OAuth
     role VARCHAR(50) NOT NULL DEFAULT 'user',  -- Роль пользователя (например, user, admin)
@@ -100,7 +100,7 @@ CREATE TABLE oauth_tokens (
 -- 5. Таблица групп
 CREATE TABLE groups (
     group_number VARCHAR(50) UNIQUE NOT NULL, --Настоящий номер группы, например, 5151003/10801
-    group_id UUID PRIMARY KEY DEFAULT gen_random_uuid()  --UUID, в других таблицах используем его
+    group_id SERIAL PRIMARY KEY ,--UUID, в других таблицах используем его
     created_at TIMESTAMP DEFAULT now(),
     updated_at TIMESTAMP DEFAULT now()
 );
@@ -108,9 +108,9 @@ CREATE TABLE groups (
 
 
 CREATE TABLE students ( --таблица для хранения информации о студентах (пока только id студента и номер группы)
-    id UUID PRIMARY KEY, -- и это должен быть внешний ключ на id студента
+    id SERIAL PRIMARY KEY, -- и это должен быть внешний ключ на id студента
     FOREIGN KEY (id) REFERENCES users(id),
-    group_id UUID NOT NULL, --теперь ссылаемся на id группы, а не на номер
+    group_id SERIAL NOT NULL, --теперь ссылаемся на id группы, а не на номер
     FOREIGN KEY (group_id) REFERENCES groups(group_id), --и делаем её внешним ключом
     created_at TIMESTAMP DEFAULT now(),
     updated_at TIMESTAMP DEFAULT now()

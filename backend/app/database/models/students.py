@@ -18,8 +18,7 @@ class Student(Base):
     )
     group_id: Mapped[int] = mapped_column(Integer, ForeignKey('groups.group_id', ondelete='CASCADE'), nullable=False)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
-    updated_at: Mapped[datetime] = mapped_column(DateTime, onupdate=datetime.utcnow)
-
+    updated_at: Mapped[datetime] = mapped_column(DateTime,  default=datetime.utcnow, onupdate=datetime.utcnow, nullable=True)
 
     user: Mapped["database.models.auth.User"] = relationship("database.models.auth.User", back_populates="students")  # type: ignore
     group: Mapped["database.models.groups.Group"] = relationship("database.models.groups.Group", back_populates="students")
