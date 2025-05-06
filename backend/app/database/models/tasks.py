@@ -28,4 +28,4 @@ class Task(Base):
     )
 
     # Опциональная связь с пользователем
-    user: Mapped["app.database.models.auth.User"] = relationship("app.database.models.auth.User", back_populates="tasks")
+    #user: Mapped["app.database.models.auth.User"] = relationship("app.database.models.auth.User", back_populates="tasks")

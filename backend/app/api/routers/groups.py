@@ -8,14 +8,20 @@
 # 5 ++- получать(get) id группы по её номеру (для зареганых юзеров), вход - номер группы, выход - id группы
 # 6 ++- получать список всех групп
 
+
+
 from fastapi.routing import APIRouter
 from fastapi import Depends, status
 from app.shemas.groups import GroupBase, GroupID, GroupNumber
 from app.api.depencies.guard import get_current_user, require_role
-
+from app.utils.get_schedule import load_group_list
 from backend.app.api.depencies.services import get_group_service
 
 router = APIRouter(prefix="/groups", tags=["groups"])
+
+
+
+
 
 
 @router.post("/create_group",
@@ -88,10 +94,27 @@ async def get_group_by_number(group_id: int,service = Depends(get_group_service)
 
 @router.get("/get_all",
              status_code=status.HTTP_200_OK,
-             summary='Get group number',
-             description='Get group number by group id.\n',
+             summary='Get all groups',
+             description='Get all groups.\n',
              dependencies=[Depends(get_current_user)] #заменить на закомментированную строку, чтобы работало только от админа
              #dependencies=[Depends(require_role(1))
 )
 async def get_all(service = Depends(get_group_service)):
        return await service.get_all()
+
+
+@router.patch("/load_group_list",
+             status_code=status.HTTP_200_OK,
+             summary='Load all groups from site',
+             description='Load all groups from site.\n',
+             dependencies=[Depends(get_current_user)] #заменить на закомментированную строку, чтобы работало только от админа
+             #dependencies=[Depends(require_role(1))
+)
+async def load_groups(service = Depends(get_group_service)):
+       groups = load_group_list()
+       for group in groups:
+           await service.create_group(GroupNumber.model_validate({"group_number": group}))
+       return 0
+
+
+
