@@ -10,6 +10,8 @@ from app.services.user_service import UserService
 from app.services.student_service import StudentService
 from app.services.group_service import GroupService
 from app.services.schedule_service import ScheduleService
+from app.services.task_service import TaskService
+
 
 async def get_auth_service(db: AsyncSession = Depends(get_db)) -> AuthService:
     return AuthService(db)
@@ -25,3 +27,6 @@ async def get_group_service(db: AsyncSession = Depends(get_db)) -> GroupService:
 
 async def get_schedule_service(db: AsyncSession = Depends(get_db)) -> ScheduleService:
     return ScheduleService(db)
+
+async def get_task_service(db: AsyncSession = Depends(get_db)) -> TaskService:
+    return TaskService(db)

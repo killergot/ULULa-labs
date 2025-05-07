@@ -15,17 +15,22 @@ class Task(Base):
         autoincrement=True
     )
     
-    user_id: Mapped[UUID] = mapped_column(
+    user_id: Mapped[int] = mapped_column(
         ForeignKey('users.id', ondelete='CASCADE'),
         index=True
     )
     
-    deadline: Mapped[Date] = mapped_column(Date, nullable=False)
+    deadline: Mapped[Date] = mapped_column(Date, nullable=True)
     
     description: Mapped[str] = mapped_column(
-        String(100), 
-        nullable=False
+        String(500),
+        nullable=True
     )
 
-    # Опциональная связь с пользователем
-    #user: Mapped["app.database.models.auth.User"] = relationship("app.database.models.auth.User", back_populates="tasks")
+    task_flag: Mapped[int] = mapped_column(Integer, nullable=True)
+
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+    updated_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow,
+                                                 nullable=True)
+
+    user: Mapped["app.database.models.auth.User"] = relationship("app.database.models.auth.User", back_populates="tasks")

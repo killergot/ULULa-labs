@@ -33,7 +33,7 @@ router = APIRouter(prefix="/schedule", tags=["schedule"])
 
 
 
-@router.get("/load_schedule")
+@router.post("/load_schedule")
 async def load_schedule(service = Depends(get_schedule_service), group_service = Depends(get_group_service)):
     # Получать группы по одной из списка
     groups = await group_service.get_all()
