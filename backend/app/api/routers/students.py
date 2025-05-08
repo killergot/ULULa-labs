@@ -10,8 +10,8 @@ from app.database.models.groups import Group
 from app.services import student_service
 from app.services import group_service
 
-from backend.app.api.depencies.services import get_group_service
-from backend.app.shemas.groups import GroupID
+from app.api.depencies.services import get_group_service
+from app.shemas.groups import GroupID
 
 router = APIRouter(prefix="/students", tags=["students"])
 

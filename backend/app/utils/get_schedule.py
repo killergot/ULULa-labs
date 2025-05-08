@@ -5,7 +5,6 @@ from datetime import datetime, timedelta
 from app.database.models.schedule import Schedule
 from app.database.models.students import Student
 from app.database.models.tasks import Task
-from app.crud.students import StudentService
 from app.shemas.schedule import  ScheduleIn, ScheduleBase
 #Получаем расписание для 4 недель
 #Для каждой уникальной группы?

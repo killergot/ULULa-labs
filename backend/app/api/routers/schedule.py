@@ -11,7 +11,7 @@ from app.shemas.groups import GroupID, GroupNumber
 from app.shemas.students import StudentBase, StudentIn, StudentID
 from app.shemas.auth import UserOut
 from app.utils.get_schedule import load_schedule_for_group
-from backend.app.api.depencies.services import get_group_service
+from app.api.depencies.services import get_group_service
 router = APIRouter(prefix="/schedule", tags=["schedule"])
 
 # Что хотим уметь для сущности расписания?
