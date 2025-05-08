@@ -1,6 +1,7 @@
 from fastapi import Depends, status, HTTPException
 from fastapi.routing import APIRouter
 
+from app.api.depencies.guard import get_refresh_token_payload
 from app.api.depencies.services import get_auth_service
 from app.database import create_db
 
@@ -31,4 +32,7 @@ async def login(user: UserLogin, service: AuthService = Depends(get_auth_service
     return await service.login(user)
 
 
-
+@router.post('/refresh', response_model=TokenOut)
+async def refresh(payload: dict = Depends(get_refresh_token_payload)
+                  , service: AuthService = Depends(get_auth_service)):
+    return await service.refresh(payload)

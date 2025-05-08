@@ -45,7 +45,8 @@ class UserOut(UserBase):
 
 class TokenOut(BaseModel):
     access_token: str
-    expires_at: datetime
+    refresh_token: str
+    type:str = 'Bearer'
 
     model_config = {
         'from_attributes': True
