@@ -4,5 +4,3 @@ from .models.groups import Group
 from .models.students import Student
 from .models.schedule import Schedule
 from .models.tasks import Task
-
-import asyncio

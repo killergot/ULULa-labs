@@ -40,6 +40,8 @@ def decode_refresh_token(token: str) -> dict:
     return decode_jwt(token, secret=REFRESH_SECRET_KEY)
 
 
+
+
 if __name__ == '__main__':
     a = create_access_token(1,'test',1)
     print(a)

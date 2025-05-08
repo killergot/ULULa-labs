@@ -43,6 +43,10 @@ class UserOut(UserBase):
         'from_attributes': True
     }
 
+class TwoFactorIn(BaseModel):
+    code: str = Field(max_length=6, min_length=6)
+    session_token: str
+
 class TokenOut(BaseModel):
     access_token: str
     refresh_token: str
