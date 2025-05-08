@@ -122,7 +122,7 @@ export default {
 .expand-btn {
   position: fixed;
   top: 8px;
-  right: 8px;
+  right: 18px;
   width: 32px;
   height: 32px;
   background: #46637f;
