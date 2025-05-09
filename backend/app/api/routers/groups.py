@@ -15,7 +15,7 @@ from fastapi import Depends, status
 from app.shemas.groups import GroupBase, GroupID, GroupNumber
 from app.api.depencies.guard import get_current_user, require_role
 from app.utils.get_schedule import load_group_list
-from backend.app.api.depencies.services import get_group_service
+from app.api.depencies.services import get_group_service
 
 router = APIRouter(prefix="/groups", tags=["groups"])
 
