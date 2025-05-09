@@ -11,7 +11,7 @@ from app.shemas.groups import GroupID, GroupNumber
 from app.shemas.students import StudentBase, StudentIn, StudentID
 from app.shemas.auth import UserOut
 from app.utils.get_schedule import load_schedule_for_group
-from backend.app.api.depencies.services import get_group_service
+from app.api.depencies.services import get_group_service
 router = APIRouter(prefix="/schedule", tags=["schedule"])
 
 # Что хотим уметь для сущности расписания?
@@ -38,7 +38,7 @@ async def load_schedule(service = Depends(get_schedule_service), group_service =
     # Получать группы по одной из списка
     groups = await group_service.get_all()
     for group in groups:
-        print (group)
+        #print (group)
         group_number = group["group_number"]
         group_id = group["group_id"]
     # Для каждой грузить расписание на каждую неделю

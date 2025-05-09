@@ -33,12 +33,11 @@ def load_schedule_for_all_groups():
         zaproc = requests.get(f'https://ruz.spbstu.ru/search/groups?q={v}/')
         soup = BeautifulSoup(zaproc.text, "lxml")
         groups = soup.find_all('a', class_='groups-list__link')
-
         date = datetime.now()
         i=0
-        #print (groups)
+        print (groups)
         for url in groups:
-            #print (url)
+            print (url)
             i=i+1
             start = str(url).find('>')+1
             end = str(url).find('</a>')
@@ -77,7 +76,7 @@ def load_group_list():
             group_number= str(url)[start:end]
             groups_list.append(group_number)
             #print(len(groups_list))
-    print ("final", len(groups_list))
+    #print ("final", len(groups_list))
 
     return groups_list
 
@@ -98,8 +97,7 @@ def load_schedule_for_group(group_number, week_number, group_id):
     for i in range (1, 2):
         zaproc = requests.get(f'https://ruz.spbstu.ru/api/v1/ruz/scheduler/{id_itog}?date={date.strftime("%Y-%m-%d")}')
         data = zaproc.json()
-
-        # print("hello", data)
+        print("hello", data)
         result = []
         schedule=[]
         sunday=[]
@@ -158,34 +156,4 @@ def load_schedule_for_group(group_number, week_number, group_id):
         return final
 
 
-    #в бд для каждого дня недели добавляем lessons
-    '''
-    result={}
-
-        print ('\n\n\n\n', monday)
-        result = json.dumps(result, ensure_ascii=False)
-        try:
-            if ScheduleService.is_schedule_exist(next(get_db()), group, i):
-                schedule = ScheduleService.update_schedule(next(get_db()), group, i, monday, tuesday, wednesday, thursday, friday, saturday, sunday)
-            else:
-                schedule = ScheduleService.create_schedule(next(get_db()), group, i, monday, tuesday, wednesday, thursday, friday, saturday, sunday)
-            print(schedule)
-        except Exception as e:
-            print({"Schedule update error": e})
-        date = date + timedelta(days=7)
-#+++ #1 - сделать, чтобы для 1 группы добавлялось в БД 1 неделя +++
-#+++ 2 - 4 недели +++
-#3 - для выбранной группы
-#4 - проход по всем группам
-#5 - ручка ap
-
-
-
-def load_all_schedule():
-    groups = StudentService.read_groups(next(get_db()))
-    for group in groups:
-        print (group[0])
-        load_schedule_for_group(group[0])
-
-load_all_schedule()
-'''
+    
