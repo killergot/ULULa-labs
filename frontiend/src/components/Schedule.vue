@@ -30,11 +30,11 @@
   </template>
   
   <script>
+  import api from '@/services/api';
   export default {
     name: 'SchedulePage',
     data() {
       return {
-        groupNumber: '5151003/10801',
         weekNumber: 2,
         schedule: {},
         dayList: [
@@ -64,16 +64,9 @@
     methods: {
       async fetchSchedule() {
         try {
-          const url =
-            `http://127.0.0.1:8000/schedule/read_schedule?group_number=${encodeURIComponent(
-              this.groupNumber
-            )}&week_number=${this.weekNumber}`;
-          const response = await fetch(url, {
-            method: 'GET',
-            headers: { Accept: 'application/json' }
-          });
-          if (!response.ok) throw new Error(`Error ${response.status}`);
-          this.schedule = await response.json();
+          const response = await api.get(`/schedule/get_for_current_student/${this.weekNumber}`)
+          if (!response.status === 200) throw new Error(`Error ${response.status}`);
+          this.schedule = await response.data;
         } catch (err) {
           console.error('Failed to fetch schedule:', err);
         }

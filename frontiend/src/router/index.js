@@ -12,8 +12,8 @@ const routes = [
     component: mainPage
   },
   {
-    path: '/regPage',
-    name: 'regPage',
+    path: '/login',
+    name: 'login',
     component: regPage
   },
   {

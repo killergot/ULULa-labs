@@ -38,7 +38,7 @@
         pages: [
           { name: 'Home', link: '/' },
           { name: 'my profile', link: '/userPage' },
-          { name: 'registration', link: '/regPage' },
+          { name: 'registration', link: '/login' },
           { name: 'test', link: '/test' },
           { name: 'test2', link: '/test2' },
           

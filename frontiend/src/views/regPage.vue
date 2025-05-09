@@ -78,6 +78,8 @@
   
   
   <script>
+  import { saveTokens } from '@/utils/token'
+
   export default {
   data() {
     return {
@@ -162,7 +164,7 @@
       password: this.password,
       ...(this.action === 'signup' && {
         repeatPassword: this.repeatPassword,
-        role: this.selectedRole
+        role: 0
       })
     };
   
@@ -176,23 +178,24 @@
       var response = 0;
       if (this.action === 'signin') {
         url += '/login';
-        payload = new URLSearchParams();
-        payload.append("username", this.email);
-        payload.append("password", this.password);
-          response = await fetch(url, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/x-www-form-urlencoded'
-          },
-          body: payload
-        });
+        payload = {
+          email: this.email,
+          password: this.password
+        };
+        response = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(payload)
+      });
       }
       if (this.action === 'signup') {
         url += '/signup';
         payload = {
           email: this.email,
           password: this.password,
-          role: this.selectedRole
+          role: 0
         };
         response = await fetch(url, {
         method: 'POST',
@@ -242,18 +245,27 @@
     async verifyTwoFactorCode() {
       const sessionToken = localStorage.getItem('session_token');
       const formData = new FormData();
-      formData.append('session_token', sessionToken);
-      formData.append('code', this.twoFactorCode);
+      let payload = {
+          session_token: sessionToken,
+          code: this.twoFactorCode,
+        };
+        
       const response = await fetch('http://127.0.0.1:8000/auth/verify-2fa', {
       method: 'POST',
-      body: formData
+      headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(payload)
     });
     if (response.ok) {
+        const data = await response.json();
         this.showTwoFactor = false;
         this.twoFactorCode = '';
-        this.messageText = 'Two-factor authentication passed!';
-        this.showMessage = true;
-  
+        saveTokens({
+            accessToken: data.access_token,
+            refreshToken: data.refresh_token
+          });
+        this.$router.push('/');
       } else {
         this.messageText = 'Invalid code. Try again';
         this.showMessage = true;

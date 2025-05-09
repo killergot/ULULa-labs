@@ -38,7 +38,7 @@ async def get_current_user(
 ) -> UserOut:
     user: UserOut = await service.get_user_by_id(payload["id"])
     if not user:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,
                             detail="User not found")
     return user
 
@@ -48,7 +48,7 @@ async def get_current_id(
 ):
     user: UserOut = await service.get_user_by_id(payload["id"])
     if not user:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,
                             detail="User not found")
     return user.id
 

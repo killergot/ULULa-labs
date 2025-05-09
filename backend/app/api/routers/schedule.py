@@ -122,7 +122,7 @@ async def get_all(service = Depends(get_schedule_service)):
 
 
 
-@router.get("/get_by_id/{group_id, week_number}",
+@router.get("/get_by_id/{group_id}&{week_number}",
              status_code=status.HTTP_200_OK,
              summary='Get schedule by group id',
              description='Get schedule.\n',
@@ -134,7 +134,7 @@ async def get_schedule(group_id: int, week_number: int, service = Depends(get_sc
         return await service.get_by_id(group_week.group_id, group_week.week_number)
 
 
-@router.get("/get_by_number/{group_number, week_number}",
+@router.get("/get_by_number/{group_number}&{week_number}",
              status_code=status.HTTP_200_OK,
              summary='Get schedule by group number',
              description='Get schedule by number.\n',
@@ -166,7 +166,7 @@ async def get_schedule(student_number: int, week_number: int, service = Depends(
              description='Get schedule for current user.\n',
 )
 async def get_schedule(week_number: int, student: UserOut = Depends(get_current_user), service = Depends(get_schedule_service),  student_service = Depends(get_student_service)):
-
+        print('я тут был')
         group_id = await  student_service.get_group(student.id)
         group_week = ScheduleGetIn.model_validate({"group_id": group_id, "week_number": week_number})
         return await service.get_by_id(group_week.group_id, group_week.week_number)
