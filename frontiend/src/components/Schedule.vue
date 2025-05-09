@@ -52,7 +52,7 @@
         const result = {};
         this.dayList.forEach(({ key }) => {
           const items = this.schedule[key];
-          result[key] = Array.isArray(items) ? items : [];
+          result[key] = Array.isArray(items) ? items.flat() : [];
         });
         return result;
       },
@@ -69,6 +69,7 @@
           this.schedule = await response.data;
         } catch (err) {
           console.error('Failed to fetch schedule:', err);
+          this.schedule = {}
         }
       },
       prevWeek() {
