@@ -3,6 +3,7 @@ from fastapi.routing import APIRouter
 from app.database.models.tasks import Task
 from app.api.depencies.guard import get_current_user, require_role
 from app.api.depencies.services import get_task_service
+from app.services.task_service import TaskService
 from app.shemas.tasks import TaskIn, TaskInShort, TaskID, TaskUpdate
 from app.shemas.auth import UserOut
 from app.shemas.students import StudentID
@@ -57,8 +58,8 @@ async def get_task(task_id: int, service = Depends(get_task_service)):
              status_code=status.HTTP_201_CREATED,
              summary='Update task by id',
              description='Update task by id.\n')
-async def update_task(task: TaskUpdate,  service = Depends(get_task_service)):
-    return await service.update(task)
+async def update_task(task: TaskUpdate,  service: TaskService = Depends(get_task_service), user = Depends(get_current_user)):
+    return await service.update(task,user.id)
 
 @router.delete("/delete_task",
              status_code=status.HTTP_201_CREATED,

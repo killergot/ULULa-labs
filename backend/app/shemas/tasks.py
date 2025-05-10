@@ -19,7 +19,6 @@ class TaskID(BaseModel):
 
 class TaskUpdate(BaseModel):
     task_id: int = Field(ge=1)
-    user_id: int = Field(ge = 1)
     deadline: Optional[datetime] = None
     description: Optional[str] = Field(min_length=1, default=None)
     task_flag: Optional[int] = Field(ge=0, le=3, default=0)
