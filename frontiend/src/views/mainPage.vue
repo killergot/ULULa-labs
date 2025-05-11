@@ -181,28 +181,90 @@
     },
     methods: {
       async fetchTasks(){
-        const response = await api.get('tasks/get_tasks_for_me');
-        if (response.status !== 201) throw new Error(`Error ${response.status}`);
-
-        this.tasks = response.data.map(task => ({
-          id: task.task_id,
-          text: task.description,
-          deadline: task.deadline,
-          important: Boolean(task.task_flag & 1),
-          completed: Boolean(task.task_flag & 2),
-        }));
+        try {
+          const response = await api.get('tasks/get_tasks_for_me');
+          
+          if (response.status !== 201) throw new Error(`Error ${response.status}`);
+          
+          this.tasks = response.data.map(task => ({
+            id: task.task_id,
+            text: task.description,
+            deadline: task.deadline,
+            important: Boolean(task.task_flag & 1),
+            completed: Boolean(task.task_flag & 2),
+          }));
+      } catch (error) {
+        console.error('Failed to fetch tasks:', error);
+      }
+    },
+      async addTask(){
+        try {
+          const payload = {
+            description: this.modalData.text,
+            deadline: new Date(this.modalData.deadline).toISOString(),
+            task_flag: (this.modalData.important ? 1 : 0) | (this.modalData.completed ? 2 : 0)
+          };
+          const response = await api.post('tasks/create_task_for_me', payload);
+          if (response.status === 201) {
+            await this.fetchTasks();
+          } else {
+            console.error(`Create failed: ${response.status}`);
+          }
+      } catch (err) {
+        console.error('Add task error', err);
+      }
+    },
+      async updateTask(){
+        try {
+          const payload = {
+            task_id: this.modalData.id,
+            description: this.modalData.text,
+            deadline: new Date(this.modalData.deadline).toISOString(),
+            task_flag: (this.modalData.important ? 1 : 0) | (this.modalData.completed ? 2 : 0)
+          };
+          const response = await api.patch('tasks/update_task', payload);
+          if (response.status === 201) {
+            await this.fetchTasks();
+        } else {
+            console.error(`Update failed: ${response.status}`);
+          
+        }
+      } catch (err) {
+        console.error('Update task error', err.response?.data || err);
+      }
       },
       async deleteTask(){
         const response = await api.delete('tasks/delete_task', { data: { task_id: this.modalData.id } });
         if (response.status === 201){
-          this.tasks = this.tasks.filter(t => t.id !== this.modalData.id);
-          this.closeModal();
+          await this.fetchTasks();
         }
         else {
           throw new Error(`Error ${response.status}`);
         }
-        
+        this.closeModal();
       },
+      async toggleComplete(task) {
+        try {
+          const newCompleted = !task.completed;
+          
+          const payload = {
+            task_id: task.id,
+            description: task.text,
+            deadline: new Date(task.deadline).toISOString(),
+            task_flag: (task.important ? 1 : 0) | (newCompleted ? 2 : 0)
+          };
+          
+          const response = await api.patch('tasks/update_task', payload);
+          if (response.status === 201) {
+            await this.fetchTasks();
+          } else {
+            console.error(`Toggle complete failed: ${response.status}`);
+          }
+        } catch (err) {
+          console.error('Toggle complete error', err.response?.data || err);
+        }
+      },
+      
 
       groupByDate(list) {
         return list.reduce((acc, t) => {
@@ -223,20 +285,15 @@
         this.modalData = { id: null, text: '', deadline: '', important: false, completed: false };
       },
       confirmModal() {
-        // if (this.showAddModal) {
-        //   const newTask = { ...this.modalData, id: nextId++ };
-        //   this.tasks.push(newTask);
-        // } else if (this.showEditModal) {
-        //   const idx = this.tasks.findIndex(t => t.id === this.modalData.id);
-        //   if (idx !== -1) this.tasks.splice(idx, 1, { ...this.modalData });
-        // }
+        if (this.showAddModal) {
+          this.addTask();
+        
+        } else if (this.showEditModal) {
+          this.updateTask();
+        }
         this.closeModal();
-      },
-      toggleComplete(task) {
-        const idx = this.tasks.findIndex(t => t.id === task.id);
-        // if (idx !== -1) {
-        //   this.tasks[idx].completed = !this.tasks[idx].completed;
-        // }
+
+
       },
       formatDate(dateStr) {
         const d = new Date(dateStr);
@@ -268,6 +325,7 @@
     position: relative;
     height: 100vh;
     overflow: hidden;
+    /* min-width: 400px; */
   }
   .content {
     height: 100%;
