@@ -1,15 +1,36 @@
 from app.repositoryes.template import TemplateRepository
 import logging
 from app.database.models.groups import Group
-from sqlalchemy import select
+from sqlalchemy import select, text
 
 log = logging.getLogger(__name__)
+
 
 class Repository(TemplateRepository):
     async def get_by_number(self, number: str):
         data = select(Group).where(Group.group_number == number)
         groups = await self.db.execute(data)
         return groups.scalars().first()
+
+
+    async def clean(self):
+            await self.db.commit()
+            await self.db.execute(text("TRUNCATE TABLE groups RESTART IDENTITY CASCADE"))
+            await self.db.commit()
+
+    async def create_by_list(self, numbers: list[str]):
+        await self.db.commit()
+        try:
+            for group_number in numbers:
+                new_group = Group(
+                    group_number=group_number
+                )
+                self.db.add(new_group)
+        except:
+            print("Error creating groups")
+        await self.db.commit()
+
+
 
 
     async def get_by_id(self, id: int):

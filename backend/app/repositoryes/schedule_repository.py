@@ -1,5 +1,5 @@
 import logging
-from sqlalchemy import select
+from sqlalchemy import select, text
 from uuid import UUID
 from app.database.models.schedule import Schedule
 from app.database.models.groups import Group
@@ -10,6 +10,36 @@ from app.shemas.schedule import ScheduleIn, ScheduleBase
 log = logging.getLogger(__name__)
 
 class Repository(TemplateRepository):
+
+    async def clean_schedule(self):
+        await self.db.commit()
+        await self.db.execute(text("TRUNCATE TABLE schedule RESTART IDENTITY CASCADE"))
+        await self.db.commit()
+
+    async def create_by_list(self, schedules):
+        await self.db.commit()
+        
+        for weeks in schedules:
+            for schedule in weeks:
+                #print (schedule)
+
+                new_schedule = Schedule(
+                group_id=schedule.group_id,
+                week_number=schedule.week_number,
+                monday=schedule.monday,
+                tuesday=schedule.tuesday,
+                wednesday=schedule.wednesday,
+                thursday=schedule.thursday,
+                friday=schedule.friday,
+                saturday=schedule.saturday,
+                sunday=schedule.sunday
+                )
+                self.db.add(new_schedule)
+
+        await self.db.commit()
+
+
+
     async def get_by_group_id(self, group_id: int, week_number: int):
         data = select(Schedule).where(Schedule.group_id == group_id, Schedule.week_number == week_number)
         schedule = await self.db.execute(data)

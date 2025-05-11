@@ -49,6 +49,18 @@ def upgrade() -> None:
     sa.ForeignKeyConstraint(['user_id'], ['users.id'], ),
     sa.PrimaryKeyConstraint('session_token')
     )
+
+    op.create_table('students',
+                    sa.Column('id', sa.Integer(), nullable=False),
+                    sa.Column('group_id', sa.Integer(), nullable=False),
+                    sa.Column('created_at', sa.DateTime(), nullable=False),
+                    sa.Column('updated_at', sa.DateTime(), nullable=True),
+                    sa.ForeignKeyConstraint(['group_id'], ['groups.group_id'], ondelete='CASCADE'),
+                    sa.ForeignKeyConstraint(['id'], ['users.id'], ondelete='CASCADE'),
+                    sa.PrimaryKeyConstraint('id')
+                    )
+
+
     op.create_table('schedule',
     sa.Column('group_id', sa.Integer(), nullable=False),
     sa.Column('week_number', sa.Integer(), nullable=False),
@@ -64,15 +76,7 @@ def upgrade() -> None:
     sa.ForeignKeyConstraint(['group_id'], ['groups.group_id'], ondelete='CASCADE'),
     sa.PrimaryKeyConstraint('group_id', 'week_number')
     )
-    op.create_table('students',
-    sa.Column('id', sa.Integer(), nullable=False),
-    sa.Column('group_id', sa.Integer(), nullable=False),
-    sa.Column('created_at', sa.DateTime(), nullable=False),
-    sa.Column('updated_at', sa.DateTime(), nullable=True),
-    sa.ForeignKeyConstraint(['group_id'], ['groups.group_id'], ondelete='CASCADE'),
-    sa.ForeignKeyConstraint(['id'], ['users.id'], ondelete='CASCADE'),
-    sa.PrimaryKeyConstraint('id')
-    )
+
     op.create_table('tasks',
     sa.Column('task_id', sa.Integer(), autoincrement=True, nullable=False),
     sa.Column('user_id', sa.Integer(), nullable=False),
