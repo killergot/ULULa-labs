@@ -30,7 +30,9 @@ class Repository(TemplateRepository):
         return {'teacher_id': new_teacher.id, 'FIO': new_teacher.FIO}
 
     async def get_by_FIO(self, FIO: str):
-        return await self.db.get(Teacher, FIO)
+        data = select(Teacher.id).where(Teacher.FIO == FIO)
+        teacher = await self.db.execute(data)
+        return teacher.scalars().first()
 
     @except_handler
     async def delete(self, student_id: int) -> bool:

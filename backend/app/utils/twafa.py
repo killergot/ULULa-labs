@@ -16,8 +16,8 @@ async def send_2fa_email(email: str, code: str):
     # Настройки SMTP
     SMTP_SERVER = "smtp.mail.ru"
     SMTP_PORT = 587
-    SMTP_USER = config.smtp.USER
-    SMTP_PASSWORD = config.smtp.PASS
+    SMTP_USER = config.smtp.user
+    SMTP_PASSWORD = config.smtp.password
 
     msg = MIMEText(f"Your verification code: {code}")
     msg["Subject"] = "ULULa manager BUGAGA"

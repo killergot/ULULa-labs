@@ -1,43 +1,51 @@
-import csv
-import random
+import requests
+import time
 
-# Списки для генерации
-first_names = [
-    "Алексей", "Михаил", "Иван", "Никита", "Дмитрий",
-    "Сергей", "Егор", "Артем", "Максим", "Олег",
-    "Александр", "Антон", "Ярослав", "Богдан", "Владимир"
-]
+BASE_URL = "https://rasp.spbstu.ru"
 
-last_initials = ["А.", "Б.", "В.", "Г.", "Д.", "Е.", "Ж.", "З.", "И.", "К."]
+def get_all_groups():
+    """Получает все группы напрямую через API."""
+    r = requests.get(f"{BASE_URL}/api/v1/groups")
+    if r.status_code == 200:
+        return r.json()
+    return []
 
-regions = [
-    "город Москва", "Санкт-Петербург", "Московская область", "Татарстан",
-    "Свердловская область", "Чеченская Республика", "Краснодарский край",
-    "Хабаровский край", "Ярославская область", "Челябинская область",
-    "Удмуртская Республика", "Республика Мордовия", "Вологодская область"
-]
+def get_schedule_by_group(group_id):
+    """Получает расписание по ID группы."""
+    r = requests.get(f"{BASE_URL}/api/v1/schedule/group/{group_id}")
+    if r.status_code == 200:
+        return r.json()
+    return None
 
-statuses = ["Победитель", "Призер", ""]
+def extract_subjects(schedule_json):
+    """Извлекает названия предметов из JSON расписания."""
+    subjects = set()
+    for day in schedule_json.get("days", []):
+        for lesson in day.get("lessons", []):
+            subj = lesson.get("subject")
+            if subj:
+                subjects.add(subj.strip())
+    return subjects
 
+def main():
+    all_subjects = set()
+    groups = get_all_groups()
+    print(f"Найдено групп: {len(groups)}")
 
-def generate_name():
-    return f"{random.choice(first_names)} {random.choice(last_initials)}"
+    for idx, group in enumerate(groups):
+        group_id = group.get("id")
+        group_title = group.get("title", "")
+        print(f"[{idx+1}/{len(groups)}] Группа: {group_title}")
 
+        schedule = get_schedule_by_group(group_id)
+        if schedule:
+            subjects = extract_subjects(schedule)
+            all_subjects.update(subjects)
+        time.sleep(0.1)
 
-def generate_olymp_csv(n):
-    with open("olymp.csv", mode="w", encoding="utf-8", newline="") as file:
-        writer = csv.writer(file)
-        writer.writerow(["Имя", "Регион", "Балл", "Статус"])
+    print("\n✅ Уникальных предметов найдено:", len(all_subjects))
+    for subj in sorted(all_subjects):
+        print("-", subj)
 
-        for _ in range(n):
-            name = generate_name()
-            region = random.choice(regions)
-            score = random.randint(300, 500)
-            status = random.choices(statuses, weights=[0.1, 0.3, 0.6])[0]  # Победитель реже
-            writer.writerow([name, region, score, status])
-
-
-# Пример вызова
-generate_olymp_csv(100)  # создаст 100 строк в olymp.csv
-
-import pandas as pd
+if __name__ == "__main__":
+    main()

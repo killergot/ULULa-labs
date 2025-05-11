@@ -27,10 +27,10 @@ class TaskService:
              raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
                                     detail="Task not found")
 
-    async def update(self, updated_task: TaskUpdate):
+    async def update(self, updated_task: TaskUpdate, user_id: int):
         task = await self.repo.get_by_id(updated_task.task_id)
         if task:
-            return await self.repo.update(updated_task.task_id, updated_task.user_id, updated_task.deadline, updated_task.description, updated_task.task_flag)
+            return await self.repo.update(updated_task.task_id, user_id, updated_task.deadline, updated_task.description, updated_task.task_flag)
         else:
              raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
                                     detail="Task not found")

@@ -5,6 +5,7 @@ from app.repositoryes.group_repository import Repository as group_Repository
 from app.repositoryes.subject_repository import Repository as subject_Repository
 from app.repositoryes.teacher_repository import Repository as teacher_Repository
 from app.repositoryes.teacher_subject_repository import Repository as teacher_subject_Repository
+from app.repositoryes.group_subject_repository import Repository as group_subject_Repository
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.shemas.schedule import ScheduleIn
 from app.database import Student
@@ -19,6 +20,7 @@ class ScheduleService:
         self.subject_repo = subject_Repository(db)
         self.teacher_repo = teacher_Repository(db)
         self.teacher_subject_repo = teacher_subject_Repository(db)
+        self.group_subject_repo = group_subject_Repository(db)
 
 
     async def load_schedule(self):
@@ -26,10 +28,7 @@ class ScheduleService:
         await self.group_repo.clean()
         await self.group_repo.create_by_list(groups)
         groups = await self.group_repo.get_all()
-        schedule, subjects, teacher_subjects, group_subjects = await get_schedule(groups[0:45])
-        print (subjects)
-        print(teacher_subjects)
-        print(group_subjects)
+        schedule, subjects, teacher_subjects, group_subjects = await get_schedule(groups)
         await self.repo.clean_schedule()
         await self.repo.create_by_list(schedule)
         await self.subject_repo.clean()
@@ -39,15 +38,34 @@ class ScheduleService:
         teacher_subjects_to_insert = []
         for teacher_subject in teacher_subjects:
             #получать id препода по имени, если не существует - пропускать
+            #print(teacher_subject.FIO)
             teacher_id = await self.teacher_repo.get_by_FIO(teacher_subject.FIO)
-            if not teacher_id:
-                continue
+            #print(teacher_id)
+            if teacher_id:
             #получать id предмета по названию
-            subject_id = await self.subject_repo.get_by_name(teacher_subject.name)
+                subject_id = await self.subject_repo.get_by_name(teacher_subject.subject)
             #добавлять в список
-            teacher_subjects_to_insert.append({'teacher_id': teacher_id, 'subject_id': subject_id})
-        await self.teacher_subject_repo.clean()
-        await self.teacher_subject_repo.create_by_list(teacher_subjects_to_insert)
+                teacher_subjects_to_insert.append({'teacher_id': teacher_id, 'subject_id': subject_id})
+        #print("res: ", teacher_subjects_to_insert)
+        if (teacher_subjects_to_insert):
+            await self.teacher_subject_repo.clean()
+            await self.teacher_subject_repo.create_by_list(teacher_subjects_to_insert)
+
+        group_subjects_to_insert = []
+        for group_subject in group_subjects:
+            #получать id группы по имени, если не существует - пропускать
+
+            group_id = await self.group_repo.get_by_number(group_subject.group_number)
+            group_id = group_id.group_id
+
+            #получать id предмета по названию
+            subject_id = await self.subject_repo.get_by_name(group_subject.subject)
+            #добавлять в список
+            group_subjects_to_insert.append({'group_id': group_id, 'subject_id': subject_id})
+        #print("res: ", teacher_subjects_to_insert)
+        if (group_subjects_to_insert):
+            await self.group_subject_repo.clean()
+            await self.group_subject_repo.create_by_list(group_subjects_to_insert)
 
 
 
