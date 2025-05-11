@@ -142,26 +142,14 @@
 
   
   <script>
-  let nextId = 14;
+  import api from '@/services/api';
+
+  // let nextId = 14;
   export default {
     name: 'TaskManager',
     data() {
       return {
-        tasks: [
-          { id: 1, text: 'Купить молоко', deadline: '2025-04-30', important: true, completed: false },
-          { id: 2, text: 'Очень очень длиииииииииииииииииииииииииииииииииииииииииииииииииииииинная задача. Ну прям оооооооооооочень длиииииииииииииииииииииная 111 2222 3333 4444 55555 666666 77777777 8888888 9999999999', deadline: '2025-04-20', important: true, completed: false },
-          { id: 3, text: 'Прочитать книгу', deadline: '2025-05-25', important: false, completed: false },
-          { id: 4, text: 'Купить молоко 1', deadline: '2025-05-23', important: true, completed: false },
-          { id: 5, text: 'Подготовить доклад', deadline: '2025-05-24', important: true, completed: false },
-          { id: 6, text: 'Прочитать книгу', deadline: '2025-04-25', important: false, completed: false },
-          { id: 7, text: 'Купить молоко 2', deadline: '2025-04-23', important: true, completed: false },
-          { id: 8, text: 'Подготовить доклад 1', deadline: '2025-05-24', important: true, completed: false },
-          { id: 9, text: 'Прочитать книгу', deadline: '2025-05-25', important: false, completed: false },
-          { id: 10, text: 'Купить молоко 3', deadline: '2025-05-23', important: true, completed: false },
-          { id: 11, text: 'Подготовить доклад 2', deadline: '2025-04-24', important: true, completed: false },
-          { id: 12, text: 'Сдать ТПД', deadline: '2025-05-25', important: true, completed: true },
-          { id: 13, text: 'Сделать аутентификацию бип2', deadline: '2025-03-20', important: true, completed: true }
-        ],
+        tasks: [],
         showAddModal: false,
         showEditModal: false,
         modalData: { id: null, text: '', deadline: '', important: false, completed: false },
@@ -192,6 +180,18 @@
 
     },
     methods: {
+      async fetchTasks(){
+        const response = await api.get('tasks/get_tasks_for_me');
+        if (response.status !== 201) throw new Error(`Error ${response.status}`);
+
+        this.tasks = response.data.map(task => ({
+          id: task.task_id,
+          text: task.description,
+          deadline: task.deadline,
+          important: Boolean(task.task_flag & 1),
+          completed: Boolean(task.task_flag & 2),
+        }));
+      },
       groupByDate(list) {
         return list.reduce((acc, t) => {
           (acc[t.deadline] = acc[t.deadline] || []).push(t);
@@ -211,24 +211,24 @@
         this.modalData = { id: null, text: '', deadline: '', important: false, completed: false };
       },
       confirmModal() {
-        if (this.showAddModal) {
-          const newTask = { ...this.modalData, id: nextId++ };
-          this.tasks.push(newTask);
-        } else if (this.showEditModal) {
-          const idx = this.tasks.findIndex(t => t.id === this.modalData.id);
-          if (idx !== -1) this.tasks.splice(idx, 1, { ...this.modalData });
-        }
+        // if (this.showAddModal) {
+        //   const newTask = { ...this.modalData, id: nextId++ };
+        //   this.tasks.push(newTask);
+        // } else if (this.showEditModal) {
+        //   const idx = this.tasks.findIndex(t => t.id === this.modalData.id);
+        //   if (idx !== -1) this.tasks.splice(idx, 1, { ...this.modalData });
+        // }
         this.closeModal();
       },
       deleteTask() {
-        this.tasks = this.tasks.filter(t => t.id !== this.modalData.id);
+        // this.tasks = this.tasks.filter(t => t.id !== this.modalData.id);
         this.closeModal();
       },
       toggleComplete(task) {
         const idx = this.tasks.findIndex(t => t.id === task.id);
-        if (idx !== -1) {
-          this.tasks[idx].completed = !this.tasks[idx].completed;
-        }
+        // if (idx !== -1) {
+        //   this.tasks[idx].completed = !this.tasks[idx].completed;
+        // }
       },
       formatDate(dateStr) {
         const d = new Date(dateStr);
@@ -246,6 +246,9 @@
 
         return diffInDays < 0 || diffInDays <= 3;
       }
+    },
+    mounted(){
+      this.fetchTasks();
     }
   };
   </script>
