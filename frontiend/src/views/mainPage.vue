@@ -192,6 +192,18 @@
           completed: Boolean(task.task_flag & 2),
         }));
       },
+      async deleteTask(){
+        const response = await api.delete('tasks/delete_task', { data: { task_id: this.modalData.id } });
+        if (response.status === 201){
+          this.tasks = this.tasks.filter(t => t.id !== this.modalData.id);
+          this.closeModal();
+        }
+        else {
+          throw new Error(`Error ${response.status}`);
+        }
+        
+      },
+
       groupByDate(list) {
         return list.reduce((acc, t) => {
           (acc[t.deadline] = acc[t.deadline] || []).push(t);
@@ -218,10 +230,6 @@
         //   const idx = this.tasks.findIndex(t => t.id === this.modalData.id);
         //   if (idx !== -1) this.tasks.splice(idx, 1, { ...this.modalData });
         // }
-        this.closeModal();
-      },
-      deleteTask() {
-        // this.tasks = this.tasks.filter(t => t.id !== this.modalData.id);
         this.closeModal();
       },
       toggleComplete(task) {
