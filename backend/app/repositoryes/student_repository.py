@@ -1,5 +1,8 @@
 import logging
+from typing import Optional
+
 from sqlalchemy import select
+from sqlalchemy.orm import selectinload
 from uuid import UUID
 from app.database.models.students import Student
 from app.database.models.groups import Group
@@ -31,8 +34,19 @@ class Repository(TemplateRepository):
         await self.db.refresh(new_student)
         return new_student
 
-    async def get(self, id: int):
-        return await self.db.get(Student, id)
+    async def get(self, student_id: int):
+        stmt = (
+            select(Student)
+            .where(Student.id == student_id)
+            .options(
+                selectinload(Student.achievements),  # Явно загружаем achievements
+                selectinload(Student.user),  # И пользователя, если нужно
+                selectinload(Student.group)  # И группу
+            )
+        )
+        result = await self.db.execute(stmt)
+        student = result.scalars().first()
+        return student
 
     @except_handler
     async def delete(self, student_id: int) -> bool:
@@ -41,9 +55,26 @@ class Repository(TemplateRepository):
         return True
 
     @except_handler
-    async def update(self, student_id: int, group_id: str):
-        student = await self.get(student_id)
-        student.group_id = group_id
+    async def update(self, student: Student,
+                     group_id: Optional[Group] = None,
+                     full_name: Optional[str] = None,
+                     telegram: Optional[str] = None,
+                     avatar: Optional[str] = None,
+                     nickname: Optional[str] = None,
+                     email: Optional[str] = None,):
+        if group_id is not None:
+            student.group_id = group_id
+        if full_name is not None:
+            student.full_name = full_name
+        if telegram is not None:
+            student.telegram = telegram
+        if avatar is not None:
+            student.avatar = avatar
+        if nickname is not None:
+            student.nickname = nickname
+        if email is not None:
+            student.user.email = email
+
         await self.db.commit()
         await self.db.refresh(student)
         return student

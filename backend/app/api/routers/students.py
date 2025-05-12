@@ -1,6 +1,6 @@
 from app.api.depencies.guard import  get_current_user, require_role
 from app.api.depencies.services import get_student_service
-from app.shemas.students import StudentBase, StudentIn, StudentID
+from app.shemas.students import StudentBase, StudentIn, StudentID, StudentOut, StudentUpdateIn
 from app.shemas.groups import GroupNumber
 from app.shemas.auth import UserOut
 from fastapi import Depends, status
@@ -28,7 +28,7 @@ router = APIRouter(prefix="/students", tags=["students"])
 # 6.2 ++ "/delete_user"- удалять конкретного студента (вход - id юзера, выход - успех/неуспех) - только для админа
 
 
-@router.post("", response_model=StudentBase,
+@router.post("", response_model=StudentOut,
              status_code=status.HTTP_201_CREATED,
              summary='Register a new student',
              description='Create a new student in database. Requre user id and group id.\n')
@@ -37,10 +37,17 @@ async def create_student(student: StudentIn,
                          service = Depends(get_student_service)):
     return await service.create_student(student,user.id)
 
-@router.get("", response_model=StudentBase,
+@router.get("/me", response_model=StudentOut,
             status_code=status.HTTP_200_OK)
 async def get(student = Depends(get_current_user), service = Depends(get_student_service)):
     return await service.get(student.id)
+
+@router.put("/me", response_model=StudentOut,
+            status_code=status.HTTP_200_OK,
+            summary='Update student information')
+async def put(student: StudentUpdateIn, user: UserOut = Depends(get_current_user),
+              service = Depends(get_student_service)):
+    return await service.update(student, user.id)
 
 @router.delete("/delete_me",
              status_code=status.HTTP_200_OK,

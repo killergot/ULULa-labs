@@ -6,7 +6,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.repositoryes.user_repository import UserRepository
 from app.shemas.auth import UserOut
-from app.shemas.students import StudentBase, StudentOut, StudentIn
+from app.shemas.students import StudentBase, StudentOut, StudentIn, Achievement, StudentUpdateIn
 from app.utils.hash import get_hash
 from app.database import Student
 
@@ -35,7 +35,7 @@ from app.database import Student
 class StudentService:
     def __init__(self, db: AsyncSession):
         self.repo = Repository(db)
-        self.grout_repo = GroupRepository(db)
+        self.group_repo = GroupRepository(db)
         self.user_repo = UserRepository(db)
 
     async def _get(self, id) -> Student:
@@ -45,28 +45,61 @@ class StudentService:
                                 detail="Student not found")
         return student
 
+    async def _get_group(self, number):
+        group = await self.group_repo.get_by_number(number)
+        if not group:
+            raise HTTPException(status_code=404,
+                                detail="Group not found")
+        return group
+
     async def get(self, id):
         student = await self._get(id)
-        user = await self.user_repo.get_by_id(id)
-        group = await self.grout_repo.get_by_id(student.group_id)
-        return StudentOut(group_number = group.group_number,
+        return StudentOut(group_number = student.group.group_number,
                           full_name=student.full_name,
                           nickname=student.nickname,
                           student_id=student.id,
-                          email=user.email,
-                          achievements=student.achievements,
+                          email=student.user.email,
+                          achievements=[Achievement.model_validate(a) for a in student.achievements], # Почему тут ошибка
                           telegram=student.telegram,
                           avatar_url=student.avatar_url)
 
 
     async def create_student(self, student: StudentIn, id: int):#создаём нового студента
-        if await self.repo.get(student.student_id):
+        if await self.repo.get(id):
             raise HTTPException(status_code=status.HTTP_409_CONFLICT,
                                 detail='Student already exist')
-        group = await self.grout_repo.get_by_number(student.group_number)
+        group = await self._get_group(student.group_number)
         new_student = await self.repo.create(id,group.group_id,student.full_name)
 
-        return StudentOut.model_validate(new_student)
+        return StudentOut(group_number=student.group_number,
+                          full_name=student.full_name,
+                          student_id=new_student.id)
+
+    async def update(self, new_student: StudentUpdateIn, id: int):
+        student = await self._get(id)
+        group = None
+        if new_student.group_number is not None:
+            group = await self.group_repo.get_by_number(new_student.group_number)
+        user = await self.user_repo.get_by_email(StudentUpdateIn.email)
+        if user:
+            raise HTTPException(status_code=status.HTTP_409_CONFLICT,
+                                detail='Email already busy')
+        new_student = await self.repo.update(student = student,
+                                             group_id = group.group_id if group else None,
+                                             full_name=new_student.full_name,
+                                             telegram=new_student.telegram,
+                                             avatar = new_student.avatar_url,
+                                             nickname=new_student.nickname,
+                                             email=new_student.email) #  Это поменять на EmailStr
+        return StudentOut(group_number = student.group.group_number,
+                          full_name=student.full_name,
+                          nickname=student.nickname,
+                          student_id=student.id,
+                          email=student.user.email,
+                          achievements=[Achievement.model_validate(a) for a in student.achievements], # Почему тут ошибка
+                          telegram=student.telegram,
+                          avatar_url=student.avatar_url)
+
 
 
     async def delete_student(self, student_id: int):  # удаляем студента
