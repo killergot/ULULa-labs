@@ -1,4 +1,4 @@
-from app.api.depencies.guard import get_current_id, get_current_user, require_role
+from app.api.depencies.guard import  get_current_user, require_role
 from app.api.depencies.services import get_student_service
 from app.shemas.students import StudentBase, StudentIn, StudentID
 from app.shemas.groups import GroupNumber
@@ -28,16 +28,19 @@ router = APIRouter(prefix="/students", tags=["students"])
 # 6.2 ++ "/delete_user"- удалять конкретного студента (вход - id юзера, выход - успех/неуспех) - только для админа
 
 
-@router.post("/register_student", response_model=StudentBase,
+@router.post("", response_model=StudentBase,
              status_code=status.HTTP_201_CREATED,
              summary='Register a new student',
              description='Create a new student in database. Requre user id and group id.\n')
-async def create_student(group_number: StudentIn, student: UserOut = Depends(get_current_user), service = Depends(get_student_service), group_service = Depends(get_group_service)):
-    #получить id группы по номеру группы
-    group_id = await  group_service.get_by_number(group_number)
-    #создать new student, провалидировать по user_base
-    new_student = StudentBase.model_validate({"student_id": student.id, "group_id": group_id})
-    return await service._create_student(new_student)
+async def create_student(student: StudentIn,
+                         user: UserOut = Depends(get_current_user),
+                         service = Depends(get_student_service)):
+    return await service.create_student(student,user.id)
+
+@router.get("", response_model=StudentBase,
+            status_code=status.HTTP_200_OK)
+async def get(student = Depends(get_current_user), service = Depends(get_student_service)):
+    return await service.get(student.id)
 
 @router.delete("/delete_me",
              status_code=status.HTTP_200_OK,
@@ -57,7 +60,7 @@ async def delete_me(student = Depends(get_current_user), service = Depends(get_s
 async def delete_student(student_id: int, service = Depends(get_student_service)):
     return await service.delete_student(student_id)
 
-@router.post("/get_my_group",
+@router.get("/get_my_group",
              status_code=status.HTTP_200_OK,
              summary='Get group number for current student',
              description='Get group number for current student.\n')
@@ -65,7 +68,7 @@ async def get_my_group(student: UserOut = Depends(get_current_user), service = D
     group_id = await service.get_group(student.id)
     #Получение номера группы по id
     validate_group_id = GroupID.model_validate({"group_id": group_id})
-    group_number =  await  group_service.get_by_id(validate_group_id)
+    group_number =  await group_service.get_by_id(validate_group_id)
     return group_number
 
 

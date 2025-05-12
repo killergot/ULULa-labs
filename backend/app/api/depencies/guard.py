@@ -42,16 +42,6 @@ async def get_current_user(
                             detail="User not found")
     return user
 
-async def get_current_id(
-    payload: dict = Depends(get_access_token_payload),
-    service: UserService = Depends(get_user_service)
-):
-    user: UserOut = await service.get_user_by_id(payload["id"])
-    if not user:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,
-                            detail="User not found")
-    return user.id
-
 def require_role(req_role: int):
     async def role_checker(payload: dict = Depends(get_access_token_payload)):
         if not payload["role"] & req_role:

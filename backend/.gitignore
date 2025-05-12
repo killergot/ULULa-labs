@@ -1,6 +1,6 @@
 venv/
 *__pycache__/
-.idea/
+*.idea/
 ulula_venv/
 *.env
 .venv

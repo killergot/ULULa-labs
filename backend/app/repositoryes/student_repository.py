@@ -16,32 +16,33 @@ class Repository(TemplateRepository):
 
 
     async def get_by_group(self, id: int):
-            data = select(Student.id).where (Student.group_id == id)
+            data = select(Student.id).where(Student.group_id == id)
             student = await self.db.execute(data)
             return  student.scalars().all()
 
     async def create(self, student_id: int,
-                     group_id: int) -> Student:
+                     group_id: int,
+                     full_name: str) -> Student:
         new_student = Student(
-            id = student_id, group_id = group_id
+            id = student_id, group_id = group_id, full_name = full_name
         )
         self.db.add(new_student)
         await self.db.commit()
         await self.db.refresh(new_student)
-        return {'student_id': new_student.id, 'group_id': new_student.group_id}
+        return new_student
 
-    async def get_by_id(self, id: int):
+    async def get(self, id: int):
         return await self.db.get(Student, id)
 
     @except_handler
     async def delete(self, student_id: int) -> bool:
-        await self.db.delete(await self.get_by_id(student_id))
+        await self.db.delete(await self.get(student_id))
         await self.db.commit()
         return True
 
     @except_handler
     async def update(self, student_id: int, group_id: str):
-        student = await self.get_by_id(student_id)
+        student = await self.get(student_id)
         student.group_id = group_id
         await self.db.commit()
         await self.db.refresh(student)
