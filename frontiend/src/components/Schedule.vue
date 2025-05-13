@@ -35,7 +35,7 @@
     name: 'SchedulePage',
     data() {
       return {
-        weekNumber: 2,
+        weekNumber: 1,
         schedule: {},
         dayList: [
           { key: 'monday', label: 'Mon' },

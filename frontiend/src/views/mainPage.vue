@@ -11,7 +11,7 @@
       <transition name="collapse">
         <div v-show="!collapsedImportant" class="section-content">
           <template v-for="(tasks, date) in groupedImportant" :key="date">
-            <h3>{{ formatDate(date) }}</h3>
+            <h3 v-if="date">{{ formatDate(date) }}</h3>
             <ul>
               <li
                 v-for="task in tasks"
@@ -19,7 +19,6 @@
                 class="task-item"
                 :class="{ completed: task.completed, urgent: isUrgent(task) }"
               >
-              <!-- <li v-for="task in tasks" :key="task.id" class="task-item" :class="{ completed: task.completed }"> -->
                 <label>
                   <input type="checkbox" :checked="task.completed" @change="toggleComplete(task)" />
                 </label>
@@ -43,7 +42,7 @@
       <transition name="collapse">
         <div v-show="!collapsedOthers" class="section-content">
           <template v-for="(tasks, date) in groupedOthers" :key="date">
-            <h3>{{ formatDate(date) }}</h3>
+            <h3 v-if="date">{{ formatDate(date) }}</h3>
             <ul>
               <li
                 v-for="task in tasks"
@@ -51,7 +50,6 @@
                 class="task-item"
                 :class="{ completed: task.completed, urgent: isUrgent(task) }"
               >
-              <!-- <li v-for="task in tasks" :key="task.id" class="task-item" :class="{ completed: task.completed }"> -->
                 <label>
                   <input type="checkbox" :checked="task.completed" @change="toggleComplete(task)" />
                 </label>
@@ -74,7 +72,7 @@
       <transition name="collapse">
         <div v-show="!collapsedCompleted" class="section-content">
           <template v-for="(tasks, date) in groupedCompleted" :key="date">
-            <h3>{{ formatDate(date) }}</h3>
+            <h3 v-if="date">{{ formatDate(date) }}</h3>
             <ul>
               <li v-for="task in tasks" :key="task.id" class="task-item completed">
                 <label>
@@ -142,26 +140,13 @@
 
   
   <script>
-  let nextId = 14;
+  import api from '@/services/api';
+
   export default {
     name: 'TaskManager',
     data() {
       return {
-        tasks: [
-          { id: 1, text: 'Купить молоко', deadline: '2025-04-30', important: true, completed: false },
-          { id: 2, text: 'Очень очень длиииииииииииииииииииииииииииииииииииииииииииииииииииииинная задача. Ну прям оооооооооооочень длиииииииииииииииииииииная 111 2222 3333 4444 55555 666666 77777777 8888888 9999999999', deadline: '2025-04-20', important: true, completed: false },
-          { id: 3, text: 'Прочитать книгу', deadline: '2025-05-25', important: false, completed: false },
-          { id: 4, text: 'Купить молоко 1', deadline: '2025-05-23', important: true, completed: false },
-          { id: 5, text: 'Подготовить доклад', deadline: '2025-05-24', important: true, completed: false },
-          { id: 6, text: 'Прочитать книгу', deadline: '2025-04-25', important: false, completed: false },
-          { id: 7, text: 'Купить молоко 2', deadline: '2025-04-23', important: true, completed: false },
-          { id: 8, text: 'Подготовить доклад 1', deadline: '2025-05-24', important: true, completed: false },
-          { id: 9, text: 'Прочитать книгу', deadline: '2025-05-25', important: false, completed: false },
-          { id: 10, text: 'Купить молоко 3', deadline: '2025-05-23', important: true, completed: false },
-          { id: 11, text: 'Подготовить доклад 2', deadline: '2025-04-24', important: true, completed: false },
-          { id: 12, text: 'Сдать ТПД', deadline: '2025-05-25', important: true, completed: true },
-          { id: 13, text: 'Сделать аутентификацию бип2', deadline: '2025-03-20', important: true, completed: true }
-        ],
+        tasks: [],
         showAddModal: false,
         showEditModal: false,
         modalData: { id: null, text: '', deadline: '', important: false, completed: false },
@@ -192,11 +177,113 @@
 
     },
     methods: {
+      async fetchTasks(){
+        try {
+          const response = await api.get('tasks/get_tasks_for_me');
+          
+          if (response.status !== 201) throw new Error(`Error ${response.status}`);
+          
+          this.tasks = response.data.map(task => ({
+            id: task.task_id,
+            text: task.description,
+            deadline: task.deadline,
+            important: Boolean(task.task_flag & 1),
+            completed: Boolean(task.task_flag & 2),
+          }));
+      } catch (error) {
+        console.error('Failed to fetch tasks:', error);
+      }
+    },
+      async addTask(){
+        try {
+          const payload = {
+            description: this.modalData.text,
+            deadline: this.modalData.deadline
+              ? new Date(this.modalData.deadline).toISOString()
+              : null,
+            task_flag: (this.modalData.important ? 1 : 0) | (this.modalData.completed ? 2 : 0)
+          };
+          const response = await api.post('tasks/create_task_for_me', payload);
+          if (response.status === 201) {
+            await this.fetchTasks();
+          } else {
+            console.error(`Create failed: ${response.status}`);
+          }
+      } catch (err) {
+        console.error('Add task error', err);
+      }
+    },
+      async updateTask(){
+        try {
+          const payload = {
+            task_id: this.modalData.id,
+            description: this.modalData.text,
+            deadline: this.modalData.deadline
+              ? new Date(this.modalData.deadline).toISOString()
+              : null,
+            task_flag: (this.modalData.important ? 1 : 0) | (this.modalData.completed ? 2 : 0)
+          };
+          const response = await api.patch('tasks/update_task', payload);
+          if (response.status === 201) {
+            await this.fetchTasks();
+        } else {
+            console.error(`Update failed: ${response.status}`);
+          
+        }
+      } catch (err) {
+        console.error('Update task error', err.response?.data || err);
+      }
+      },
+      async deleteTask(){
+        const response = await api.delete('tasks/delete_task', { data: { task_id: this.modalData.id } });
+        if (response.status === 201){
+          await this.fetchTasks();
+        }
+        else {
+          throw new Error(`Error ${response.status}`);
+        }
+        this.closeModal();
+      },
+      async toggleComplete(task) {
+        try {
+          const newCompleted = !task.completed;
+          
+          const payload = {
+            task_id: task.id,
+            description: task.text,
+            deadline: this.modalData.deadline
+              ? new Date(this.modalData.deadline).toISOString()
+              : null,
+            task_flag: (task.important ? 1 : 0) | (newCompleted ? 2 : 0)
+          };
+          
+          const response = await api.patch('tasks/update_task', payload);
+          if (response.status === 201) {
+            await this.fetchTasks();
+          } else {
+            console.error(`Toggle complete failed: ${response.status}`);
+          }
+        } catch (err) {
+          console.error('Toggle complete error', err.response?.data || err);
+        }
+      },
+      
+
       groupByDate(list) {
-        return list.reduce((acc, t) => {
+        const noDeadline = list.filter(t => t.deadline === null);
+
+        const withDeadline = list
+          .filter(t => t.deadline !== null)
+          .sort((a, b) => a.deadline.localeCompare(b.deadline));
+        const acc = {};
+        
+        if (noDeadline.length) 
+          acc[''] = noDeadline;
+        
+          withDeadline.forEach(t => {
           (acc[t.deadline] = acc[t.deadline] || []).push(t);
-          return acc;
-        }, {});
+        });
+        return acc;
       },
       openAddModal() {
         this.modalData = { id: null, text: '', deadline: '', important: false, completed: false };
@@ -212,23 +299,12 @@
       },
       confirmModal() {
         if (this.showAddModal) {
-          const newTask = { ...this.modalData, id: nextId++ };
-          this.tasks.push(newTask);
+          this.addTask();
+        
         } else if (this.showEditModal) {
-          const idx = this.tasks.findIndex(t => t.id === this.modalData.id);
-          if (idx !== -1) this.tasks.splice(idx, 1, { ...this.modalData });
+          this.updateTask();
         }
         this.closeModal();
-      },
-      deleteTask() {
-        this.tasks = this.tasks.filter(t => t.id !== this.modalData.id);
-        this.closeModal();
-      },
-      toggleComplete(task) {
-        const idx = this.tasks.findIndex(t => t.id === task.id);
-        if (idx !== -1) {
-          this.tasks[idx].completed = !this.tasks[idx].completed;
-        }
       },
       formatDate(dateStr) {
         const d = new Date(dateStr);
@@ -246,6 +322,9 @@
 
         return diffInDays < 0 || diffInDays <= 3;
       }
+    },
+    mounted(){
+      this.fetchTasks();
     }
   };
   </script>
@@ -257,6 +336,7 @@
     position: relative;
     height: 100vh;
     overflow: hidden;
+    /* min-width: 400px; */
   }
   .content {
     height: 100%;
