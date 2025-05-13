@@ -5,3 +5,4 @@ ulula_venv/
 *.env
 .venv
 *.log
+*uploads/

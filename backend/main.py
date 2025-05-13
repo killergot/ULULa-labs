@@ -13,6 +13,9 @@ init_log(logging.DEBUG)
 
 config = load_config()
 
+UPLOAD_FOLDER = "uploads"
+os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+
 app = FastAPI(
     title="Ulula labs",
     description="-",
