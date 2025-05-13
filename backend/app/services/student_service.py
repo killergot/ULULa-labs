@@ -80,7 +80,10 @@ class StudentService:
         group = None
         if new_student.group_number is not None:
             group = await self.group_repo.get_by_number(new_student.group_number)
-        user = await self.user_repo.get_by_email(StudentUpdateIn.email)
+            if not group:
+                raise HTTPException(status_code=404,
+                                    detail="Wrong group number")
+        user = await self.user_repo.get_by_email(new_student.email)
         if user:
             raise HTTPException(status_code=status.HTTP_409_CONFLICT,
                                 detail='Email already busy')
@@ -91,14 +94,14 @@ class StudentService:
                                              avatar = new_student.avatar_url,
                                              nickname=new_student.nickname,
                                              email=new_student.email) #  Это поменять на EmailStr
-        return StudentOut(group_number = student.group.group_number,
-                          full_name=student.full_name,
-                          nickname=student.nickname,
-                          student_id=student.id,
-                          email=student.user.email,
-                          achievements=[Achievement.model_validate(a) for a in student.achievements], # Почему тут ошибка
-                          telegram=student.telegram,
-                          avatar_url=student.avatar_url)
+        return StudentOut(group_number = new_student.group.group_number,
+                          full_name=new_student.full_name,
+                          nickname=new_student.nickname,
+                          student_id=new_student.id,
+                          email=new_student.user.email,
+                          achievements=[Achievement.model_validate(a) for a in new_student.achievements], # Почему тут ошибка
+                          telegram=new_student.telegram,
+                          avatar_url=new_student.avatar_url)
 
 
 

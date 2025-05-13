@@ -69,7 +69,7 @@ class Repository(TemplateRepository):
         if telegram is not None:
             student.telegram = telegram
         if avatar is not None:
-            student.avatar = avatar
+            student.avatar_url = avatar
         if nickname is not None:
             student.nickname = nickname
         if email is not None:
