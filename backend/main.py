@@ -1,7 +1,11 @@
+import os
+
 from fastapi import FastAPI
 import uvicorn
 from starlette.middleware.sessions import SessionMiddleware
 
+from app.api.admin.admin_panel import setup_admin
+from app.database import engine
 from app.middleware.cors import get_cors_middleware
 from app.core.config import load_config
 from app.api.routers import api_router
@@ -28,6 +32,8 @@ app = FastAPI(
 app.add_middleware(SessionMiddleware, secret_key=config.secret_keys.yandex)
 app.include_router(api_router)
 get_cors_middleware(app)
+setup_admin(app, engine)
+
 
 
 if __name__ == "__main__":
