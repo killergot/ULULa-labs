@@ -11,7 +11,7 @@
       <transition name="collapse">
         <div v-show="!collapsedImportant" class="section-content">
           <template v-for="(tasks, date) in groupedImportant" :key="date">
-            <h3>{{ formatDate(date) }}</h3>
+            <h3 v-if="date">{{ formatDate(date) }}</h3>
             <ul>
               <li
                 v-for="task in tasks"
@@ -19,7 +19,6 @@
                 class="task-item"
                 :class="{ completed: task.completed, urgent: isUrgent(task) }"
               >
-              <!-- <li v-for="task in tasks" :key="task.id" class="task-item" :class="{ completed: task.completed }"> -->
                 <label>
                   <input type="checkbox" :checked="task.completed" @change="toggleComplete(task)" />
                 </label>
@@ -43,7 +42,7 @@
       <transition name="collapse">
         <div v-show="!collapsedOthers" class="section-content">
           <template v-for="(tasks, date) in groupedOthers" :key="date">
-            <h3>{{ formatDate(date) }}</h3>
+            <h3 v-if="date">{{ formatDate(date) }}</h3>
             <ul>
               <li
                 v-for="task in tasks"
@@ -51,7 +50,6 @@
                 class="task-item"
                 :class="{ completed: task.completed, urgent: isUrgent(task) }"
               >
-              <!-- <li v-for="task in tasks" :key="task.id" class="task-item" :class="{ completed: task.completed }"> -->
                 <label>
                   <input type="checkbox" :checked="task.completed" @change="toggleComplete(task)" />
                 </label>
@@ -74,7 +72,7 @@
       <transition name="collapse">
         <div v-show="!collapsedCompleted" class="section-content">
           <template v-for="(tasks, date) in groupedCompleted" :key="date">
-            <h3>{{ formatDate(date) }}</h3>
+            <h3 v-if="date">{{ formatDate(date) }}</h3>
             <ul>
               <li v-for="task in tasks" :key="task.id" class="task-item completed">
                 <label>
@@ -144,7 +142,6 @@
   <script>
   import api from '@/services/api';
 
-  // let nextId = 14;
   export default {
     name: 'TaskManager',
     data() {
@@ -201,7 +198,9 @@
         try {
           const payload = {
             description: this.modalData.text,
-            deadline: new Date(this.modalData.deadline).toISOString(),
+            deadline: this.modalData.deadline
+              ? new Date(this.modalData.deadline).toISOString()
+              : null,
             task_flag: (this.modalData.important ? 1 : 0) | (this.modalData.completed ? 2 : 0)
           };
           const response = await api.post('tasks/create_task_for_me', payload);
@@ -219,7 +218,9 @@
           const payload = {
             task_id: this.modalData.id,
             description: this.modalData.text,
-            deadline: new Date(this.modalData.deadline).toISOString(),
+            deadline: this.modalData.deadline
+              ? new Date(this.modalData.deadline).toISOString()
+              : null,
             task_flag: (this.modalData.important ? 1 : 0) | (this.modalData.completed ? 2 : 0)
           };
           const response = await api.patch('tasks/update_task', payload);
@@ -250,7 +251,9 @@
           const payload = {
             task_id: task.id,
             description: task.text,
-            deadline: new Date(task.deadline).toISOString(),
+            deadline: this.modalData.deadline
+              ? new Date(this.modalData.deadline).toISOString()
+              : null,
             task_flag: (task.important ? 1 : 0) | (newCompleted ? 2 : 0)
           };
           
@@ -267,10 +270,20 @@
       
 
       groupByDate(list) {
-        return list.reduce((acc, t) => {
+        const noDeadline = list.filter(t => t.deadline === null);
+
+        const withDeadline = list
+          .filter(t => t.deadline !== null)
+          .sort((a, b) => a.deadline.localeCompare(b.deadline));
+        const acc = {};
+        
+        if (noDeadline.length) 
+          acc[''] = noDeadline;
+        
+          withDeadline.forEach(t => {
           (acc[t.deadline] = acc[t.deadline] || []).push(t);
-          return acc;
-        }, {});
+        });
+        return acc;
       },
       openAddModal() {
         this.modalData = { id: null, text: '', deadline: '', important: false, completed: false };
@@ -292,8 +305,6 @@
           this.updateTask();
         }
         this.closeModal();
-
-
       },
       formatDate(dateStr) {
         const d = new Date(dateStr);
