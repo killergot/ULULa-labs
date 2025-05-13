@@ -28,8 +28,13 @@ class Repository(TemplateRepository):
             await self.db.commit()
 
     async def get_by_name(self, name: str):
-            data = select(Subject.id).where(Subject.name == name)
+            data = select(Subject).where(Subject.name == name)
             subject = await self.db.execute(data)
             return subject.scalars().first()
 
+
+    async def get(self, id: int):
+            data = select(Subject).where(Subject.id == id)
+            subject = await self.db.execute(data)
+            return subject.scalars().first()
 

@@ -10,9 +10,9 @@ log = logging.getLogger(__name__)
 
 class Repository(TemplateRepository):
     async def get_all(self):
-        data = select(Teacher.id, Teacher.FIO)
-        student = await self.db.execute(data)
-        return [{"id": row.id, "FIO": row.id} for row in student]
+        data = select(Teacher)
+        teachers= await self.db.execute(data)
+        return teachers.scalars().all()
 
 
     async def get_by_id(self, id: int):
@@ -29,7 +29,8 @@ class Repository(TemplateRepository):
         await self.db.refresh(new_teacher)
         return {'teacher_id': new_teacher.id, 'FIO': new_teacher.FIO}
 
-    async def get_by_FIO(self, FIO: str):
+    async def get_by_FIO(self, FIO: str) -> Teacher:
+        print(FIO)
         data = select(Teacher.id).where(Teacher.FIO == FIO)
         teacher = await self.db.execute(data)
         return teacher.scalars().first()

@@ -6,11 +6,12 @@ from app.repositoryes.subject_repository import Repository as subject_Repository
 from app.repositoryes.teacher_repository import Repository as teacher_Repository
 from app.repositoryes.teacher_subject_repository import Repository as teacher_subject_Repository
 from app.repositoryes.group_subject_repository import Repository as group_subject_Repository
+from app.repositoryes.teacher_schedule_repository import Repository as teacher_schedule_Repository
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.shemas.schedule import ScheduleIn
 from app.database import Student
 
-from app.utils.get_schedule import get_groups, get_schedule
+from app.utils.get_schedule import get_groups, get_schedule,  get_teacher_schedule
 from fastapi import  HTTPException, status
 
 class ScheduleService:
@@ -21,7 +22,7 @@ class ScheduleService:
         self.teacher_repo = teacher_Repository(db)
         self.teacher_subject_repo = teacher_subject_Repository(db)
         self.group_subject_repo = group_subject_Repository(db)
-
+        self.teacher_schedule_repo = teacher_schedule_Repository(db)
 
     async def load_schedule(self):
         groups = await get_groups()
@@ -44,6 +45,7 @@ class ScheduleService:
             if teacher_id:
             #получать id предмета по названию
                 subject_id = await self.subject_repo.get_by_name(teacher_subject.subject)
+                subject_id = subject_id.id
             #добавлять в список
                 teacher_subjects_to_insert.append({'teacher_id': teacher_id, 'subject_id': subject_id})
         #print("res: ", teacher_subjects_to_insert)
@@ -60,6 +62,7 @@ class ScheduleService:
 
             #получать id предмета по названию
             subject_id = await self.subject_repo.get_by_name(group_subject.subject)
+            subject_id = subject_id.id
             #добавлять в список
             group_subjects_to_insert.append({'group_id': group_id, 'subject_id': subject_id})
         #print("res: ", teacher_subjects_to_insert)
@@ -67,6 +70,24 @@ class ScheduleService:
             await self.group_subject_repo.clean()
             await self.group_subject_repo.create_by_list(group_subjects_to_insert)
 
+        # загрузить расписание для преподов
+        # получить список всех преподов
+        full_teachers = await self.teacher_repo.get_all()
+        teachers = []
+        for teacher in full_teachers:
+            #print(teacher)
+            teachers.append({'FIO': teacher.FIO, 'id': teacher.id})
+        # загнать его в get_schedule
+        teacher_schedule = await  get_teacher_schedule(teachers)
+        # получаем из get_schedule расписание
+        # закидываем его в таблицу
+
+        #teacher_schedule = get_schedule.
+        # получить раписание
+        print("\nschedule", teacher_schedule)
+        await self.teacher_schedule_repo.clean()
+        await self.teacher_schedule_repo.create_by_list(teacher_schedule)
+        #добавить его
 
 
 
@@ -78,7 +99,7 @@ class ScheduleService:
                                 detail='Group does not exist')
         #проверка, что расписание ещё не существует
         if await self.repo.get_by_group_id(schedule.group_id, schedule.week_number):
-            print ("hello")
+            #print ("hello")
             new_schedule = await self.repo.update(schedule)
         else:
             new_schedule = await self.repo.create(schedule)

@@ -1,6 +1,9 @@
 import aiohttp
 import asyncio
 from datetime import datetime, timedelta
+import re
+import json
+
 from app.database.models.schedule import Schedule
 from app.database.models.students import Student
 from app.database.models.tasks import Task
@@ -25,6 +28,130 @@ log = logging.getLogger(__name__)
 
 import requests
 from bs4 import BeautifulSoup
+
+# получение расписания для одного преподавателя
+async def load_teacher_schedule_module(session, teacher):
+    #из объекта препода получить фио и id
+    #print(teacher)
+    FIO = teacher['FIO']
+    id = teacher['id']
+    date = datetime.now()
+    rezult = []
+    #найти препода по ФИО
+    url = f'https://ruz.spbstu.ru/search/teacher?q={FIO}'
+    try:
+        async with session.get(
+            url
+        ) as response:
+            zaproc = await response.text()
+            soup = BeautifulSoup(zaproc, "lxml")
+            teachers = soup.find_all('a', class_='search-result__link')
+           # print(teachers)
+
+            for url in teachers:
+                url_strok = url['href']
+                break
+           # print (url_strok)
+            url_strok_itog = url_strok.split('/')[-1]
+           # print(url_strok_itog)
+            id_itog = "".join(url_strok_itog)
+    except Exception as e:
+        print("Error(((: ", e, "\n", FIO, date)
+
+    for i in range (1, 5):
+        url = f'https://ruz.spbstu.ru/teachers/{id_itog}?date={date.strftime("%Y-%m-%d")}'
+        try:
+            async with session.get(
+                url
+            ) as response:
+                content_type = response.headers.get('Content-Type', '')
+                # print(content_type)
+                html = await response.text()
+
+                # Ищем JSON в HTML
+                soup = BeautifulSoup(html, 'html.parser')
+                script = soup.find('script', string=re.compile('window.__INITIAL_STATE__'))
+
+                if not script:
+                    raise ValueError("Не удалось найти window.__INITIAL_STATE__")
+
+                # Извлекаем JSON
+                json_text = re.search(r'window\.__INITIAL_STATE__\s*=\s*({.*?});', script.string, re.DOTALL).group(1)
+                data = json.loads(json_text)
+                #soup = BeautifulSoup(zaproc, "html")
+                #print("hello", data)
+                result = []
+                schedule=[]
+                sunday=[]
+                monday=[]
+                tuesday=[]
+                wednesday=[]
+                thursday=[]
+                friday=[]
+                saturday=[]
+                # print(data['teacherSchedule'])
+                #print("schedule: ", data['teacherSchedule'])
+                schedule = data['teacherSchedule']
+                #print(schedule)
+                info = schedule['data']
+
+                for day in info[id_itog]:
+
+                            day_info = {
+                            'weekday': day['weekday'],
+                            'date': day['date'],
+                            'lessons': []
+                            }
+
+                            for lesson in day['lessons']:
+
+                                lesson_info = {
+                                'subject': lesson['subject'],
+                                'time_start': lesson['time_start'],
+                                'time_end': lesson['time_end'],
+                                'place': "unknown",
+                                'groups': []
+                                }
+                                if lesson['groups']:
+                                    for group in lesson['groups']:
+                                        lesson_info['groups'].append(group['name'])
+                                if lesson['auditories']:
+                                    lesson_info['place']=lesson['auditories'][0]['building']['name']+', к. ' +lesson['auditories'][0]['name']
+
+                                day_info['lessons'].append(lesson_info)
+                            if day_info['weekday']==1:
+                                monday.append(day_info['lessons'])
+                            if day_info['weekday']==2:
+                                tuesday.append(day_info['lessons'])
+                            if day_info['weekday'] == 3:
+                                wednesday.append(day_info['lessons'])
+                            if day_info['weekday'] == 4:
+                                thursday.append(day_info['lessons'])
+                            if day_info['weekday'] == 5:
+                                friday.append(day_info['lessons'])
+                            if day_info['weekday'] == 6:
+                                saturday.append(day_info['lessons'])
+                            result.append(day_info)
+              #  print('\n\n\n\n', monday)
+                try:
+                    final = ({"teacher_id": id, "week_number": i, "monday": monday, "tuesday": tuesday, "wednesday": wednesday, "thursday": thursday, "friday": friday, "saturday": saturday, "sunday": sunday})
+                    #print(group_number)
+                    rezult.append(final)
+
+                   # return final
+
+                except Exception as e:
+                    print("Error during validate", e)
+
+        except Exception as e:
+            print("Error: ",  e, '\n', FIO)
+
+        date = date +timedelta(weeks=i)
+    #print(rezult)
+    return rezult
+
+
+
 
 # сделать асинхронное получение списка групп
 # сделать асинхронное получение расписания студентов по этому списку
@@ -220,7 +347,7 @@ async def get_groups_module(session, number: int, result: list):
         return final
 
 
-def load_group_list():
+async def load_group_list():
     id_itog = {}
     all_schedule = {}
     groups_list = []
@@ -243,14 +370,26 @@ def load_group_list():
 
     return groups_list
 
-
+async def get_teacher_schedule(teachers: list):
+    result = []  # тоговый список
+    # распараллелить на 10 потоков, каждый ищет по цифре от 0 до 9
+    connector = aiohttp.TCPConnector(limit=100)
+    async with aiohttp.ClientSession(connector=connector) as session:
+        # Создаем задачи для всех групп
+        tasks = [load_teacher_schedule_module(session, teacher)
+                 for teacher in teachers]
+        all_data = await asyncio.gather(*tasks)
+        unique_teacher_schedules = []
+        for teacher_schedules in all_data:
+            for teacher_schedule in teacher_schedules:
+                unique_teacher_schedules.append(teacher_schedule)
+    return unique_teacher_schedules
 
 async def main():
-    result = await get_groups()
     #result = load_group_list()
     #print (len(result))
     #print (result)
-    await get_schedule(result)
+    await get_teacher_schedule([{'FIO': 'Масликов Владимир Иванович', 'id': 4016}])
 
 
 if __name__ == '__main__':
@@ -260,7 +399,7 @@ if __name__ == '__main__':
 
 
 
-'''
+
 def load_schedule_for_all_groups():
     all_schedule = {}
     groups_list = []
@@ -271,9 +410,9 @@ def load_schedule_for_all_groups():
         groups = soup.find_all('a', class_='groups-list__link')
         date = datetime.now()
         i=0
-        print (groups)
+        #print (groups)
         for url in groups:
-            print (url)
+            #print (url)
             i=i+1
             start = str(url).find('>')+1
             end = str(url).find('</a>')
@@ -333,7 +472,7 @@ def load_schedule_for_group(group_number, week_number, group_id):
     for i in range (1, 2):
         zaproc = requests.get(f'https://ruz.spbstu.ru/api/v1/ruz/scheduler/{id_itog}?date={date.strftime("%Y-%m-%d")}')
         data = zaproc.json()
-        print("hello", data)
+        #print("hello", data)
         result = []
         schedule=[]
         sunday=[]
@@ -391,5 +530,3 @@ def load_schedule_for_group(group_number, week_number, group_id):
             print("Error during validate", e)
         return final
 
-
-    '''

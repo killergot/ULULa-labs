@@ -1,5 +1,5 @@
 import logging
-from sqlalchemy import select, text
+from sqlalchemy import select, text, insert
 from sqlalchemy.dialects.postgresql import insert as pg_insert
 from uuid import UUID
 from app.database.models.teacher_subjects import TeacherSubject
@@ -26,3 +26,34 @@ class Repository(TemplateRepository):
         await self.db.execute(stmt)
         await self.db.commit()
 
+    async def get(self, id: int)->list[TeacherSubject]:
+        stmt = \
+            (select(TeacherSubject)
+            .where(TeacherSubject.teacher_id == id)
+        )
+        result = await self.db.execute(stmt)
+        subjects = result.scalars().all()
+        return subjects
+
+
+    async def is_exist(self, teacher_id: int, subject_id: int) -> TeacherSubject:
+        stmt = \
+            (select(TeacherSubject)
+             .where(TeacherSubject.teacher_id == teacher_id, TeacherSubject.subject_id == subject_id )
+             )
+        result = await self.db.execute(stmt)
+        subject = result.scalars().first()
+        return subject
+
+    async def create(self, teacher_id: int, subject_id: int) -> TeacherSubject:
+        new = TeacherSubject(teacher_id = teacher_id, subject_id =  subject_id)
+        self.db.add(new)
+        await self.db.commit()
+        return new
+
+    async def delete(self, teacher_id: int, subject_id: int) -> TeacherSubject:
+        new = await  self.is_exist(teacher_id = teacher_id, subject_id =  subject_id)
+        #print(new.subject_id, new.teacher_id)
+        await self.db.delete(new)
+        await self.db.commit()
+        return new

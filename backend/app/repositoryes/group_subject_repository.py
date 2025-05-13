@@ -27,3 +27,7 @@ class Repository(TemplateRepository):
             await self.db.execute(stmt)
             await self.db.commit()
 
+    async def get_by_subject(self, id: int)->list[GroupSubject]:
+            data = select(GroupSubject).where(GroupSubject.subject_id == id)
+            subject = await self.db.execute(data)
+            return subject.scalars().all()

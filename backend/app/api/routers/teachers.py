@@ -1,16 +1,20 @@
 from app.api.depencies.guard import get_current_id, get_current_user, require_role
 from app.api.depencies.services import get_student_service
 from app.shemas.students import StudentBase, StudentIn, StudentID
+from app.shemas.teachers import FIO, WeekNumber
+from app.shemas.teacher_subject import SubjectName, TeacherSubjectBase
 from app.shemas.groups import GroupNumber
 from app.shemas.auth import UserOut
 from fastapi import Depends, status
 from fastapi.routing import APIRouter
 from app.database.models.students import Student
 from app.database.models.groups import Group
+
 from app.services import student_service
 from app.services import teacher_service
 
 from app.api.depencies.services import get_teacher_service
+from app.api.depencies.validation import get_week_number, get_FIO, get_subject_name
 from app.shemas.groups import GroupID
 
 router = APIRouter(prefix="/teachers", tags=["teachers"])
@@ -28,12 +32,59 @@ router = APIRouter(prefix="/teachers", tags=["teachers"])
 # 6.2 ++ "/delete_user"- удалять конкретного студента (вход - id юзера, выход - успех/неуспех) - только для админа
 
 
-@router.post("/register_teacher",
+@router.post("/register",
              status_code=status.HTTP_201_CREATED,
-             summary='Register a new teacher',
-             description='Create a new teacher in database. Requre user id and FIO.\n')
+             summary='Register current user as a teacher',
+             description='Create a new teacher in database. Requre FIO.\n')
 async def create_student(FIO: str, teacher: UserOut = Depends(get_current_user), service = Depends(get_teacher_service)):
-    new_teacher = ({"teacher_id": teacher.id, "FIO": FIO})
+    new_teacher = ({"id": teacher.id, "FIO": FIO})
     return await service.create_teacher(new_teacher)
 
 
+@router.get("/schedules/{week_number}&{FIO}",
+             status_code=status.HTTP_200_OK,
+             summary='Get schedule for teacher',
+             description='Get schedule for any teacher.\n')
+# добавить зависимость для зареганного юзера
+async def get_schedule(week_number_schema: WeekNumber=Depends(get_week_number),  FIO_schema: FIO=Depends(get_FIO), service = Depends(get_teacher_service))->dict:
+    return await service.get_schedule_by_FIO(FIO_schema.FIO, week_number_schema.week_number)
+
+
+
+#в schedule
+@router.get("/schedules/{week_number}",
+             status_code=status.HTTP_200_OK,
+             summary='Get my schedule',
+             description='Get schedule for current teacher.\n')
+async def get_schedule(week_number_schema: WeekNumber=Depends(get_week_number), teacher: UserOut = Depends(get_current_user), service = Depends(get_teacher_service))->dict:
+    return await service.get_schedule(teacher.id, week_number_schema.week_number)
+
+
+
+@router.get("/subjects_for_teacher/{FIO}",
+             status_code=status.HTTP_200_OK,
+             summary='Get subjects for any teacher',
+             description='Get subjects for current teacher.\n')
+async def get_subjects(FIO_schema: FIO=Depends(get_FIO), service = Depends(get_teacher_service))->list[str]:
+    return await service.get_subjects_by_FIO(FIO_schema.FIO)
+
+@router.get("/subjects",
+             status_code=status.HTTP_200_OK,
+             summary='Get my subjects',
+             description='Get subjects for current teacher.\n')
+async def get_subjects(teacher: UserOut = Depends(get_current_user), service = Depends(get_teacher_service))->list[str]:
+    return await service.get_subjects(teacher.id)
+
+@router.post("/subject",
+             status_code=status.HTTP_201_CREATED,
+             summary='Add new teacher subject',
+             description='Add subject for current teacher.\n')
+async def add_subject(subject: SubjectName, teacher: UserOut = Depends(get_current_user), service = Depends(get_teacher_service))->TeacherSubjectBase:
+    return await service.add_subject(teacher.id, subject.name)
+
+@router.delete("/subject",
+             status_code=status.HTTP_200_OK,
+             summary='Delete new teacher subject',
+             description='Delete subject for current teacher.\n')
+async def delete_subject(subject: SubjectName, teacher: UserOut = Depends(get_current_user), service = Depends(get_teacher_service))->TeacherSubjectBase:
+    return await service.delete_subject(teacher.id, subject.name)
