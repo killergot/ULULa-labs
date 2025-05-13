@@ -1,4 +1,4 @@
-from app.api.depencies.guard import get_current_id, get_current_user, require_role
+from app.api.depencies.guard import get_current_user, require_role
 from app.api.depencies.services import get_subject_service
 from app.shemas.students import StudentBase, StudentIn, StudentID
 from app.shemas.auth import UserOut
@@ -7,7 +7,7 @@ from fastapi.routing import APIRouter
 
 from app.api.depencies.validation import get_subject_name
 
-from backend.app.shemas.teacher_subject import SubjectName
+from app.shemas.teacher_subject import SubjectName
 
 router = APIRouter(prefix="/subjects", tags=["subjects"])
 

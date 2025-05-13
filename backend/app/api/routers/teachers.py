@@ -1,4 +1,4 @@
-from app.api.depencies.guard import get_current_id, get_current_user, require_role
+from app.api.depencies.guard import get_current_user, require_role
 from app.api.depencies.services import get_student_service
 from app.shemas.students import StudentBase, StudentIn, StudentID
 from app.shemas.teachers import FIO, WeekNumber
