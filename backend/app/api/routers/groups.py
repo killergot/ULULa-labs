@@ -28,7 +28,7 @@ router = APIRouter(prefix="/groups", tags=["groups"])
              status_code=status.HTTP_201_CREATED,
              summary='Register a new group',
              description='Create a new group in database. Requre group number.\n',
-             dependencies=[Depends(get_current_user)] #заменить на закомментированную строку, чтобы работало только от админа
+             dependencies=[Depends(get_current_user)] # заменить на закомментированную строку, чтобы работало только от админа
              #dependencies=[Depends(require_role(1))
 )
 async def create_group(group_number: GroupNumber, service = Depends(get_group_service)):

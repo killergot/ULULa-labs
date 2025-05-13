@@ -15,4 +15,5 @@ class Group(Base):
 
     # Добавить отношения!!!
     students: Mapped["app.database.models.students.Student"] = relationship("app.database.models.students.Student",  back_populates="group")  # type: ignore
-    schedule: Mapped["app.database.models.schedule.Schedule"] = relationship("app.database.models.schedule.Schedule",  back_populates="group")  # type: ignore
+    schedule: Mapped["app.database.models.schedule.Schedule"] = relationship("app.database.models.schedule.Schedule",  back_populates="group")
+    group_subject: Mapped["app.database.models.group_subjects.GroupSubject"] = relationship("app.database.models.group_subjects.GroupSubject",  back_populates="group")# type: ignore
