@@ -7,7 +7,7 @@ from fastapi.routing import APIRouter
 
 from app.api.depencies.validation import get_subject_name
 
-from backend.app.shemas.teacher_subject import SubjectName
+from app.shemas.teacher_subject import SubjectName
 
 router = APIRouter(prefix="/subjects", tags=["subjects"])
 

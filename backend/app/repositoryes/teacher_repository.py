@@ -30,7 +30,7 @@ class Repository(TemplateRepository):
         return {'teacher_id': new_teacher.id, 'FIO': new_teacher.FIO}
 
     async def get_by_FIO(self, FIO: str) -> Teacher:
-        print(FIO)
+        #print(FIO)
         data = select(Teacher.id).where(Teacher.FIO == FIO)
         teacher = await self.db.execute(data)
         return teacher.scalars().first()

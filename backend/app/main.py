@@ -3,8 +3,8 @@ import uvicorn
 from starlette.middleware.sessions import SessionMiddleware
 
 from app.middleware.cors import get_cors_middleware
-from app.config.config import load_config
-from app.api import api_router
+from app.core.config import load_config
+from app.api.routers import api_router
 
 config = load_config()
 

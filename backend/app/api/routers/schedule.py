@@ -1,17 +1,13 @@
-
-#from app.utils.get_schedule import load_schedule_for_all_groups
-from fastapi.openapi.utils import get_openapi_operation_metadata
 from fastapi.routing import APIRouter
-from fastapi import Depends, status
-from app.shemas.groups import GroupBase, GroupID, GroupNumber
+from fastapi import Depends, status, BackgroundTasks
 from app.api.depencies.guard import get_current_user, require_role
-from app.api.depencies.services import get_schedule_service, get_group_service, get_student_service
+from app.api.depencies.services import get_schedule_service, get_student_service
 from app.shemas.schedule import ScheduleIn, ScheduleBase, ScheduleGetIn
-from app.shemas.groups import GroupID, GroupNumber
-from app.shemas.students import StudentBase, StudentIn, StudentID
+from app.shemas.groups import GroupNumber
+from app.shemas.students import StudentID
 from app.shemas.auth import UserOut
-from app.utils.get_schedule import get_groups
 from app.api.depencies.services import get_group_service
+from functools import partial
 router = APIRouter(prefix="/schedule", tags=["schedule"])
 
 # Что хотим уметь для сущности расписания?
@@ -34,10 +30,10 @@ router = APIRouter(prefix="/schedule", tags=["schedule"])
 
 
 @router.post("/load_schedule")
-async def load_schedule(service = Depends(get_schedule_service), group_service = Depends(get_group_service)):
+async def load_schedule( background_tasks: BackgroundTasks, service = Depends(get_schedule_service)):
     # Получать группы по одной из списка
-    await service.load_schedule()
-    return {"Result": "schedule was successfully load"}
+    await service.load_schedule(background_tasks)
+    return {"Result": "Загрузка расписания начата"}
 
 
 
