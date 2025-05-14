@@ -168,6 +168,7 @@ async def load_group_schedule(session, group):
     subjects = []
     teacher_subject = []
     group_subject = []
+    id_itog = 38749
     url = f'https://ruz.spbstu.ru/search/groups?q={group_number}'
     try:
         async with session.get(
@@ -181,7 +182,6 @@ async def load_group_schedule(session, group):
                 url_strok = list(url['href'])
                 break
             url_strok_itog = url_strok[-5:]
-
             id_itog = "".join(url_strok_itog)
     except Exception as e:
         print("Error: ", e, "\n", group_number, date)
