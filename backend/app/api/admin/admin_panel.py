@@ -8,10 +8,10 @@ from app.database.models.teachers import Teacher
 
 # Определяем админ-представление
 class UserAdmin(ModelView, model=User):
-    column_list = [User.id,User.role, User.email]
+    column_list = [User.id,User.role, User.email, User.is_active]
 
 class StudentAdmin(ModelView, model=Student):
-    column_list = [Student.id,Student.full_name, Student.telegram, Student.group]
+    column_list = [Student.id,Student.full_name, Student.telegram, 'group.group_number']
 
 class TaskAdmin(ModelView, model=Task):
     column_list = [Task.task_id,

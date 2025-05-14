@@ -1,10 +1,11 @@
 import os
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request, HTTPException
 import uvicorn
 from starlette.middleware.sessions import SessionMiddleware
 
 from app.api.admin.admin_panel import setup_admin
+from app.api.depencies.guard import get_current_user
 from app.database import engine
 from app.middleware.cors import get_cors_middleware
 from app.core.config import load_config
@@ -12,6 +13,8 @@ from app.api.routers import api_router
 
 from app.core.logger import init_log
 import logging
+
+from app.services.role_service import ADMIN_ROLE
 
 init_log(logging.DEBUG)
 
@@ -30,6 +33,14 @@ app = FastAPI(
     }
 )
 app.add_middleware(SessionMiddleware, secret_key=config.secret_keys.yandex)
+
+@app.middleware("http")
+async def block_unauthorized_admin(request: Request, call_next):
+    if request.url.path.startswith("/admin"):
+        user = await get_current_user(request)
+        if user is None or user.role != ADMIN_ROLE:
+            raise HTTPException(status_code=403, detail="Access denied")
+    return await call_next(request)
 app.include_router(api_router)
 get_cors_middleware(app)
 setup_admin(app, engine)
