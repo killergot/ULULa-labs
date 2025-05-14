@@ -57,6 +57,8 @@ class ScheduleService:
             await self.group_subject_repo.clean()
             await self.group_subject_repo.create_by_list(group_subjects_to_insert)
 
+        print("Main schedule is load")
+
 
     async def load_teacher_schedule(self):
         full_teachers = await self.teacher_repo.get_all()
@@ -71,6 +73,7 @@ class ScheduleService:
         if len(teachers) > 0:
             await self.teacher_schedule_repo.clean()
             await self.teacher_schedule_repo.create_by_list(teacher_schedule)
+        print("Teacher schedule is load")
 
     async def load_schedule(self, background_tasks):
         # список групп
@@ -140,6 +143,3 @@ class ScheduleService:
 
 
 '''
-
-
-

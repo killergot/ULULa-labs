@@ -128,4 +128,3 @@ async def get_my_groupmates(student: UserOut = Depends(get_current_user), servic
     group_id = await service.get_group(student.id)
     #Получение студентов по id группы
     return await service.get_by_group(group_id)
-
