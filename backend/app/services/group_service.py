@@ -25,7 +25,7 @@ class GroupService:
 
     async def delete_group(self, group: GroupNumber): #удаляем группу
         #проверка, что группа существует
-        print(group.group_number)
+        #print(group.group_number)
         if not await self.repo.get_by_number(group.group_number):
             raise HTTPException(status_code=status.HTTP_409_CONFLICT,
                                 detail='Group does not exist')

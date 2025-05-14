@@ -36,7 +36,7 @@ class Repository(TemplateRepository):
 
 
     async def update(self,  task_id,  user_id, deadline, description, task_flag) -> Task:
-        print (type(user_id))
+        #print (type(user_id))
         task = await self.get_by_id(task_id)
         task.user_id = user_id
         task.deadline = deadline

@@ -134,6 +134,6 @@ class StudentService:
         students = await self.repo.get_by_group(id)
         if not students:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
-                                detail="Students not found")
-        print(students)
+                                detail="Groups not found")
+        #print(students)
         return students
