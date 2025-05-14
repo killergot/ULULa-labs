@@ -270,8 +270,8 @@ async def get_schedule(groups: list)->tuple:
     batch_size = 130
     result = []  # итоговый список
     # распараллелить на потоки
-    connector = aiohttp.TCPConnector(limit=200)
-    semaphore = asyncio.Semaphore(150)
+    connector = aiohttp.TCPConnector(limit=100)
+    semaphore = asyncio.Semaphore(100)
     schedule = []
     subjects = []
     async with semaphore:
