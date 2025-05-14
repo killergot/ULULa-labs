@@ -33,14 +33,6 @@ app = FastAPI(
     }
 )
 app.add_middleware(SessionMiddleware, secret_key=config.secret_keys.yandex)
-
-@app.middleware("http")
-async def block_unauthorized_admin(request: Request, call_next):
-    if request.url.path.startswith("/admin"):
-        user = await get_current_user(request)
-        if user is None or user.role != ADMIN_ROLE:
-            raise HTTPException(status_code=403, detail="Access denied")
-    return await call_next(request)
 app.include_router(api_router)
 get_cors_middleware(app)
 setup_admin(app, engine)
