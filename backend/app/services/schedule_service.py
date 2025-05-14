@@ -30,7 +30,7 @@ class ScheduleService:
 
     async def load_groups_schedule(self):
 
-    
+        groups = await get_groups()
         schedule, subjects, teacher_subjects, group_subjects = await get_schedule(groups)
         # загрузка расписания в БД
         await self.repo.clean_schedule()
