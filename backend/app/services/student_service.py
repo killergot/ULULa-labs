@@ -85,5 +85,5 @@ class StudentService:
         if not students:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
                                 detail="Groups not found")
-        print(students)
+        #print(students)
         return students

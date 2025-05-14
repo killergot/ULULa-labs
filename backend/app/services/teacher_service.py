@@ -32,8 +32,7 @@ class TeacherService:
         #закидываем его в таблицу
         print ("schedule is", schedule[0])
         if schedule[0]!=[{}]:
-            await self.schedule_repo.create_by_list(schedule[0])
-
+            await self.schedule_repo.create_by_list(schedule)
         return new_teacher
 
     #получение расписания для конкретного преподавателя по ФИО
