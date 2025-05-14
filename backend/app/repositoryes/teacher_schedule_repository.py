@@ -25,7 +25,7 @@ class Repository(TemplateRepository):
         #print("hello!:" ,  schedules)
         for weeks in schedules[0]:
             for schedule in weeks:
-                print (schedule)
+                #print (schedule)
                 '''
                 new_schedule = Schedule(
                     teacher_id=schedule.teacher_id,
