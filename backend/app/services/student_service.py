@@ -84,7 +84,7 @@ class StudentService:
                 raise HTTPException(status_code=404,
                                     detail="Wrong group number")
         user = await self.user_repo.get_by_email(new_student.email)
-        if user:
+        if user and user.email != student.user.email:
             raise HTTPException(status_code=status.HTTP_409_CONFLICT,
                                 detail='Email already busy')
         new_student = await self.repo.update(student = student,

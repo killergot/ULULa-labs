@@ -18,3 +18,6 @@ class Subject(Base):
     #schedule: Mapped["app.database.models.schedule.Schedule"] = relationship("app.database.models.schedule.Schedule",  back_populates="group")  # type: ignore
     group_subject: Mapped["app.database.models.group_subjects.GroupSubject"] = relationship("app.database.models.group_subjects.GroupSubject", back_populates="subject")
     teacher_subject: Mapped["app.database.models.teacher_subjects.TeacherSubject"] = relationship("app.database.models.teacher_subjects.TeacherSubject", back_populates="subject")
+    files: Mapped[list["app.database.models.group_files.GroupFile"]] = relationship(
+        "app.database.models.group_files.GroupFile", back_populates="subject", cascade="all, delete-orphan")
+
