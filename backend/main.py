@@ -1,7 +1,12 @@
-from fastapi import FastAPI
+import os
+
+from fastapi import FastAPI, Request, HTTPException
 import uvicorn
 from starlette.middleware.sessions import SessionMiddleware
 
+from app.api.admin.admin_panel import setup_admin
+from app.api.depencies.guard import get_current_user
+from app.database import engine
 from app.middleware.cors import get_cors_middleware
 from app.core.config import load_config
 from app.api.routers import api_router
@@ -9,9 +14,14 @@ from app.api.routers import api_router
 from app.core.logger import init_log
 import logging
 
+from app.services.role_service import ADMIN_ROLE
+
 init_log(logging.DEBUG)
 
 config = load_config()
+
+UPLOAD_FOLDER = "uploads"
+os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
 app = FastAPI(
     title="Ulula labs",
@@ -25,6 +35,8 @@ app = FastAPI(
 app.add_middleware(SessionMiddleware, secret_key=config.secret_keys.yandex)
 app.include_router(api_router)
 get_cors_middleware(app)
+setup_admin(app, engine)
+
 
 
 if __name__ == "__main__":

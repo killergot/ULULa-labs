@@ -31,7 +31,13 @@ class ScheduleService:
     async def load_groups_schedule(self):
 
         groups = await get_groups()
+        await self.group_repo.clean()
+        await self.group_repo.create_by_list(groups)
+
+        # получение расписания студента, списка предметов, списка группа-предмет
+        groups = await self.group_repo.get_all()
         schedule, subjects, teacher_subjects, group_subjects = await get_schedule(groups)
+
         # загрузка расписания в БД
         await self.repo.clean_schedule()
         await self.repo.create_by_list(schedule)

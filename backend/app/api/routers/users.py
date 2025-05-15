@@ -13,20 +13,6 @@ from app.shemas.auth import UserOut, UserUpdateIn
 
 router = APIRouter(prefix="/users", tags=["users"])
 
-#Это код для быстрого создания БД при тестировании
-#Его надо потом удалить!!!
-from app.database.psql import Base,engine
-from sqlalchemy import text
-async def init_models():
-    async with engine.begin() as conn:
-        #await conn.run_sync(Base.metadata.drop_all)
-        #await conn.run_sync(Base.metadata.drop_all)
-        await conn.run_sync(Base.metadata.create_all)
-@router.post("/create_db",)
-async def create_db():
-    await init_models()
-#Удали меня! ^^^
-
 
 @router.get("/get_me", response_model=UserOut, status_code=status.HTTP_200_OK)
 async def get_me(user = Depends(get_current_user)):

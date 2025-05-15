@@ -14,10 +14,6 @@ from app.database.models import students
 
 router = APIRouter(prefix="/auth", tags=["authentication"])
 
-@router.post("/create_db")
-async def create():
-    await create_db()
-
 @router.post("/signup", response_model=UserOut,
              status_code=status.HTTP_201_CREATED,
              summary='Register a new user',

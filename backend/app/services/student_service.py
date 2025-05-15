@@ -1,8 +1,12 @@
 from uuid import UUID
 from fastapi import  HTTPException, status
 from app.repositoryes.student_repository import Repository
+from app.repositoryes.group_repository import Repository as GroupRepository
 from sqlalchemy.ext.asyncio import AsyncSession
-from app.shemas.students import StudentBase
+
+from app.repositoryes.user_repository import UserRepository
+from app.shemas.auth import UserOut
+from app.shemas.students import StudentBase, StudentOut, StudentIn, Achievement, StudentUpdateIn
 from app.utils.hash import get_hash
 from app.database import Student
 
@@ -31,35 +35,85 @@ from app.database import Student
 class StudentService:
     def __init__(self, db: AsyncSession):
         self.repo = Repository(db)
+        self.group_repo = GroupRepository(db)
+        self.user_repo = UserRepository(db)
 
-    async def _create_student(self, student: StudentBase):#создаём нового студента
-        #проверка, что студент ещё не существует
-        if await self.repo.get_by_id(student.student_id):
+    async def _get(self, id) -> Student:
+        student = await self.repo.get(id)
+        if not student:
+            raise HTTPException(status_code=404,
+                                detail="Student not found")
+        return student
+
+    async def _get_group(self, number):
+        group = await self.group_repo.get_by_number(number)
+        if not group:
+            raise HTTPException(status_code=404,
+                                detail="Group not found")
+        return group
+
+    async def get(self, id):
+        student = await self._get(id)
+        return StudentOut(group_number = student.group.group_number,
+                          full_name=student.full_name,
+                          nickname=student.nickname,
+                          student_id=student.id,
+                          email=student.user.email,
+                          achievements=[Achievement.model_validate(a) for a in student.achievements], # Почему тут ошибка
+                          telegram=student.telegram,
+                          avatar_url=student.avatar_url)
+
+
+    async def create_student(self, student: StudentIn, id: int):#создаём нового студента
+        if await self.repo.get(id):
             raise HTTPException(status_code=status.HTTP_409_CONFLICT,
                                 detail='Student already exist')
-        #Проверка, существует ли группа
-        #Если нет - создание группы
-     #Мб стоит объединить создание и обновление всё же???
-        #создание студента
-        new_student = await self.repo.create(student.student_id, student.group_id)
+        group = await self._get_group(student.group_number)
+        new_student = await self.repo.create(id,group.group_id,student.full_name)
 
-        return new_student
+        return StudentOut(group_number=student.group_number,
+                          full_name=student.full_name,
+                          student_id=new_student.id)
+
+    async def update(self, new_student: StudentUpdateIn, id: int):
+        student = await self._get(id)
+        group = None
+        if new_student.group_number is not None:
+            group = await self.group_repo.get_by_number(new_student.group_number)
+            if not group:
+                raise HTTPException(status_code=404,
+                                    detail="Wrong group number")
+        user = await self.user_repo.get_by_email(new_student.email)
+        if user:
+            raise HTTPException(status_code=status.HTTP_409_CONFLICT,
+                                detail='Email already busy')
+        new_student = await self.repo.update(student = student,
+                                             group_id = group.group_id if group else None,
+                                             full_name=new_student.full_name,
+                                             telegram=new_student.telegram,
+                                             avatar = new_student.avatar_url,
+                                             nickname=new_student.nickname,
+                                             email=new_student.email) #  Это поменять на EmailStr
+        return StudentOut(group_number = new_student.group.group_number,
+                          full_name=new_student.full_name,
+                          nickname=new_student.nickname,
+                          student_id=new_student.id,
+                          email=new_student.user.email,
+                          achievements=[Achievement.model_validate(a) for a in new_student.achievements], # Почему тут ошибка
+                          telegram=new_student.telegram,
+                          avatar_url=new_student.avatar_url)
+
 
 
     async def delete_student(self, student_id: int):  # удаляем студента
         # проверка, что студент существует
-        if not await self.repo.get_by_id(student_id):
-            raise HTTPException(status_code=status.HTTP_409_CONFLICT,
-                                detail='Student is not exist')
+        await self._get(student_id)
         #Попытка удаления
         await self.repo.delete(student_id)
 
 
     async def get_group(self, student_id: int) -> int:  # Возвращаем id группы по id студента
-        student = await self.repo.get_by_id(student_id)
-        if not student:
-            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
-                                detail="Student not found")
+        student = await self._get(student_id)
         return student.group_id
 
 
@@ -73,10 +127,6 @@ class StudentService:
 
     async def get_all(self):
         students = await self.repo.get_all()
-        if not students:
-            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
-                                detail="Students not found")
-
         return students
 
 
