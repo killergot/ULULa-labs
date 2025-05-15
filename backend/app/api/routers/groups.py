@@ -115,6 +115,3 @@ async def load_groups(service = Depends(get_group_service)):
        for group in groups:
            await service.create_group(GroupNumber.model_validate({"group_number": group}))
        return 0
-
-
-
