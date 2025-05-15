@@ -15,10 +15,11 @@ class Repository(TemplateRepository):
         return teachers.scalars().all()
 
 
-    async def get_by_id(self, id: int):
-            data = select(Teacher.FIO).where (Teacher.id == id)
+    async def get_by_id(self, id: int)->Teacher:
+            print ("hello")
+            data = select(Teacher).where (Teacher.id == id)
             student = await self.db.execute(data)
-            return  student.scalars().all()
+            return  student.scalars().first()
 
     async def create(self, id, FIO)->Teacher:
         new_teacher = Teacher(
@@ -30,14 +31,16 @@ class Repository(TemplateRepository):
         return {'teacher_id': new_teacher.id, 'FIO': new_teacher.FIO}
 
     async def get_by_FIO(self, FIO: str) -> Teacher:
-        #print(FIO)
-        data = select(Teacher.id).where(Teacher.FIO == FIO)
+        data = select(Teacher).where(Teacher.FIO == FIO)
         teacher = await self.db.execute(data)
         return teacher.scalars().first()
 
     @except_handler
-    async def delete(self, student_id: int) -> bool:
-        await self.db.delete(await self.get_by_id(student_id))
+    async def delete(self, id: int) -> bool:
+        print("hello 1")
+        teacher = await self.get_by_id(id)
+        print (teacher.FIO)
+        await self.db.delete(teacher)
         await self.db.commit()
         return True
 

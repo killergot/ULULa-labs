@@ -52,9 +52,23 @@ class TeacherService:
 
 
     async def get_teacher_id(self, FIO: str)->int:
-        teacher = await self.repo.get_by_FIO(FIO)
-        id = teacher.id
-        return id
+        print (FIO)
+        try:
+            teacher = await self.repo.get_by_FIO('Петрова Наталия Владимировна')
+            id = teacher.id
+            return id
+        except:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
+                                detail='Teacher not found')
+
+
+    async def delete(self, FIO: str)->bool:
+        id = await self.get_teacher_id(FIO)
+        print("ID: ", id)
+        if not id:
+            raise HTTPException(status_code=404,
+                                detail="Teacher not found")
+        return await self.repo.delete(id)
 
     async def get_schedule_by_FIO(self, FIO: str, week_number: int)->dict:
         # получить id
@@ -80,8 +94,14 @@ class TeacherService:
 
     async def get_subject_id(self, name: str)->int:
         subject = await self.subject_repo.get_by_name(name)
-        id = subject.id
-        return id
+        if subject:
+            id = subject.id
+            return id
+        else:
+            raise HTTPException(
+                status_code=404,
+                detail=f"Subject not found"
+                )
 
 
 
@@ -115,46 +135,3 @@ class TeacherService:
                 detail=f"Subject not found"
                 )
 
-'''
-    async def delete_student(self, student_id: int):  # удаляем студента
-        # проверка, что студент существует
-        if not await self.repo.get_by_id(student_id):
-            raise HTTPException(status_code=status.HTTP_409_CONFLICT,
-                                detail='Student is not exist')
-        #Попытка удаления
-        await self.repo.delete(student_id)
-
-
-    async def get_group(self, student_id: int) -> int:  # Возвращаем id группы по id студента
-        student = await self.repo.get_by_id(student_id)
-        if not student:
-            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
-                                detail="Student not found")
-        return student.group_id
-
-
-    async def update_group(self, student_id, group_id): #обновляем номер группы
-        student = await self.repo.get_by_id(student_id)
-        if not student:
-            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
-                                detail="Student not found")
-        student = await self.repo.update(student_id, group_id)
-
-
-    async def get_all(self):
-        students = await self.repo.get_all()
-        if not students:
-            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
-                                detail="Students not found")
-
-        return students
-
-
-    async def get_by_group(self, id: int):
-        students = await self.repo.get_by_group(id)
-        if not students:
-            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
-                                detail="Groups not found")
-        print(students)
-        return students
-'''
