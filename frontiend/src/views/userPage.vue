@@ -5,14 +5,14 @@
         <!-- ⚙️
       </button> -->
 
-      <h1 v-if="!editMode">{{ user.fullName }}</h1>
+      <h1 v-if="!editMode">{{ user.fullName || '–' }}</h1>
       <div v-else class="edit-field">
         <label>Full name:</label>
         <input v-model="form.fullName" type="text" class="edit-input" />
       </div>
 
 
-      <p v-if="!editMode">Group number: {{ user.group }}</p>
+      <p v-if="!editMode">Group number: {{ user.group || '–' }}</p>
       <div v-else class="edit-field">
         <label>Group:</label>
         <select v-model="form.group" class="edit-input">
@@ -28,21 +28,24 @@
       </div>
 
 
-      <p v-if="!editMode">Nickname: {{ user.nick }}</p>
+      <p v-if="!editMode">Nickname: {{ user.nick || '–' }}</p>
       <div v-else class="edit-field">
         <label>Nickname:</label>
         <input v-model="form.nick" type="text" class="edit-input" />
       </div>
 
-      <p v-if="!editMode">Email: {{ user.email }}</p>
+      <p v-if="!editMode">Email: {{ user.email || '–' }}</p>
       <div v-else class="edit-field">
         <label>Email:</label>
         <input v-model="form.email" type="email" class="edit-input" />
       </div>
 
-      <p v-if="!editMode && user.telegram">
+      <p v-if="!editMode">
         Telegram:
-        <a :href="'https://t.me/' + user.telegram" target="_blank">{{ user.telegram }}</a>
+        <span v-if="user.telegram">
+          <a :href="'https://t.me/' + user.telegram" target="_blank">{{ user.telegram }}</a>
+        </span>
+        <span v-else>–</span>
       </p>
       <div v-else class="edit-field">
         <label>Telegram:</label>
@@ -91,19 +94,28 @@ export default {
   name: 'UserPage',
   data() {
     return {
+      // user: {
+      //   fullName: 'Морозова Татьяна Сергеевна',
+      //   group: '5151003/10801',
+      //   nick: 'tanya-kiticat',
+      //   email: 'morozovatania2003@yandex.ru',
+      //   avatarUrl: '/my_sweet_cat.jpg',
+      //   achievements: [
+      //     'Дожила до 4 курса икизи',
+      //     'Сдаю лабки' ,
+      //     'Длиииииииииииииииииииииииииииииное очень длииииииииииииное достижение'
+      //   ],
+      //   telegram: 'tanya_kiticat', 
+      //   // vk: 'tanya_morozova22'
+      // },
       user: {
-        fullName: 'Морозова Татьяна Сергеевна',
-        group: '5151003/10801',
-        nick: 'tanya-kiticat',
-        email: 'morozovatania2003@yandex.ru',
-        avatarUrl: '/my_sweet_cat.jpg',
-        achievements: [
-          'Дожила до 4 курса икизи',
-          'Сдаю лабки' ,
-          'Длиииииииииииииииииииииииииииииное очень длииииииииииииное достижение'
-        ],
-        telegram: 'tanya_kiticat', 
-        // vk: 'tanya_morozova22'
+        fullName: '',
+        group: '',
+        nick: '',
+        email: '',
+        avatarUrl: '',
+        achievements: [],
+        telegram: ''
       },
       editMode: false,
       form: {},
@@ -111,24 +123,72 @@ export default {
     }
   },
   created() {
-    this.fetchGroups()
+    this.fetchUser();
+    this.fetchGroups();
   },
   
   methods:{
+    async fetchUser() {
+      try {
+        const response = await api.get('/students/me');
+
+        if (response.status !== 200) throw new Error(`Error ${response.status}`);
+
+        this.user = {
+          fullName: response.data.full_name,
+          group: response.data.group_number,
+          nick: response.data.nickname,
+          email: response.data.email,
+          avatarUrl: response.data.avatar_url || '/default_avatar.png',
+          achievements: response.data.achievements || [],
+          telegram: response.data.telegram
+        };
+      } catch (error) {
+        console.error('Failed to fetch user:', error);
+      }
+    },
+
+
     async fetchGroups() {
        try {
-    const response = await api.get('/groups/get_all');
+        const response = await api.get('/groups/get_all');
 
-    if (response.status !== 200) throw new Error(`Error ${response.status}`);
+        if (response.status !== 200) throw new Error(`Error ${response.status}`);
 
-    this.groups = response.data.map(group => ({
-      id: group.group_id,
-      number: group.group_number
-    }));
-  } catch (error) {
-    console.error('Failed to fetch groups:', error);
-  }
+        this.groups = response.data.map(group => ({
+          id: group.group_id,
+          number: group.group_number
+        }));
+      } catch (error) {
+        console.error('Failed to fetch groups:', error);
+      }
     },
+
+    async updateUser() {
+      try {
+        const payload = {
+          group_number: this.form.group || null,
+          full_name: this.form.fullName || null,
+          email: this.form.email || null,
+          telegram: this.form.telegram || null,
+          avatar_url: this.form.avatarUrl || null,
+          nickname: this.form.nick || null
+        };
+
+        const response = await api.put('/students/me', payload);
+
+        if (response.status !== 200) throw new Error(`Error ${response.status}`);
+        else {
+          this.user = response.data;
+          console.log('User updated:', response.data);
+        }
+
+      } catch (error) {
+        console.error('Failed to update user:', error);
+      }
+    },
+
+
     changeAvatar() {
         alert('здесь будет логика изменения аватара');
     },
@@ -141,10 +201,7 @@ export default {
       }
     },
     saveEdit() {
-      // Здесь можно отправить форму на сервер
-      // Например: api.patch('/user/update', this.form)
-      // После успешного ответа обновляем user
-      this.user = { ...this.form };
+      this.updateUser();
       this.editMode = false;
     },
     cancelEdit() {
