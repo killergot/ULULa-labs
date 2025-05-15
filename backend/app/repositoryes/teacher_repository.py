@@ -16,7 +16,6 @@ class Repository(TemplateRepository):
 
 
     async def get_by_id(self, id: int)->Teacher:
-            print ("hello")
             data = select(Teacher).where (Teacher.id == id)
             student = await self.db.execute(data)
             return  student.scalars().first()
@@ -37,9 +36,7 @@ class Repository(TemplateRepository):
 
     @except_handler
     async def delete(self, id: int) -> bool:
-        print("hello 1")
         teacher = await self.get_by_id(id)
-        print (teacher.FIO)
         await self.db.delete(teacher)
         await self.db.commit()
         return True

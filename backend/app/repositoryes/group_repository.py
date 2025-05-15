@@ -22,11 +22,9 @@ class Repository(TemplateRepository):
     async def create_by_list(self, numbers: list[str]):
         try:
             for i in range(0, len(numbers), batch_size):
-                print ("create groups, i")
                 batch = [{'group_number': num} for num in numbers[i:i + batch_size]]
                 stmt = pg_insert(Group.__table__).values(batch)
                 stmt = stmt.on_conflict_do_nothing(index_elements=["group_number"])
-                print("create groups, i")
                 await self.db.execute(stmt)
                 await self.db.commit()
                 await self.db.commit()

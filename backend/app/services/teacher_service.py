@@ -30,7 +30,7 @@ class TeacherService:
         schedule = await  get_teacher_schedule([{'id': teacher['id'], 'FIO': teacher['FIO']}])
         #получаем из get_schedule расписание
         #закидываем его в таблицу
-        print ("schedule is", schedule[0])
+        #print ("schedule is", schedule[0])
         if schedule[0]!=[{}]:
             await self.schedule_repo.create_by_list(schedule)
         return new_teacher
@@ -52,9 +52,8 @@ class TeacherService:
 
 
     async def get_teacher_id(self, FIO: str)->int:
-        print (FIO)
         try:
-            teacher = await self.repo.get_by_FIO('Петрова Наталия Владимировна')
+            teacher = await self.repo.get_by_FIO(FIO)
             id = teacher.id
             return id
         except:
@@ -64,7 +63,6 @@ class TeacherService:
 
     async def delete(self, FIO: str)->bool:
         id = await self.get_teacher_id(FIO)
-        print("ID: ", id)
         if not id:
             raise HTTPException(status_code=404,
                                 detail="Teacher not found")

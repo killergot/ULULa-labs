@@ -162,7 +162,6 @@ async def load_teacher_schedule_module(session, teacher):
 
 async def load_group_schedule(session, group):
     # загрузка расписания для групп, здесь всё ломается
-    print (group)
     group_number = group['group_number']
     group_id = group['group_id']
     date = datetime.now()
