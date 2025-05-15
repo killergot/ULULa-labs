@@ -48,7 +48,7 @@ class Repository(TemplateRepository):
         self.db.add( new_group)
         await self.db.commit()
         await self.db.refresh( new_group)
-        return {'group_id':  new_group.group_id, 'group_number': new_group.group_number}
+        return new_group
 
 
     async def delete(self, group_number: str) -> bool:
