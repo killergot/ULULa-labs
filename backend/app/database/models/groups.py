@@ -9,7 +9,7 @@ from datetime import datetime
 class Group(Base):
     __tablename__ = 'groups'
     group_id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
-    group_number: Mapped[str] = mapped_column(String(50))
+    group_number: Mapped[str] = mapped_column(String(50), unique=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, nullable=True)
     updated_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=True)
 

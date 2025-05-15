@@ -1,11 +1,12 @@
 from app.repositoryes.template import TemplateRepository
 import logging
+from sqlalchemy.dialects.postgresql import insert as pg_insert
 from app.database.models.groups import Group
 from sqlalchemy import select, text
 
 log = logging.getLogger(__name__)
 
-
+batch_size=1000
 class Repository(TemplateRepository):
     async def get_by_number(self, number: str):
         data = select(Group).where(Group.group_number == number)
@@ -19,16 +20,19 @@ class Repository(TemplateRepository):
             await self.db.commit()
 
     async def create_by_list(self, numbers: list[str]):
-        await self.db.commit()
         try:
-            for group_number in numbers:
-                new_group = Group(
-                    group_number=group_number
-                )
-                self.db.add(new_group)
-        except:
-            print("Error creating groups")
-        await self.db.commit()
+            for i in range(0, len(numbers), batch_size):
+                print ("create groups, i")
+                batch = [{'group_number': num} for num in numbers[i:i + batch_size]]
+                stmt = pg_insert(Group.__table__).values(batch)
+                stmt = stmt.on_conflict_do_nothing(index_elements=["group_number"])
+                print("create groups, i")
+                await self.db.execute(stmt)
+                await self.db.commit()
+                await self.db.commit()
+        except Exception as e:
+            print("Error creating groups", e)
+
 
 
 

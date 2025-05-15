@@ -65,12 +65,14 @@ class StudentService:
 
 
     async def create_student(self, student: StudentIn, id: int):#создаём нового студента
+        print ("hello1")
         if await self.repo.get(id):
             raise HTTPException(status_code=status.HTTP_409_CONFLICT,
                                 detail='Student already exist')
         group = await self._get_group(student.group_number)
+        print("hello1")
         new_student = await self.repo.create(id,group.group_id,student.full_name)
-
+        print("hello1")
         return StudentOut(group_number=student.group_number,
                           full_name=student.full_name,
                           student_id=new_student.id)

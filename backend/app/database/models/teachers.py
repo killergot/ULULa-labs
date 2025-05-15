@@ -20,7 +20,7 @@ class Teacher(Base):
     updated_at: Mapped[datetime] = mapped_column(DateTime,  default=datetime.utcnow, onupdate=datetime.utcnow, nullable=True)
 
     user: Mapped["database.models.auth.User"] = relationship("database.models.auth.User", back_populates="teachers")  # type: ignore
-    teacher_subject: Mapped["database.models.teacher_subjects.TeacherSubject"] = relationship("database.models.teacher_subjects.TeacherSubject", back_populates="teachers")
+    teacher_subject: Mapped["database.models.teacher_subjects.TeacherSubject"] = relationship("database.models.teacher_subjects.TeacherSubject", back_populates="teachers",  cascade="all, delete-orphan")
     teacher_schedule: Mapped["database.models.teacher_schedule.TeacherSchedule"] = relationship(
-        "database.models.teacher_schedule.TeacherSchedule", back_populates="teachers")
+        "database.models.teacher_schedule.TeacherSchedule", back_populates="teachers",  cascade="all, delete-orphan")
     #

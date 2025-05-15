@@ -88,3 +88,11 @@ async def add_subject(subject: SubjectName, teacher: UserOut = Depends(get_curre
              description='Delete subject for current teacher.\n')
 async def delete_subject(subject: SubjectName, teacher: UserOut = Depends(get_current_user), service = Depends(get_teacher_service))->TeacherSubjectBase:
     return await service.delete_subject(teacher.id, subject.name)
+
+
+@router.delete("",
+             status_code=status.HTTP_200_OK,
+             summary='Delete teacher',
+             description='Delete teacher. Requre FIO.\n')
+async def create_student(FIO: str, teacher: UserOut = Depends(get_current_user), service = Depends(get_teacher_service)):
+    return await service.delete(FIO)
