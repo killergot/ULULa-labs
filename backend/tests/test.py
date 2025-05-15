@@ -1,4 +1,4 @@
-from fastapi import FastAPI, UploadFile, File, HTTPException
+from fastapi import FastAPI, UploadFile, File, HTTPException, Path
 from fastapi.responses import FileResponse
 import os
 import shutil
@@ -27,6 +27,19 @@ async def download_file(file_name: str):
     if not os.path.exists(file_path):
         raise HTTPException(status_code=404, detail="File not found")
     return FileResponse(path=file_path, filename=file_name, media_type='application/octet-stream')
+
+
+@app.delete("/subjects/upload/{file_name}")
+async def delete_file(file_name: str = Path(..., description="Имя файла для удаления")):
+    file_path = os.path.join(UPLOAD_FOLDER, file_name)
+    if not os.path.exists(file_path):
+        raise HTTPException(status_code=404, detail="Файл не найден")
+
+    try:
+        os.remove(file_path)
+        return {"detail": f"Файл '{file_name}' успешно удалён"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Ошибка при удалении файла: {str(e)}")
 
 if __name__ == "__main__":
     uvicorn.run(app, port=8000,workers=2)

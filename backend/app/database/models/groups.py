@@ -1,5 +1,4 @@
-from sqlalchemy import Column, String, Integer, Boolean, ForeignKey, Text, TIMESTAMP, DateTime
-from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy import Column, String, Integer, DateTime
 from sqlalchemy.orm import relationship, Mapped, mapped_column
 from app.database.psql import Base
 import uuid
@@ -13,7 +12,9 @@ class Group(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, nullable=True)
     updated_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=True)
 
-    # Добавить отношения!!!
     students: Mapped["app.database.models.students.Student"] = relationship("app.database.models.students.Student",  back_populates="group")  # type: ignore
     schedule: Mapped["app.database.models.schedule.Schedule"] = relationship("app.database.models.schedule.Schedule",  back_populates="group")
     group_subject: Mapped["app.database.models.group_subjects.GroupSubject"] = relationship("app.database.models.group_subjects.GroupSubject",  back_populates="group")# type: ignore
+    files: Mapped[list["app.database.models.group_files.GroupFile"]] = relationship(
+        "app.database.models.group_files.GroupFile", back_populates="group", cascade="all, delete-orphan")
+

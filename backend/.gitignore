@@ -6,3 +6,4 @@ ulula_venv/
 .venv
 *.log
 *uploads/
+tests/*

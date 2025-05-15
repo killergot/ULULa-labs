@@ -9,3 +9,5 @@ from .models.subjects import Subject
 from .models.group_subjects import GroupSubject
 from .models.teacher_subjects import TeacherSubject
 from .models.teacher_schedule import TeacherSchedule
+from .models.achievent import Achievement
+from .models.group_files import GroupFile
