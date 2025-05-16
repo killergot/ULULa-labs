@@ -21,7 +21,7 @@ async def upload_multiple_files(files: List[UploadFile] = File(...)):
     return {"uploaded_files": saved_files}
 
 
-@app.get("/subjects/upload/{file_name}")
+@app.get("/subjects/{file_name}")
 async def download_file(file_name: str):
     file_path = os.path.join(UPLOAD_FOLDER, file_name)
     if not os.path.exists(file_path):
@@ -29,7 +29,7 @@ async def download_file(file_name: str):
     return FileResponse(path=file_path, filename=file_name, media_type='application/octet-stream')
 
 
-@app.delete("/subjects/upload/{file_name}")
+@app.delete("/subjects/{file_name}")
 async def delete_file(file_name: str = Path(..., description="Имя файла для удаления")):
     file_path = os.path.join(UPLOAD_FOLDER, file_name)
     if not os.path.exists(file_path):

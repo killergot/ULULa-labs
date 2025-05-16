@@ -9,7 +9,7 @@ from sqlalchemy import and_
 log = logging.getLogger(__name__)
 
 
-class GroupItemsRepository(TemplateRepository):
+class GroupFilesRepository(TemplateRepository):
     async def get(self, id: int) -> GroupFile:
         return await self.db.get(GroupFile, id)
 
