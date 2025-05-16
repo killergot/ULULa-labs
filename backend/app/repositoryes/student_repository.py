@@ -1,4 +1,5 @@
 import logging
+from math import trunc
 from typing import Optional
 
 from sqlalchemy import select
@@ -6,6 +7,7 @@ from sqlalchemy.orm import selectinload
 from uuid import UUID
 from app.database.models.students import Student
 from app.database.models.groups import Group
+from app.database.models.subjects import Subject
 from app.repositoryes.template import TemplateRepository
 from app.core.except_handler import except_handler
 
@@ -41,7 +43,8 @@ class Repository(TemplateRepository):
             .options(
                 selectinload(Student.achievements),  # Явно загружаем achievements
                 selectinload(Student.user),  # И пользователя, если нужно
-                selectinload(Student.group)  # И группу
+                selectinload(Student.group),  # И группу
+                selectinload(Student.subjects)
             )
         )
         result = await self.db.execute(stmt)
@@ -78,3 +81,15 @@ class Repository(TemplateRepository):
         await self.db.commit()
         await self.db.refresh(student)
         return student
+
+    async def add_subject(self,student: Student, subject: Subject):
+        student.subjects.append(subject)
+        await self.db.commit()
+        await self.db.refresh(student)
+        return student
+
+    async def delete_subject(self, student,subject):
+        student.subjects.remove(subject)
+        await self.db.commit()
+        await self.db.refresh(student)
+        return True

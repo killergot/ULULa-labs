@@ -3,6 +3,7 @@ from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship, Mapped, mapped_column
 
 from app.database.models.achievent import student_achievements
+from app.database.models.subjects import student_subjects
 from app.database.psql import Base
 import uuid
 from datetime import datetime
@@ -31,5 +32,11 @@ class Student(Base):
     achievements: Mapped[list["Achievement"]] = relationship(
         "Achievement",
         secondary=student_achievements,
+        back_populates="students"
+    )
+
+    subjects: Mapped[list["Subject"]] = relationship(
+        "Subject",
+        secondary=student_subjects,
         back_populates="students"
     )

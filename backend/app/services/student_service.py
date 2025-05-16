@@ -1,5 +1,7 @@
 from uuid import UUID
 from fastapi import  HTTPException, status
+
+from app.database.models.subjects import student_subjects
 from app.repositoryes.student_repository import Repository
 from app.repositoryes.group_repository import Repository as GroupRepository
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -9,6 +11,7 @@ from app.shemas.auth import UserOut
 from app.shemas.students import StudentBase, StudentOut, StudentIn, Achievement, StudentUpdateIn
 from app.utils.hash import get_hash
 from app.database import Student
+from app.repositoryes.subject_repository import Repository as SubjectRepository
 
 
 
@@ -37,6 +40,7 @@ class StudentService:
         self.repo = Repository(db)
         self.group_repo = GroupRepository(db)
         self.user_repo = UserRepository(db)
+        self.subject_repo =SubjectRepository(db)
 
     async def _get(self, id) -> Student:
         student = await self.repo.get(id)
@@ -114,6 +118,34 @@ class StudentService:
         await self.repo.delete(student_id)
 
 
+    async def add_subject(self, subject_id: int,user_id: int ):
+        subject = await self.subject_repo.get(subject_id)
+        if not subject:
+            raise HTTPException(status_code=404,
+                                detail="Subject not found")
+        student = await self._get(user_id)
+        student = await self.repo.add_subject(student,subject)
+        return student
+
+    async def get_subjects(self, user_id: int ):
+        student = await self._get(user_id)
+        return student.subjects
+
+    async def delete_subject(self, subject_id: int, user_id: int ):
+        subject = await self.subject_repo.get(subject_id)
+        if not subject:
+            raise HTTPException(status_code=404,
+                                detail="Subject not found")
+        student = await self._get(user_id)
+        if subject in student.subjects:
+            if not await self.repo.delete_subject(student,subject):
+                raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST)
+        else:
+            raise HTTPException(status_code=404,
+                                detail="Student have not subject {}".format(subject.name))
+
+
+
     async def get_group(self, student_id: int) -> int:  # Возвращаем id группы по id студента
         student = await self._get(student_id)
         return student.group_id
@@ -137,5 +169,4 @@ class StudentService:
         if not students:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
                                 detail="Groups not found")
-        #print(students)
         return students

@@ -88,9 +88,3 @@ class GroupFilesService:
         os.remove(folder)
         if not await self.repo.delete(file.id):
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST)
-
-
-
-
-
-

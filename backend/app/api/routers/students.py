@@ -78,6 +78,26 @@ async def get_my_group(student: UserOut = Depends(get_current_user), service = D
     group_number =  await group_service.get_by_id(validate_group_id)
     return group_number
 
+@router.get('/subjects',
+            status_code=status.HTTP_200_OK)
+async def get_subjects(student: UserOut = Depends(get_current_user),
+                       service = Depends(get_student_service)):
+    return await service.get_subjects(student.id)
+
+@router.post('/subjects/{subject_id}',
+             status_code=status.HTTP_201_CREATED)
+async def create_subject(subject_id : int,
+                         student = Depends(get_current_user),
+                         service = Depends(get_student_service)):
+    return await service.add_subject(subject_id,student.id)
+
+@router.delete('/subjects/{subject_id}',
+               status_code=status.HTTP_204_NO_CONTENT)
+async def delete_subject(subject_id : int,
+                         student = Depends(get_current_user),
+                         service = Depends(get_student_service)):
+    return await service.delete_subject(subject_id,student.id)
+
 
 @router.get("/get_group_num/{student_id}",
              status_code=status.HTTP_200_OK,
