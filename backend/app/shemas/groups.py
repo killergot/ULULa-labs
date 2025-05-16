@@ -1,7 +1,7 @@
 from typing import Optional
 
 from pydantic import BaseModel, EmailStr, field_validator, Field
-
+from fastapi import Query
 
 class GroupBase(BaseModel):
     group_id: int = Field(ge = 1)
@@ -15,8 +15,6 @@ class GroupNumber(BaseModel): #Используется при регистра�
 
 class GroupID(BaseModel): #Используется при регистрации студента по номеру группы, а не по id
     group_id: int = Field(ge = 1)
-
-
 
 class FileBase(BaseModel):
     group_number: str
@@ -37,3 +35,8 @@ class FileOut(BaseModel):
     subject: str = Field(min_length=1)
     filename: str = Field(min_length=1)
     filesize: int = Field(ge=1)
+
+    model_config = {
+        'from_attributes': True
+    }
+

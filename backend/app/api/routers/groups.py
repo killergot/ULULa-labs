@@ -20,16 +20,11 @@ from app.api.depencies.services import get_group_service
 router = APIRouter(prefix="/groups", tags=["groups"])
 
 
-
-
-
-
 @router.post("/create_group",
              status_code=status.HTTP_201_CREATED,
              summary='Register a new group',
              description='Create a new group in database. Requre group number.\n',
-             dependencies=[Depends(get_current_user)] # заменить на закомментированную строку, чтобы работало только от админа
-             #dependencies=[Depends(require_role(1))
+             dependencies=[Depends(get_current_user)]
 )
 async def create_group(group_number: GroupNumber, service = Depends(get_group_service)):
     return await service.create_group(group_number)
@@ -39,8 +34,7 @@ async def create_group(group_number: GroupNumber, service = Depends(get_group_se
              status_code=status.HTTP_200_OK,
              summary='Delete group',
              description='Delete group by group number.\n',
-             dependencies=[Depends(get_current_user)] #заменить на закомментированную строку, чтобы работало только от админа
-             #dependencies=[Depends(require_role(1))
+             dependencies=[Depends(get_current_user)]
 )
 async def delete_group(group_number: GroupNumber, service = Depends(get_group_service)):
     return await service.delete_group(group_number)
@@ -101,17 +95,3 @@ async def get_group_by_number(group_id: int,service = Depends(get_group_service)
 )
 async def get_all(service = Depends(get_group_service)):
        return await service.get_all()
-
-
-@router.patch("/load_group_list",
-             status_code=status.HTTP_200_OK,
-             summary='Load all groups from site',
-             description='Load all groups from site.\n',
-             dependencies=[Depends(get_current_user)] #заменить на закомментированную строку, чтобы работало только от админа
-             #dependencies=[Depends(require_role(1))
-)
-async def load_groups(service = Depends(get_group_service)):
-       groups = load_group_list()
-       for group in groups:
-           await service.create_group(GroupNumber.model_validate({"group_number": group}))
-       return 0

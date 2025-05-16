@@ -44,6 +44,7 @@ async def get_current_user(
 
 def require_role(req_role: int):
     async def role_checker(payload: dict = Depends(get_access_token_payload)):
+        print(payload['role'])
         if not payload["role"] & req_role:
             raise HTTPException(status_code=403,
                                 detail="Not enough permissions")

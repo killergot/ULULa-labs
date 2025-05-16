@@ -1,5 +1,7 @@
 from typing import Optional
 
+from sqlalchemy.orm import selectinload
+
 from app.repositoryes.template import TemplateRepository
 import logging
 from app.database import GroupFile
@@ -11,7 +13,17 @@ log = logging.getLogger(__name__)
 
 class GroupFilesRepository(TemplateRepository):
     async def get(self, id: int) -> GroupFile:
-        return await self.db.get(GroupFile, id)
+        stmt = (
+            select(GroupFile)
+            .where(GroupFile.id == id)
+            .options(
+                selectinload(GroupFile.group),
+                selectinload(GroupFile.subject)
+            )
+        )
+        result = await self.db.execute(stmt)
+        file = result.scalars().first()
+        return file
 
     async def get_filtered(self, group_id: Optional[int] = None,
                            subject_id: Optional[int] = None,
