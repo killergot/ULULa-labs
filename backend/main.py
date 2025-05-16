@@ -11,12 +11,12 @@ from app.middleware.cors import get_cors_middleware
 from app.core.config import load_config
 from app.api.routers import api_router
 
-from app.core.logger import init_log
+from app.utils.logger import init_log
 import logging
 
 from app.services.role_service import ADMIN_ROLE
 
-init_log(logging.DEBUG)
+init_log(logging.INFO)
 
 config = load_config()
 

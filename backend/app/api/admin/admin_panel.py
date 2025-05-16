@@ -1,5 +1,6 @@
 from sqladmin import Admin, ModelView
 from app.database import User
+from app.database.models.group_files import GroupFile
 from app.database.models.students import Student
 from app.database.models.subjects import Subject
 from app.database.models.tasks import Task
@@ -29,6 +30,12 @@ class SubjectAdmin(ModelView, model=Subject):
     column_list = [Subject.id,
                    Subject.name]
 
+class FilesAdmin(ModelView, model=GroupFile):
+    column_list = [GroupFile.id,
+                   GroupFile.filename,
+                   'group.group_number',
+                   'subject.name']
+
 
 # Функция для инициализации админки
 def setup_admin(app, engine):
@@ -38,3 +45,4 @@ def setup_admin(app, engine):
     admin.add_view(TeacherAdmin)
     admin.add_view(SubjectAdmin)
     admin.add_view(TaskAdmin)
+    admin.add_view(FilesAdmin)
