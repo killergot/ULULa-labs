@@ -336,7 +336,9 @@
     position: relative;
     height: 100vh;
     overflow: hidden;
-    /* min-width: 400px; */
+
+    min-width: 700px;
+    overflow-x: auto;
   }
   .content {
     height: 100%;
