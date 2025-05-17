@@ -62,12 +62,34 @@
 
 
 
-    <div class="div2">
+    <!-- <div class="div2">
         <img :src="user.avatarUrl" alt="Фото {{ user.fullName }}" />
         <button @click="changeAvatar">Change profile photo</button>
+    </div> -->
+
+    <div class="div2">
+      <div class="avatar-container">
+        <!-- Если есть локальное превью, покажем его,
+            иначе — или то, что в базе, или дефолт -->
+        <img
+          :src="previewUrl || user.avatarUrl || defaultAvatar"
+          alt="Фото {{ user.fullName }}"
+        />
+      </div>
+      <button @click="onClickChange">Change profile photo</button>
+      <input
+        ref="fileInput"
+        type="file"
+        accept="image/*"
+        @change="onFileSelected"
+        style="display: none;"
+      />
     </div>
 
+
     <div class="separator"></div>
+
+
 
     <div class="div3">
         <h1>Achievements</h1>
@@ -88,26 +110,13 @@
   
 <script>
  import api from '@/services/api';
+ const defaultAvatar = '/default_avatar.jpg';
 
 
 export default {
   name: 'UserPage',
   data() {
     return {
-      // user: {
-      //   fullName: 'Морозова Татьяна Сергеевна',
-      //   group: '5151003/10801',
-      //   nick: 'tanya-kiticat',
-      //   email: 'morozovatania2003@yandex.ru',
-      //   avatarUrl: '/my_sweet_cat.jpg',
-      //   achievements: [
-      //     'Дожила до 4 курса икизи',
-      //     'Сдаю лабки' ,
-      //     'Длиииииииииииииииииииииииииииииное очень длииииииииииииное достижение'
-      //   ],
-      //   telegram: 'tanya_kiticat', 
-      //   // vk: 'tanya_morozova22'
-      // },
       user: {
         fullName: '',
         group: '',
@@ -119,7 +128,9 @@ export default {
       },
       editMode: false,
       form: {},
-      groups: []
+      groups: [],
+      previewUrl: null,     
+      defaultAvatar,  
     }
   },
   created() {
@@ -139,7 +150,7 @@ export default {
           group: response.data.group_number,
           nick: response.data.nickname,
           email: response.data.email,
-          avatarUrl: response.data.avatar_url || '/default_avatar.png',
+          avatarUrl: response.data.avatar_url || null,
           achievements: response.data.achievements || [],
           telegram: response.data.telegram
         };
@@ -179,7 +190,15 @@ export default {
 
         if (response.status !== 200) throw new Error(`Error ${response.status}`);
         else {
-          this.user = response.data;
+          this.user = {
+          fullName: response.data.full_name,
+          group: response.data.group_number,
+          nick: response.data.nickname,
+          email: response.data.email,
+          avatarUrl: response.data.avatar_url || null,
+          achievements: response.data.achievements || [],
+          telegram: response.data.telegram
+        };
           console.log('User updated:', response.data);
         }
 
@@ -188,10 +207,40 @@ export default {
       }
     },
 
+    onClickChange() {
+      this.$refs.fileInput.click();
+    },
 
     changeAvatar() {
         alert('здесь будет логика изменения аватара');
+      //   const file = e.target.files[0];
+      // if (!file) return;
+
+      // // 1) Локальное превью
+      // this.previewUrl = URL.createObjectURL(file);
+
+      // // 2) Загружаем на сервер
+      // const form = new FormData();
+      // form.append('avatar', file);
+      // try {
+      //   const { status, data } = await api.post(
+      //     '/students/me/avatar',
+      //     form,
+      //     { headers: { 'Content-Type': 'multipart/form-data' } }
+      //   );
+      //   if (status === 200 && data.avatar_url) {
+      //     // 3) После успеха обновляем у себя и сбрасываем превью
+      //     this.user.avatarUrl = data.avatar_url;
+      //     this.previewUrl = null;
+      //   } else {
+      //     throw new Error(`Upload failed: ${status}`);
+      //   }
+      // } catch (err) {
+      //   console.error(err);
+      //   // Можно показать уведомление об ошибке
+      // }
     },
+    
     toggleEdit() {
       if (!this.editMode) {
         this.form = { ...this.user };
@@ -325,14 +374,27 @@ export default {
   box-sizing: border-box;
 }
 
-.div2 img {
+.avatar-container {
+  width: 150px;
+  height: 150px;
+  border-radius: 50%;   
+  overflow: hidden;
+  margin-bottom: 12px;
+}
+.avatar-container img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* .div2 img {
   max-width: 100%;
   height: auto;
   display: block;
 
   border-radius: 8px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-}
+} */
 
 .div2 button {
   width: 100%;
