@@ -1,9 +1,18 @@
 from sqlalchemy import Column, String, Integer, Boolean, ForeignKey, Text, TIMESTAMP, DateTime
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship, Mapped, mapped_column
+from sqlalchemy.sql.schema import Table
+
 from app.database.psql import Base
 import uuid
 from datetime import datetime
+
+student_subjects = Table(
+    'student_subjects',
+    Base.metadata,
+    Column('student_id', ForeignKey('students.id', ondelete='CASCADE'), primary_key=True),
+    Column('subject_id', ForeignKey('subjects.id', ondelete='CASCADE'), primary_key=True)
+)
 
 
 class Subject(Base):
@@ -21,3 +30,8 @@ class Subject(Base):
     files: Mapped[list["app.database.models.group_files.GroupFile"]] = relationship(
         "app.database.models.group_files.GroupFile", back_populates="subject", cascade="all, delete-orphan")
 
+    students: Mapped[list["Student"]] = relationship(
+        "Student",
+        secondary=student_subjects,
+        back_populates="subjects"
+    )

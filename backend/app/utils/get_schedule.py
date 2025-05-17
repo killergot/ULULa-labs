@@ -161,6 +161,7 @@ async def load_teacher_schedule_module(session, teacher):
 
 
 async def load_group_schedule(session, group):
+    # загрузка расписания для групп, здесь всё ломается
     group_number = group['group_number']
     group_id = group['group_id']
     date = datetime.now()
@@ -168,6 +169,7 @@ async def load_group_schedule(session, group):
     subjects = []
     teacher_subject = []
     group_subject = []
+    id_itog = "38749"
     url = f'https://ruz.spbstu.ru/search/groups?q={group_number}'
     try:
         async with session.get(
@@ -181,10 +183,10 @@ async def load_group_schedule(session, group):
                 url_strok = list(url['href'])
                 break
             url_strok_itog = url_strok[-5:]
-
             id_itog = "".join(url_strok_itog)
     except Exception as e:
         print("Error: ", e, "\n", group_number, date)
+        print("Schedule for group ", group_number, " will be replace by fake")
 
     for i in range (1, 5):
         url = f'https://ruz.spbstu.ru/api/v1/ruz/scheduler/{id_itog}?date={date.strftime("%Y-%m-%d")}'
@@ -204,47 +206,48 @@ async def load_group_schedule(session, group):
                 thursday=[]
                 friday=[]
                 saturday=[]
-                for day in data['days']:
+                if data['days']:
+                    for day in data['days']:
 
-                    day_info = {
-                    'weekday': day['weekday'],
-                    'date': day['date'],
-                    'lessons': []
-                    }
-
-                    for lesson in day['lessons']:
-
-                        lesson_info = {
-                        'subject': lesson['subject'],
-                        'time_start': lesson['time_start'],
-                        'time_end': lesson['time_end'],
-                        'teacher': "unknown",
-                        'place': "unknown"
+                        day_info = {
+                        'weekday': day['weekday'],
+                        'date': day['date'],
+                        'lessons': []
                         }
-                        subjects.append({'name': lesson['subject']})
-                        if lesson['groups']:
-                            for group in lesson['groups']:
-                                group_subject.append(GroupSubjectIn.model_validate({'group_number': group['name'], 'subject': lesson['subject']}))
-                        if lesson['teachers']:
-                            lesson_info['teacher']=lesson['teachers'][0]['full_name']
-                            teacher_subject.append(TeacherSubjectIn.model_validate({'FIO': lesson['teachers'][0]['full_name'], 'subject': lesson['subject']}))
-                        if lesson['auditories']:
-                            lesson_info['place']=lesson['auditories'][0]['building']['name']+', к. ' +lesson['auditories'][0]['name']
 
-                        day_info['lessons'].append(lesson_info)
-                    if day_info['weekday']==1:
-                        monday.append(day_info['lessons'])
-                    if day_info['weekday']==2:
-                        tuesday.append(day_info['lessons'])
-                    if day_info['weekday'] == 3:
-                        wednesday.append(day_info['lessons'])
-                    if day_info['weekday'] == 4:
-                        thursday.append(day_info['lessons'])
-                    if day_info['weekday'] == 5:
-                        friday.append(day_info['lessons'])
-                    if day_info['weekday'] == 6:
-                        saturday.append(day_info['lessons'])
-                    result.append(day_info)
+                        for lesson in day['lessons']:
+
+                            lesson_info = {
+                            'subject': lesson['subject'],
+                            'time_start': lesson['time_start'],
+                            'time_end': lesson['time_end'],
+                            'teacher': "unknown",
+                            'place': "unknown"
+                            }
+                            subjects.append({'name': lesson['subject']})
+                            if lesson['groups']:
+                                for group in lesson['groups']:
+                                    group_subject.append(GroupSubjectIn.model_validate({'group_number': group['name'], 'subject': lesson['subject']}))
+                            if lesson['teachers']:
+                                lesson_info['teacher']=lesson['teachers'][0]['full_name']
+                                teacher_subject.append(TeacherSubjectIn.model_validate({'FIO': lesson['teachers'][0]['full_name'], 'subject': lesson['subject']}))
+                            if lesson['auditories']:
+                                lesson_info['place']=lesson['auditories'][0]['building']['name']+', к. ' +lesson['auditories'][0]['name']
+
+                            day_info['lessons'].append(lesson_info)
+                        if day_info['weekday']==1:
+                            monday.append(day_info['lessons'])
+                        if day_info['weekday']==2:
+                            tuesday.append(day_info['lessons'])
+                        if day_info['weekday'] == 3:
+                            wednesday.append(day_info['lessons'])
+                        if day_info['weekday'] == 4:
+                            thursday.append(day_info['lessons'])
+                        if day_info['weekday'] == 5:
+                            friday.append(day_info['lessons'])
+                        if day_info['weekday'] == 6:
+                            saturday.append(day_info['lessons'])
+                        result.append(day_info)
               #  print('\n\n\n\n', monday)
                 try:
                     final = ScheduleBase.model_validate({"group_id": group_id, "week_number": i, "monday": monday, "tuesday": tuesday, "wednesday": wednesday, "thursday": thursday, "friday": friday, "saturday": saturday, "sunday": sunday})
@@ -270,8 +273,8 @@ async def get_schedule(groups: list)->tuple:
     batch_size = 130
     result = []  # итоговый список
     # распараллелить на потоки
-    connector = aiohttp.TCPConnector(limit=200)
-    semaphore = asyncio.Semaphore(150)
+    connector = aiohttp.TCPConnector(limit=100)
+    semaphore = asyncio.Semaphore(100)
     schedule = []
     subjects = []
     async with semaphore:

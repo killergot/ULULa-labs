@@ -29,18 +29,20 @@ class ScheduleService:
         self.teacher_schedule_repo = teacher_schedule_Repository(db)
 
     async def load_groups_schedule(self):
+
         groups = await get_groups()
-        await self.group_repo.clean()
+        #await self.group_repo.clean()
         await self.group_repo.create_by_list(groups)
 
         # получение расписания студента, списка предметов, списка группа-предмет
         groups = await self.group_repo.get_all()
         schedule, subjects, teacher_subjects, group_subjects = await get_schedule(groups)
+
         # загрузка расписания в БД
         await self.repo.clean_schedule()
         await self.repo.create_by_list(schedule)
         # загрузка предметов в БД
-        await self.subject_repo.clean()
+        # await self.subject_repo.clean()
         await self.subject_repo.create_by_list(subjects)
         # загрузка предмет-группа в БД
         group_subjects_to_insert = []
@@ -57,6 +59,8 @@ class ScheduleService:
             await self.group_subject_repo.clean()
             await self.group_subject_repo.create_by_list(group_subjects_to_insert)
 
+        print("Main schedule is load")
+
 
     async def load_teacher_schedule(self):
         full_teachers = await self.teacher_repo.get_all()
@@ -71,6 +75,7 @@ class ScheduleService:
         if len(teachers) > 0:
             await self.teacher_schedule_repo.clean()
             await self.teacher_schedule_repo.create_by_list(teacher_schedule)
+        print("Teacher schedule is load")
 
     async def load_schedule(self, background_tasks):
         # список групп
@@ -140,6 +145,3 @@ class ScheduleService:
 
 
 '''
-
-
-

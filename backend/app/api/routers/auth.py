@@ -3,14 +3,10 @@ from fastapi.routing import APIRouter
 
 from app.api.depencies.guard import get_refresh_token_payload
 from app.api.depencies.services import get_auth_service
-from app.database import create_db
 
 from app.shemas.auth import UserOut, UserIn, UserLogin, TokenOut, TwoFactorOut, TwoFactorIn
 from app.services import AuthService
 
-
-from app.database.models import schedule
-from app.database.models import students
 
 router = APIRouter(prefix="/auth", tags=["authentication"])
 
