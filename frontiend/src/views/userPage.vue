@@ -1,82 +1,68 @@
 <template>
   <div class="parent">
+    
     <div class="div1">
-      <button v-if="!editMode" class="edit-btn" @click="toggleEdit">Edit profile</button>
-        <!-- ⚙️
-      </button> -->
+      <button class="edit-btn" :class="{ hidden: editMode }" @click="toggleEdit">✎</button>
 
-      <h1 v-if="!editMode">{{ user.fullName || '–' }}</h1>
-      <div v-else class="edit-field">
-        <label>Full name:</label>
-        <input v-model="form.fullName" type="text" class="edit-input" />
+      <div class="profile-info">
+        <template v-if="!editMode">
+        <h1>{{ user.fullName || '–' }}</h1>
+        <p><span class="field-icon">🎓</span> Group number: {{ user.group || '–' }}</p>
+        <p><span class="field-icon">👤</span> Nickname: {{ user.nick || '–' }}</p>
+        <p><span class="field-icon">✉️</span> Email: {{ user.email || '–' }}</p>
+        <p><span class="field-icon">💬</span> Telegram: <span v-if="user.telegram">
+            <a :href="'https://t.me/' + user.telegram" target="_blank">{{ user.telegram }}</a>
+          </span><span v-else>–</span>
+        </p>
+        </template>
+
+        <template v-else>
+          <div class="edit-field">
+            <label>Full name</label>
+            <input v-model="form.fullName" type="text" class="edit-input" />
+          </div>
+          <div class="edit-field">
+            <label>Group</label>
+            <select v-model="form.group" class="edit-input">
+              <option value="" disabled>Choose group</option>
+              <option v-for="g in groups" :key="g.id" :value="g.number">
+                {{ g.number }}
+              </option>
+            </select>
+          </div>
+          <div class="edit-field">
+            <label>Nickname</label>
+            <input v-model="form.nick" type="text" class="edit-input" />
+          </div>
+          <div class="edit-field">
+            <label>Email</label>
+            <input v-model="form.email" type="email" class="edit-input" />
+          </div>
+          <div class="edit-field">
+            <label>Telegram</label>
+            <input v-model="form.telegram" type="text" class="edit-input" />
+          </div>
+          <div class="action-buttons">
+            <button @click="cancelEdit">Cancel</button>
+            <button @click="saveEdit">OK</button>
+          </div>
+        </template>
       </div>
-
-
-      <p v-if="!editMode">Group number: {{ user.group || '–' }}</p>
-      <div v-else class="edit-field">
-        <label>Group:</label>
-        <select v-model="form.group" class="edit-input">
-          <option value="" disabled>Выберите группу</option>
-          <option
-            v-for="g in groups"
-            :key="g.id"
-            :value="g.number"
-          >
-            {{ g.number }}
-          </option>
-        </select>
-      </div>
-
-
-      <p v-if="!editMode">Nickname: {{ user.nick || '–' }}</p>
-      <div v-else class="edit-field">
-        <label>Nickname:</label>
-        <input v-model="form.nick" type="text" class="edit-input" />
-      </div>
-
-      <p v-if="!editMode">Email: {{ user.email || '–' }}</p>
-      <div v-else class="edit-field">
-        <label>Email:</label>
-        <input v-model="form.email" type="email" class="edit-input" />
-      </div>
-
-      <p v-if="!editMode">
-        Telegram:
-        <span v-if="user.telegram">
-          <a :href="'https://t.me/' + user.telegram" target="_blank">{{ user.telegram }}</a>
-        </span>
-        <span v-else>–</span>
-      </p>
-      <div v-else class="edit-field">
-        <label>Telegram:</label>
-        <input v-model="form.telegram" type="text" class="edit-input" />
-      </div>
-
-      <div v-if="editMode" class="action-buttons">
-        <button @click="cancelEdit">Cancel</button>
-        <button @click="saveEdit">OK</button>
-      </div>
-
     </div>
 
 
 
-
-    <!-- <div class="div2">
-        <img :src="user.avatarUrl" alt="Фото {{ user.fullName }}" />
-        <button @click="changeAvatar">Change profile photo</button>
-    </div> -->
-
     <div class="div2">
       <div class="avatar-container">
-        <!-- Если есть локальное превью, покажем его,
-            иначе — или то, что в базе, или дефолт -->
         <img
-          :src="previewUrl || user.avatarUrl || defaultAvatar"
+          :src="user.avatarUrl || defaultAvatar"
           alt="Фото {{ user.fullName }}"
         />
       </div>
-      <button @click="onClickChange">Change profile photo</button>
+
+      <button @click="openModal">Change profile photo</button>
+      <button @click="openDeleteModal" :disabled="!user.avatarUrl">Delete profile photo</button>
+
       <input
         ref="fileInput"
         type="file"
@@ -98,11 +84,32 @@
                 {{ ach }}
             </li>
         </ul>
-        
     </div>
 
-
+    <div v-if="showModal" class="modal-overlay">
+      <div class="modal">
+        <h2>Change Avatar</h2>
+        <p>Enter the URL of the new avatar:</p>
+        <textarea v-model="this.form.avatarUrl" class="modal-input" rows="3"></textarea>
+        <div class="modal-actions">
+          <button @click="closeModal">Cancel</button>
+          <button @click="confirmModal">OK</button>
+        </div>
+      </div>
+    </div>
     
+
+    <div v-if="showDeleteModal" class="modal-overlay">
+      <div class="modal">
+        <h2>Delete Avatar</h2>
+        <p>Are you sure you want to delete your profile photo?</p>
+        <div class="modal-actions">
+          <button @click="closeDeleteModal">Cancel</button>
+          <button @click="confirmDelete">Delete</button>
+        </div>
+      </div>
+    </div>
+
 </div>
     
 </template>
@@ -122,15 +129,16 @@ export default {
         group: '',
         nick: '',
         email: '',
-        avatarUrl: '',
+        avatarUrl: null,
         achievements: [],
         telegram: ''
       },
       editMode: false,
       form: {},
-      groups: [],
-      previewUrl: null,     
+      groups: [],     
       defaultAvatar,  
+      showModal: false,
+      showDeleteModal: false
     }
   },
   created() {
@@ -150,8 +158,8 @@ export default {
           group: response.data.group_number,
           nick: response.data.nickname,
           email: response.data.email,
-          avatarUrl: response.data.avatar_url || null,
-          achievements: response.data.achievements || [],
+          avatarUrl: response.data.avatar_url,
+          achievements: response.data.achievements,
           telegram: response.data.telegram
         };
       } catch (error) {
@@ -195,8 +203,8 @@ export default {
           group: response.data.group_number,
           nick: response.data.nickname,
           email: response.data.email,
-          avatarUrl: response.data.avatar_url || null,
-          achievements: response.data.achievements || [],
+          avatarUrl: response.data.avatar_url,
+          achievements: response.data.achievements,
           telegram: response.data.telegram
         };
           console.log('User updated:', response.data);
@@ -206,45 +214,12 @@ export default {
         console.error('Failed to update user:', error);
       }
     },
-
-    onClickChange() {
-      this.$refs.fileInput.click();
-    },
-
-    changeAvatar() {
-        alert('здесь будет логика изменения аватара');
-      //   const file = e.target.files[0];
-      // if (!file) return;
-
-      // // 1) Локальное превью
-      // this.previewUrl = URL.createObjectURL(file);
-
-      // // 2) Загружаем на сервер
-      // const form = new FormData();
-      // form.append('avatar', file);
-      // try {
-      //   const { status, data } = await api.post(
-      //     '/students/me/avatar',
-      //     form,
-      //     { headers: { 'Content-Type': 'multipart/form-data' } }
-      //   );
-      //   if (status === 200 && data.avatar_url) {
-      //     // 3) После успеха обновляем у себя и сбрасываем превью
-      //     this.user.avatarUrl = data.avatar_url;
-      //     this.previewUrl = null;
-      //   } else {
-      //     throw new Error(`Upload failed: ${status}`);
-      //   }
-      // } catch (err) {
-      //   console.error(err);
-      //   // Можно показать уведомление об ошибке
-      // }
-    },
     
     toggleEdit() {
       if (!this.editMode) {
         this.form = { ...this.user };
         this.editMode = true;
+
       } else {
         this.cancelEdit();
       }
@@ -256,6 +231,31 @@ export default {
     cancelEdit() {
       this.form = {};
       this.editMode = false;
+    },
+    openModal() {
+      this.form = { ...this.user };
+      this.showModal = true;
+    },
+    closeModal() {
+      this.showModal = false;
+      this.form = {};
+    },
+    async confirmModal() {
+      await this.updateUser();
+      this.closeModal();
+    },
+    openDeleteModal() {
+      this.form = { ...this.user };
+      this.showDeleteModal = true;
+    },
+    closeDeleteModal() {
+      this.showDeleteModal = false;
+      this.form = {};
+    },
+    async confirmDelete() {
+      this.form.avatarUrl = null;
+      await this.updateUser();
+      this.closeDeleteModal();
     }
   }
 }
@@ -269,24 +269,18 @@ export default {
     display: grid;
 
     width: 100%;
-    /* height: 100vh; */
     min-height: 100vh;
     padding: 16px;
     box-sizing: border-box;
-    /* overflow-x: hidden; */
 
     overflow-x: auto;
     overflow-y: auto;
 
-    /* grid-template-columns: 1fr 0.8fr 2px 1fr; */
-
     grid-template-columns:
-    minmax(350px, 1fr)  
+    minmax(430px, 1fr)  
     minmax(350px, 0.8fr) 
     2px                  
     minmax(350px, 1fr);
-
-    /* grid-template-rows: repeat(5, 1fr); */
 
     grid-template-rows: repeat(5, auto);
     gap: 8px;
@@ -298,41 +292,68 @@ export default {
 
   padding: 16px;
   box-sizing: border-box; 
-
   position: relative;
+
+  display: grid; 
+  grid-template-columns: auto 1fr; 
+  column-gap: 16px;
 }
 
-.div1 h1 {
-  text-align: center;
-  margin-top: 30px;
+.profile-info h1 { 
+  text-align: left; 
+  margin-top: 0; 
+  font-size: 2rem; 
 }
-
-.div1 p {
-  text-align: center;
+.profile-info p { 
+  display: flex; 
+  align-items: center; 
+  font-size: 1.3rem; 
+  margin: 8px 0; 
+  text-align: left; 
   margin: 4px 0;
   margin-bottom: 10px; 
-  
+  overflow-wrap: anywhere;
 }
 
+.field-icon { 
+  margin-right: 8px; 
+  flex: 0 0 auto;  
+  font-size: 1.2rem; 
+  align-self: flex-start;
+}
+
+.edit-field { 
+  display: flex; 
+  flex-direction: column; 
+  align-items: flex-start; 
+  margin-bottom: 12px; 
+  font-size: 1.2rem; 
+}
+.edit-field label { 
+  margin-bottom: 6px; 
+  text-align: left; 
+  width: 100%;
+}
+.edit-input { 
+  width: 100%; 
+  padding: 8px; 
+  background-color: #f0f0f0; 
+  border: 1px solid #ccc; 
+  border-radius: 6px; 
+  font-size: 1.2rem; 
+}
 .edit-btn {
-  position: absolute;
-  top: 0;
-  left: 0;
-  z-index: 10;
-
-  background-color: #79b9f5;
-  border-radius: 4px;
+  font-size: 1.8rem;
+  visibility: visible;
+  background: #79b9f5;
   border: none;
+  border-radius: 4px;
   cursor: pointer;
-  
-  font-size: clamp(18px, 1.2vw, 22px);
-
-  padding: clamp(4px, 1vh, 8px)
-           clamp(8px, 1vw, 16px);
-
-  min-width: 40px;
-  min-height: 40px;
-
+  align-self: start;   
+  justify-self: start;
+}
+.edit-btn.hidden {
+  visibility: hidden;
 }
 .edit-input {
   width: 100%;
@@ -342,9 +363,7 @@ export default {
   box-sizing: border-box;
   font-size: clamp(18px, 1.2vw, 22px);
 }
-.edit-field {
-  margin-bottom: 12px;
-}
+
 .action-buttons {
   display: flex;
   gap: 8px;
@@ -375,26 +394,17 @@ export default {
 }
 
 .avatar-container {
-  width: 150px;
-  height: 150px;
-  border-radius: 50%;   
+
+  border-radius: 4%;   
   overflow: hidden;
   margin-bottom: 12px;
 }
 .avatar-container img {
   width: 100%;
   height: 100%;
-  object-fit: cover;
+  max-height: 500px;
+  object-fit: contain;
 }
-
-/* .div2 img {
-  max-width: 100%;
-  height: auto;
-  display: block;
-
-  border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-} */
 
 .div2 button {
   width: 100%;
@@ -446,4 +456,62 @@ export default {
 }
 
 
+.modal-overlay { 
+  position: fixed; 
+  top: 0; 
+  left: 0; 
+  width: 100%; 
+  height: 100%; 
+  background: rgba(0,0,0,0.4); 
+  display: flex; 
+  align-items: center; 
+  justify-content: center; 
+  z-index: 1000; 
+}
+.modal { 
+  background: #fff; 
+  padding: 24px; 
+  border-radius: 8px; 
+  width: 90%; 
+  max-width: 400px; 
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15); 
+}
+.modal h2 { 
+  margin-top: 0; 
+  margin-bottom: 12px; 
+}
+.modal p { 
+  font-size: 1.2rem;
+  margin-bottom: 8px; 
+}
+.modal-input { 
+  width: 100%; 
+  padding: 2px; 
+  border: 1px solid #ccc; 
+  border-radius: 4px; 
+  resize: vertical; 
+  min-height: 60px; 
+  max-height: 200px;
+  font-size: 1rem; 
+  background-color: #f0f0f0;
+}
+.modal-actions { 
+  display: flex; 
+  justify-content: flex-end; 
+  gap: 8px; 
+  margin-top: 16px; 
+}
+.modal-actions button { 
+  padding: 8px 16px; 
+  border: none; 
+  background: #79b9f5; 
+  color: #fff; 
+  border-radius: 4px; 
+  cursor: pointer; 
+  font-size: 1.1rem;
+}
+.modal-actions button:first-of-type { 
+  background: #ccc; 
+  color: #000; 
+}
 </style>

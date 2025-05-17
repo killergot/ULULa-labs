@@ -545,7 +545,7 @@
   resize: vertical;
   height: auto;
   min-height: calc(1.2em * 5 + 16px); 
-  max-height: 80vh;
+  max-height: 200px;
   overflow-y: auto;
 
   /* background: #ffffff; */
