@@ -1,5 +1,6 @@
 from  app.shemas.teachers import FIO as fio_schema, WeekNumber
 from  app.shemas.teacher_subject import SubjectName
+from  app.shemas.achievements import AchieveID
 from fastapi import Path
 from fastapi import HTTPException
 from pydantic import ValidationError
@@ -30,4 +31,13 @@ def get_subject_name(name: str) -> SubjectName:
         raise HTTPException(
             status_code=400,
             detail=f"Invalid subject name\n: {str(e)}"
+        )
+
+def get_achieve_id(id: int) -> AchieveID:
+    try:
+        return AchieveID(id = id)
+    except ValidationError as e:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Invalid achievement id\n: {str(e)}"
         )
