@@ -1,11 +1,10 @@
 <template>
   <div class="materials-list">
-    <h2>Список материалов</h2>
     <ul>
       <li v-for="subject in subjects" :key="subject.name" class="subject-item">
         <div class="subject-header" @click="toggleSubject(subject)">
           <span>{{ subject.name }}</span>
-          <span>{{ subject.expanded ? '▼' : '▶' }}</span>
+          <span class="toggle-icon" :class="{ rotated: subject.expanded }">❯</span>
         </div>
         <ul v-if="subject.expanded" class="files-list">
           <li
@@ -24,7 +23,6 @@
 
 <script>
 import api from '@/services/api';
-const defaultAvatar = '/default_avatar.jpg';
 
 export default {
   name: 'MaterialsList',
@@ -39,8 +37,7 @@ export default {
         achievements: [],
         telegram: ''
       },
-      subjects: [],
-      defaultAvatar,
+      subjects: []
     };
   },
   created() {
@@ -82,6 +79,7 @@ export default {
           subject: subject.name
         };
         const response = await api.get('/files', { params });
+        if (response.status !== 200) throw new Error(`Error ${response.status}`);
         subject.files = response.data;
       } catch (error) {
         console.error(`Failed to fetch files for ${subject.name}:`, error);
@@ -96,6 +94,7 @@ export default {
     async downloadFile(file) {
       try {
         const response = await api.get(`/files/download/${file.id}`, { responseType: 'blob' });
+        if (response.status !== 200) throw new Error(`Error ${response.status}`);
         const url = window.URL.createObjectURL(new Blob([response.data]));
         const link = document.createElement('a');
         link.href = url;
@@ -114,9 +113,16 @@ export default {
 
 <style scoped>
 .materials-list {
-  max-width: 600px;
+
   margin: 0 auto;
   font-family: sans-serif;
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+.materials-list > ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
 }
 .subject-item {
   margin-bottom: 10px;
@@ -124,10 +130,21 @@ export default {
 .subject-header {
   cursor: pointer;
   display: flex;
-  justify-content: space-between;
-  background-color: #f0f0f0;
+  align-items: center;
+  justify-content: flex-start;
+  background-color: #e6e6e6;
   padding: 8px;
   border-radius: 4px;
+  text-align: left;
+}
+.toggle-icon {
+  display: inline-block;
+  transition: transform 0.3s ease;
+  font-size: 1.2em;
+  margin-left: auto;
+}
+.toggle-icon.rotated {
+  transform: rotate(90deg);
 }
 .files-list {
   margin: 5px 0 0 15px;
@@ -138,6 +155,9 @@ export default {
   margin: 3px 0;
   color: #007bff;
   text-decoration: underline;
+  text-align: left;
+  white-space: normal;
+  word-break: break-word;
 }
 .file-item:hover {
   color: #0056b3;
