@@ -1,6 +1,8 @@
 
 from fastapi import  HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
+
+from app.database.models.subjects import Subject
 from app.repositoryes.subject_repository import Repository
 from app.repositoryes.group_subject_repository import Repository as GroupSubjectRepository
 from app.repositoryes.group_repository import Repository as GroupRepository
@@ -12,6 +14,9 @@ class SubjectService:
         self.group_repo = GroupRepository(db)
         self.group_subject_repo =  GroupSubjectRepository(db)
         self.student_repo = StudentRepository(db)
+
+    async def get_all(self):
+        return await self.repo.get_all()
 
     async def get_groups(self, name: str)->list[str]:
         # получить id

@@ -1,3 +1,5 @@
+from functools import lru_cache
+
 from app.api.depencies.guard import get_current_user, require_role
 from app.api.depencies.services import get_subject_service
 from app.shemas.students import StudentBase, StudentIn, StudentID
@@ -19,14 +21,8 @@ router = APIRouter(prefix="/subjects", tags=["subjects"])
 async def get_groups(name_schema: SubjectName=Depends(get_subject_name),  service = Depends(get_subject_service))->list[str]:
     return await service.get_groups(name_schema.name)
 
-
-
-router = APIRouter(prefix="/subjects", tags=["subjects"])
-
-@router.get("/groups/{name}",
-             status_code=status.HTTP_200_OK,
-             summary='Get groups learning subject',
-             description='Get groups learning subject.\n')
-# добавить зависимость для зареганного юзера
-async def get_groups(name_schema: SubjectName=Depends(get_subject_name),  service = Depends(get_subject_service))->list[str]:
-    return await service.get_groups(name_schema.name)
+@lru_cache
+@router.get("",
+            status_code=status.HTTP_200_OK)
+async def get_all(service = Depends(get_subject_service)):
+    return await service.get_all()

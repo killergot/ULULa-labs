@@ -57,27 +57,6 @@ async def delete_me(student = Depends(get_current_user), service = Depends(get_s
 
     return await service.delete_student(student.id)
 
-
-@router.delete("/delete_student",
-             status_code=status.HTTP_200_OK,
-             summary='Delete student',
-             description='Delete any student. This is only for admins\n',
-             dependencies=[Depends(require_role(1))]
-             )
-async def delete_student(student_id: int, service = Depends(get_student_service)):
-    return await service.delete_student(student_id)
-
-@router.get("/get_my_group",
-             status_code=status.HTTP_200_OK,
-             summary='Get group number for current student',
-             description='Get group number for current student.\n')
-async def get_my_group(student: UserOut = Depends(get_current_user), service = Depends(get_student_service), group_service = Depends(get_group_service)):
-    group_id = await service.get_group(student.id)
-    #Получение номера группы по id
-    validate_group_id = GroupID.model_validate({"group_id": group_id})
-    group_number =  await group_service.get_by_id(validate_group_id)
-    return group_number
-
 @router.get('/subjects',
             status_code=status.HTTP_200_OK)
 async def get_subjects(student: UserOut = Depends(get_current_user),
@@ -110,15 +89,6 @@ async def get_user_group(student_id: int, service = Depends(get_student_service)
     validate_group_id = GroupID.model_validate({"group_id": group_id})
     group_number = await  group_service.get_by_id(validate_group_id)
     return group_number
-
-
-@router.patch("/update_my_group",
-             status_code=status.HTTP_200_OK,
-             summary='Update group number for current student',
-             description='Update group number for current student.\n')
-async def update_my_group(group_number: GroupNumber, student: UserOut = Depends(get_current_user), service = Depends(get_student_service), group_service = Depends(get_group_service)):
-    group_id = await group_service.get_by_number(group_number)
-    return await service.update_group(student.id, group_id)
 
 @router.get("/get_all_students",
              status_code=status.HTTP_200_OK,
