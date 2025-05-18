@@ -1,18 +1,16 @@
-from uuid import UUID
 from fastapi import  HTTPException, status
+from typing import Optional
 
 from app.repositoryes.teacher_repository import Repository
 from app.repositoryes.teacher_schedule_repository import Repository as TeacherScheduleRepository
 from app.repositoryes.teacher_subject_repository import Repository as TeacherSubjectRepository
 from app.repositoryes.subject_repository import Repository as SubjectRepository
+from app.repositoryes.student_repository import Repository as StudentRepository
 from sqlalchemy.ext.asyncio import AsyncSession
-from app.shemas.students import StudentBase
-from app.utils.hash import get_hash
-from app.database import Student
+from app.repositoryes.achievements_repository import AchivementRepository
 from app.database import TeacherSubject
 from app.utils.get_schedule import get_teacher_schedule
-from watchfiles import awatch
-
+from app.database.models.achievent import Achievement
 
 class TeacherService:
     def __init__(self, db: AsyncSession):
@@ -20,6 +18,8 @@ class TeacherService:
         self.schedule_repo = TeacherScheduleRepository(db)
         self.teacher_subject_repo = TeacherSubjectRepository(db)
         self.subject_repo = SubjectRepository(db)
+        self.achieve_repo = AchivementRepository(db)
+        self.student_repo = StudentRepository(db)
 
     async def create_teacher(self, teacher):
         if await self.repo.get_by_id(teacher['id']):
@@ -133,3 +133,43 @@ class TeacherService:
                 detail=f"Subject not found"
                 )
 
+
+
+    # управление ачивками
+    async def get_achievement(self, id):
+        achievement = await self.achieve_repo.get(id)
+        if not achievement:
+            raise HTTPException(status_code=404,
+                            detail="Achievement not found")
+        return achievement
+
+    async def create_achievement(self, name: str, description: str, amount: int):
+        # создать новую ачивку
+        return await self.achieve_repo.create(name, description, amount)
+
+
+
+    async def delete_achievement(self, id: int)->bool:
+        # проверка существования
+        await self.get_achievement(id)
+        # удалить ачивку
+        return await self.achieve_repo.delete(id)
+
+
+    async def update_achievement(self, id: int, name: Optional[str] = None, description: Optional[str] = None, amount: Optional[int] = None):
+        achievement = await self.get_achievement(id)
+        return await self.achieve_repo.update(achievement, name, description, amount)
+
+
+    async def give_achievement(self, student_id: int, achievement_id: int)->Achievement:
+        student = await self.student_repo.get(student_id)
+        achievement = await self.get_achievement(achievement_id)
+        return await self.achieve_repo.give(achievement, student)
+
+    async def revoke_achievement(self, student_id: int, achievement_id: int) -> bool:
+        student = await self.student_repo.get(student_id)
+        achievement = await self.get_achievement(achievement_id)
+        return await self.achieve_repo.revoke(achievement, student)
+
+    async def get_all_achievements(self)->list[Achievement]:
+        return await self.achieve_repo.get_all()
