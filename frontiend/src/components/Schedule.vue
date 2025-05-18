@@ -100,7 +100,9 @@
     display: flex;
     flex-direction: column;
     height: 100%;
-    overflow: hidden;
+    /* overflow: hidden; */
+    overflow-x: auto;
+    min-width: 400px;
   }
   .navigation-box {
     flex: none;
@@ -123,6 +125,8 @@
   }
   .schedule-container {
     flex: 1;
+    
+
     overflow-y: auto;
     display: grid;
     grid-template-columns: repeat(2, 1fr);
