@@ -10,7 +10,7 @@ from app.database.models.groups import Group
 from app.services import student_service
 from app.services import group_service
 
-from app.api.depencies.services import get_group_service
+from app.api.depencies.services import get_group_service, get_subject_service
 from app.shemas.groups import GroupID
 
 router = APIRouter(prefix="/students", tags=["students"])
@@ -81,7 +81,7 @@ async def get_my_group(student: UserOut = Depends(get_current_user), service = D
 @router.get('/subjects',
             status_code=status.HTTP_200_OK)
 async def get_subjects(student: UserOut = Depends(get_current_user),
-                       service = Depends(get_student_service)):
+                       service = Depends(get_subject_service)):
     return await service.get_subjects(student.id)
 
 @router.post('/subjects/{subject_id}',

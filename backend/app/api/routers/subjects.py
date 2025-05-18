@@ -18,3 +18,15 @@ router = APIRouter(prefix="/subjects", tags=["subjects"])
 # добавить зависимость для зареганного юзера
 async def get_groups(name_schema: SubjectName=Depends(get_subject_name),  service = Depends(get_subject_service))->list[str]:
     return await service.get_groups(name_schema.name)
+
+
+
+router = APIRouter(prefix="/subjects", tags=["subjects"])
+
+@router.get("/groups/{name}",
+             status_code=status.HTTP_200_OK,
+             summary='Get groups learning subject',
+             description='Get groups learning subject.\n')
+# добавить зависимость для зареганного юзера
+async def get_groups(name_schema: SubjectName=Depends(get_subject_name),  service = Depends(get_subject_service))->list[str]:
+    return await service.get_groups(name_schema.name)
