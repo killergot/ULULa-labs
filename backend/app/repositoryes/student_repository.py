@@ -21,9 +21,17 @@ class Repository(TemplateRepository):
 
 
     async def get_by_group(self, id: int):
-            data = select(Student.id).where(Student.group_id == id)
-            student = await self.db.execute(data)
-            return  student.scalars().all()
+        stmt = (
+            select(Student)
+            .where(Student.group_id == id)
+            .options(
+                selectinload(Student.user),
+                selectinload(Student.group)
+            )
+        )
+        result = await self.db.execute(stmt)
+        students = result.scalars().all()
+        return students
 
     async def create(self, student_id: int,
                      group_id: int,

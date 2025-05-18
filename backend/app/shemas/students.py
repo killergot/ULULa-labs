@@ -38,7 +38,6 @@ class Achievement(BaseModel):
     }
 
 class StudentOut(StudentID, StudentIn):
-    student_id: int = Field(ge = 1)
     email: Optional[EmailStr] = None
     achievements: Optional[list] = Field(default_factory=list) #Optional[List[Achievement]] = Field(default_factory=list) # Почему тут ошибка?
     telegram: Optional[str] = None
