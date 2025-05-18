@@ -1,21 +1,16 @@
+from watchfiles import awatch
+from app.database.models.achievent import Achievement
 from app.api.depencies.guard import get_current_user, require_role
-from app.api.depencies.services import get_student_service
-from app.shemas.students import StudentBase, StudentIn, StudentID
 from app.shemas.teachers import FIO, WeekNumber
 from app.shemas.teacher_subject import SubjectName, TeacherSubjectBase
-from app.shemas.groups import GroupNumber
 from app.shemas.auth import UserOut
+from app.shemas.achievements import AchieveIn, AchieveID, AchieveUpdate
 from fastapi import Depends, status
 from fastapi.routing import APIRouter
-from app.database.models.students import Student
-from app.database.models.groups import Group
-
-from app.services import student_service
-from app.services import teacher_service
-
 from app.api.depencies.services import get_teacher_service
-from app.api.depencies.validation import get_week_number, get_FIO, get_subject_name
-from app.shemas.groups import GroupID
+from app.api.depencies.services import get_student_service
+from app.api.depencies.validation import get_week_number, get_FIO, get_achieve_id
+
 
 router = APIRouter(prefix="/teachers", tags=["teachers"])
 
@@ -94,5 +89,75 @@ async def delete_subject(subject: SubjectName, teacher: UserOut = Depends(get_cu
              status_code=status.HTTP_200_OK,
              summary='Delete teacher',
              description='Delete teacher. Requre FIO.\n')
-async def create_student(FIO: str, teacher: UserOut = Depends(get_current_user), service = Depends(get_teacher_service)):
+async def delete(FIO: str, teacher: UserOut = Depends(get_current_user), service = Depends(get_teacher_service)):
     return await service.delete(FIO)
+
+
+
+# РУЧКИ ДЛЯ АЧИВОК
+# перенести в отдельную группу?
+
+@router.post("/achievement/",
+             status_code=status.HTTP_201_CREATED,
+             summary='Create achievement',
+             description='Create new achievement by teacher.\n',
+             dependencies=[Depends(get_current_user)]
+             )
+async def create(achievement: AchieveIn,service = Depends(get_teacher_service)):
+    return await service.create_achievement(achievement.name, achievement.description, achievement.amount)
+
+@router.delete("/achievement/",
+             status_code=status.HTTP_200_OK,
+             summary='Delete achievement',
+             description='Delete achievement for id.\n',
+             dependencies=[Depends(get_current_user)]
+              )
+async def delete(achievement: AchieveID,service = Depends(get_teacher_service))->bool:
+    return await service.delete_achievement(achievement.id)
+
+@router.patch("/achievement/",
+              status_code=status.HTTP_200_OK,
+              summary='Update achievement',
+              description='Update achievement.\n',
+              dependencies=[Depends(get_current_user)]
+              )
+async def update(achievement: AchieveUpdate, service = Depends(get_teacher_service)):
+    return await service.update_achievement(achievement.id, achievement.name, achievement.description, achievement.amount)
+
+@router.get("/achievements/{id}",
+            status_code=status.HTTP_200_OK,
+            summary='Get achievement',
+            description='Update achievement by id.\n',
+            dependencies=[Depends(get_current_user)]
+            )
+async def get(id_schema: AchieveID = Depends(get_achieve_id), service = Depends(get_teacher_service)):
+        return await service.get_achievement(id_schema.id)
+
+@router.get("/achievements/",
+            status_code=status.HTTP_200_OK,
+            summary='Get achievement',
+            description='Update achievement by id.\n',
+            dependencies=[Depends(get_current_user)]
+            )
+async def get(service = Depends(get_teacher_service)):
+        return await service.get_all_achievements()
+
+@router.post("/give_achievement",
+             status_code=status.HTTP_200_OK,
+             summary='Give achievement',
+             description='Give achievement by student.\n',
+             dependencies=[Depends(get_current_user)]
+             )
+async def give(student_id: int, achieve_id: int, service = Depends(get_teacher_service)):
+    return await service.give_achievement(student_id=student_id, achievement_id=achieve_id)
+
+
+@router.delete("/revoke_achievement",
+               status_code=status.HTTP_200_OK,
+               summary='Revoke achievement',
+               description='Revoke achievement from students\n',
+               dependencies=[Depends(get_current_user)]
+               )
+async def give(student_id: int, achieve_id: int, service = Depends(get_teacher_service))->bool:
+    return await service.revoke_achievement(student_id=student_id, achievement_id=achieve_id)
+

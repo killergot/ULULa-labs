@@ -26,6 +26,7 @@ async def get_access_token_payload(
 async def get_refresh_token_payload(
     token: str = Depends(get_token_from_header)
 ) -> dict:
+    # проверять, есть ли в базе
     payload = decode_refresh_token(token)
     if not payload or "sub" not in payload:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,

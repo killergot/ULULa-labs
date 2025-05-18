@@ -38,3 +38,8 @@ class Repository(TemplateRepository):
             subject = await self.db.execute(data)
             return subject.scalars().first()
 
+    async def get_all(self):
+        data = select(Subject).order_by(Subject.name)
+        subject = await self.db.execute(data)
+        return subject.scalars().all()
+
