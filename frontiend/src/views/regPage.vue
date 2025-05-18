@@ -32,13 +32,16 @@
               <input
                 v-if="showRepeatPassword" key="repeatPassword" id="repass" placeholder="Repeat password" type="password" v-model="repeatPassword"
               />
-  
-              <select
-                v-if="showRoleSelect" key="role" v-model="selectedRole" class="role-select"
-              >
-                <option disabled value="">Select role</option>
-                <option v-for="role in roles" :key="role">{{ role }}</option>
+
+              <select v-if="showRoleSelect" v-model="selectedRole" class="role-select">
+                <option disabled :value="null">Select role</option>
+                <option
+                  v-for="role in roles"
+                  :key="role.value"
+                  :value="role.value"
+                >{{ role.label }}</option>
               </select>
+
             </transition-group>
         </div>
   
@@ -80,6 +83,9 @@
   <script>
   import { saveTokens } from '@/utils/token'
 
+  const TEACHER_ROLE = 1
+  const STUDENT_ROLE = 2
+
   export default {
   data() {
     return {
@@ -87,8 +93,11 @@
       email: '',
       password: '',
       repeatPassword: '',
-      selectedRole: '',
-      roles: ['User', 'Moderator', 'Admin'],
+      selectedRole: null,
+      roles: [
+        { label: 'Student', value: STUDENT_ROLE },
+        { label: 'Teacher', value: TEACHER_ROLE }
+      ],
       baseHeights: {
         signin: 178,
         signup: 262 + 82, // + высота селекта
@@ -195,7 +204,7 @@
         payload = {
           email: this.email,
           password: this.password,
-          role: 0
+          role: this.selectedRole
         };
         response = await fetch(url, {
         method: 'POST',
@@ -209,10 +218,8 @@
       const data = await response.json();
   
   
-      if (response.ok) {
-        alert(`Success: ${data.message}`);
-  
-        // отображение окна ввода кода двухфакторной аутентификации, надо сделать работу с сервером
+      if (response.ok) 
+      {
         if (this.action === 'signin') {
           if (data.session_token) {
             // Сохраняем токен в localStorage
@@ -222,26 +229,20 @@
         }
   
       } else {
-        alert(`Error: ${data.message}`);
-  
+        console.error('Error:', data.message);
       }
     } catch (error) {
       console.error('Error:', error);
-      alert('An error occurred while submitting the form.');
     } finally {
       this.isLoading = false;
     }
     },
-  
-    // обработка закрытия окна ввода кода двухфакторной аутентификации
     cancelTwoFactor() {
       this.showTwoFactor = false;
       this.twoFactorCode = '';
       this.messageText = 'Two-factor authentication failed';
       this.showMessage = true;
     },
-  
-    // проверка кода двухфакторной аутентификации (сделала для примера)
     async verifyTwoFactorCode() {
       const sessionToken = localStorage.getItem('session_token');
       const formData = new FormData();
@@ -272,7 +273,6 @@
       }
     },
   
-    // обработка закрытия окна с сообщением
     closeMessage() {
         this.showMessage = false;
         this.messageText = '';
