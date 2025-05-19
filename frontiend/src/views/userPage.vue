@@ -7,7 +7,7 @@
       <div class="profile-info">
         <template v-if="!editMode">
         <h1>{{ user.fullName || '–' }}</h1>
-        <p><span class="field-icon">🎓</span> Group number: {{ user.group || '–' }}</p>
+        <p v-if="isStudent"><span class="field-icon">🎓</span> Group number: {{ user.group || '–' }}</p>
         <p><span class="field-icon">👤</span> Nickname: {{ user.nick || '–' }}</p>
         <p><span class="field-icon">✉️</span> Email: {{ user.email || '–' }}</p>
         <p><span class="field-icon">💬</span> Telegram: <span v-if="user.telegram">
@@ -21,8 +21,8 @@
             <label>Full name</label>
             <input v-model="form.fullName" type="text" class="edit-input" />
           </div>
-          <div class="edit-field">
-            <label>Group</label>
+          <div v-if="isStudent" class="edit-field">
+            <label >Group</label>
             <select v-model="form.group" class="edit-input">
               <option value="" disabled>Choose group</option>
               <option v-for="g in groups" :key="g.id" :value="g.number">
@@ -119,6 +119,8 @@
  import api from '@/services/api';
  const defaultAvatar = '/default_avatar.jpg';
 
+  const TEACHER_ROLE = 1
+  const STUDENT_ROLE = 2
 
 export default {
   name: 'UserPage',
@@ -133,6 +135,7 @@ export default {
         achievements: [],
         telegram: ''
       },
+      userRole: null,
       editMode: false,
       form: {},
       groups: [],     
@@ -141,27 +144,51 @@ export default {
       showDeleteModal: false
     }
   },
+  computed: {
+    isStudent() { return this.userRole === STUDENT_ROLE; }
+  },
   created() {
     this.fetchUser();
-    this.fetchGroups();
   },
   
   methods:{
     async fetchUser() {
       try {
-        const response = await api.get('/students/me');
+        const user_response = await api.get('/users/get_me');
+        if (user_response.status !== 200) throw new Error(`Error ${user_response.status}`);
+        this.userRole = user_response.data.role;
 
-        if (response.status !== 200) throw new Error(`Error ${response.status}`);
+        if (this.userRole === STUDENT_ROLE) {
+          const student_response = await api.get('/students/me');
 
-        this.user = {
-          fullName: response.data.full_name,
-          group: response.data.group_number,
-          nick: response.data.nickname,
-          email: response.data.email,
-          avatarUrl: response.data.avatar_url,
-          achievements: response.data.achievements,
-          telegram: response.data.telegram
-        };
+          if (student_response.status !== 200) throw new Error(`Error ${student_response.status}`);
+
+          this.user = {
+            fullName: student_response.data.full_name,
+            group: student_response.data.group_number,
+            nick: student_response.data.nickname,
+            email: student_response.data.email,
+            avatarUrl: student_response.data.avatar_url,
+            achievements: student_response.data.achievements,
+            telegram: student_response.data.telegram
+          };
+
+          this.fetchGroups();
+        }
+        else {
+        //   const teacher_response = await api.get('/teachers/me');
+        //   if (teach.status !== 200) throw new Error(`Error ${teach.status}`);
+          
+        //   this.user = {
+        //     fullName: response.data.full_name,
+        //     group: '',
+        //     nick: '',
+        //     email: response.data.email,
+        //     avatarUrl: null,
+        //     achievements: [],
+        //     telegram: ''
+        //   };
+        }
       } catch (error) {
         console.error('Failed to fetch user:', error);
       }
@@ -194,21 +221,25 @@ export default {
           nickname: this.form.nick || null
         };
 
-        const response = await api.put('/students/me', payload);
+        if (this.isStudent) {
+          const response = await api.put('/students/me', payload);
 
-        if (response.status !== 200) throw new Error(`Error ${response.status}`);
-        else {
-          this.user = {
-          fullName: response.data.full_name,
-          group: response.data.group_number,
-          nick: response.data.nickname,
-          email: response.data.email,
-          avatarUrl: response.data.avatar_url,
-          achievements: response.data.achievements,
-          telegram: response.data.telegram
-        };
-          console.log('User updated:', response.data);
+          if (response.status !== 200) throw new Error(`Error ${response.status}`);
+          else {
+            this.user = {
+            fullName: response.data.full_name,
+            group: response.data.group_number,
+            nick: response.data.nickname,
+            email: response.data.email,
+            avatarUrl: response.data.avatar_url,
+            achievements: response.data.achievements,
+            telegram: response.data.telegram
+          };
+            
+          }
         }
+
+        console.log('User updated:', response.data);
 
       } catch (error) {
         console.error('Failed to update user:', error);
