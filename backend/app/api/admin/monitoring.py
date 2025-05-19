@@ -8,6 +8,9 @@ from app.services.role_service import ADMIN_ROLE
 
 router = APIRouter(prefix="/monitoring", tags=["monitoring"])
 
+
+
+
 @router.get("/resources", dependencies=[Depends(require_role(ADMIN_ROLE))])
 def get_resource_usage():
     return {

@@ -336,7 +336,9 @@
     position: relative;
     height: 100vh;
     overflow: hidden;
-    /* min-width: 400px; */
+
+    min-width: 700px;
+    overflow-x: auto;
   }
   .content {
     height: 100%;
@@ -543,7 +545,7 @@
   resize: vertical;
   height: auto;
   min-height: calc(1.2em * 5 + 16px); 
-  max-height: 80vh;
+  max-height: 200px;
   overflow-y: auto;
 
   /* background: #ffffff; */

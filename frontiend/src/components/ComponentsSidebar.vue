@@ -58,6 +58,7 @@ export default {
   top: 0;
   right: 0;
   display: grid;
+  min-width: 400px;
   grid-template-rows: auto 1fr;
   width: 33.33vw;     
   height: 100vh;

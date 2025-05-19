@@ -50,7 +50,7 @@ class GroupService:
 
     async def get_by_number(self, group_number: GroupNumber):
         exist_group = await self.repo.get_by_number(group_number.group_number)
-        if not  exist_group:
+        if not exist_group:
             raise HTTPException(status_code=status.HTTP_409_CONFLICT,
                                 detail='Group does not exist')
         return exist_group.group_id
