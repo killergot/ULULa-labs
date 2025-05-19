@@ -39,6 +39,13 @@ class TeacherService:
             print(teacher)
         return new_teacher
 
+    async def get(self, teacher_id):
+        teacher = await self.repo.get_by_id(teacher_id)
+        if teacher is None:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
+                                detail='Teacher not found')
+        return teacher
+
     #получение расписания для конкретного преподавателя по id
     async def get_schedule(self, id: int, week_number: int)->dict:
         # получить id

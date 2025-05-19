@@ -19,6 +19,10 @@ class Teacher(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
     updated_at: Mapped[datetime] = mapped_column(DateTime,  default=datetime.utcnow, onupdate=datetime.utcnow, nullable=True)
 
+    nickname: Mapped[str] = mapped_column(String(255), nullable=True)
+    telegram: Mapped[str] = mapped_column(String(255), nullable=True)
+    avatar_url: Mapped[str] = mapped_column(String(512), nullable=True)
+
     user: Mapped["database.models.auth.User"] = relationship("database.models.auth.User", back_populates="teachers")  # type: ignore
     teacher_subject: Mapped["database.models.teacher_subjects.TeacherSubject"] = relationship("database.models.teacher_subjects.TeacherSubject", back_populates="teachers",  cascade="all, delete-orphan")
     teacher_schedule: Mapped["database.models.teacher_schedule.TeacherSchedule"] = relationship(

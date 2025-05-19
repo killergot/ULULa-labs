@@ -6,6 +6,7 @@ from typing import Optional
 
 from app.database.models.achievent import Achievement
 from app.api.depencies.guard import get_current_user, require_role
+from app.services.teacher_service import TeacherService
 from app.shemas.teachers import FIO, WeekNumber
 from app.shemas.teacher_subject import SubjectName, TeacherSubjectBase
 from app.shemas.auth import UserOut
@@ -39,6 +40,14 @@ router = APIRouter(prefix="/teachers", tags=["teachers"])
 async def create_student(FIO: str, teacher: UserOut = Depends(get_current_user), service = Depends(get_teacher_service)):
     new_teacher = ({"id": teacher.id, "FIO": FIO})
     return await service.create_teacher(new_teacher)
+
+@router.get("/me",
+            status_code=status.HTTP_200_OK,
+            summary='Get current user as a teacher',)
+async def get_current_user(user: UserOut = Depends(get_current_user),
+                           service: TeacherService = Depends(get_teacher_service)):
+    return await service.get(user.id)
+
 
 
 @router.get("/schedules/{week_number}&{FIO}",
