@@ -154,7 +154,12 @@ class TeacherService:
         # создать новую ачивку
         return await self.achieve_repo.create(name, description, amount)
 
-
+    async def get_empty_achievement(self, id):
+        achievement = await self.achieve_repo.get_by_id(id)
+        if not achievement:
+            raise HTTPException(status_code=404,
+                                detail="Achievement not found")
+        return achievement
 
     async def delete_achievement(self, id: int)->bool:
         # проверка существования
@@ -168,19 +173,19 @@ class TeacherService:
         return await self.achieve_repo.update(achievement, name, description, amount)
 
 
-    async def _give_achievement(self, student_id: int, achievement_id: int)->dict:
+    async def give_achievement(self, student_id: int, achievement_id: int)->dict:
         student = await self.student_repo.get(student_id)
-        achievement = await self.get_achievement(achievement_id)
-        await self.achieve_repo.give(achievement, student)
-
-    async def give_achievement(self, student_id: int, achievement_id: int):
-        await self._give_achievement(student_id, achievement_id)
-        return await self.get_achievement(achievement_id)
+        achievement = await self.get_empty_achievement(achievement_id)
+        if achievement in student.achievements:
+            raise HTTPException(status_code=status.HTTP_409_CONFLICT,
+                                detail=f"Achievement {achievement.id} already exist in student {student_id}"
+            )
+        return await self.achieve_repo.give(achievement, student)
 
 
     async def revoke_achievement(self, student_id: int, achievement_id: int) -> bool:
         student = await self.student_repo.get(student_id)
-        achievement = await self.get_achievement(achievement_id)
+        achievement = await self.get_empty_achievement(achievement_id)
         return await self.achieve_repo.revoke(achievement, student)
 
     async def get_all_achievements(self)->list[Achievement]:

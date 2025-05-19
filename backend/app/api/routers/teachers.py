@@ -162,10 +162,8 @@ async def get(
              )
 async def give(student_id: int, achieve_id: int, service = Depends(get_teacher_service)):
     achieve = await service.give_achievement(student_id=student_id, achievement_id=achieve_id)
-    print(achieve.name)
-    print(achieve.students)
     print(achieve)
-    return {'id': achieve.id, 'name': achieve.name, 'description': achieve.description, 'amount': achieve.amount, 'students:': achieve.students}
+    return achieve
 
 
 @router.delete("/revoke_achievement",

@@ -27,6 +27,9 @@ class AchivementRepository(TemplateRepository):
         achievements = result.scalars().all()
         return achievements
 
+    async def get_by_id(self, id: int):
+        return await self.db.get(Achievement, id)
+
     async def get(self, id: int):
         stmt = (
             select(Achievement)
@@ -67,9 +70,8 @@ class AchivementRepository(TemplateRepository):
 
 
     async def give(self, achieve: Achievement, student: Student):
-        achieve.students.append(student)
+        student.achievements.append(achieve)
         await self.db.commit()
-        await self.db.refresh(achieve)
         return achieve
 
     async def revoke(self, achieve: Achievement, student: Student)->bool:
