@@ -129,30 +129,6 @@ async def delete(achievement: AchieveID,service = Depends(get_teacher_service))-
 async def update(achievement: AchieveUpdate, service = Depends(get_teacher_service)):
     return await service.update_achievement(achievement.id, achievement.name, achievement.description, achievement.amount)
 
-@router.get("/achievements/{id}",
-            status_code=status.HTTP_200_OK,
-            summary='Get achievement',
-            description='Update achievement by id.\n',
-            dependencies=[Depends(get_current_user)]
-            )
-async def get(id_schema: AchieveID = Depends(get_achieve_id), service = Depends(get_teacher_service)):
-        achieve =  await service.get_achievement(id_schema.id)
-        print (achieve.students)
-        return await service.get_achievement(id_schema.id)
-
-@router.get("/achievements/",
-            status_code=status.HTTP_200_OK,
-            summary='Get achievement',
-            description='Update achievement by id.\n',
-            dependencies=[Depends(get_current_user)]
-            )
-async def get(
-        name: Optional[str] = Query(default = None, min_length = 1),
-        description: Optional[str] = Query(default = None, min_length = 1),
-        amount: Optional[int] = Query(default=None, ge=1),
-        service = Depends(get_teacher_service)):
-        return await service.get_filtered(name, description, amount
-        )
 
 @router.post("/award_achievement",
              status_code=status.HTTP_200_OK,
@@ -162,7 +138,6 @@ async def get(
              )
 async def give(student_id: int, achieve_id: int, service = Depends(get_teacher_service)):
     achieve = await service.give_achievement(student_id=student_id, achievement_id=achieve_id)
-    print(achieve)
     return achieve
 
 

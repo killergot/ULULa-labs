@@ -76,7 +76,6 @@ class AchivementRepository(TemplateRepository):
 
     async def revoke(self, achieve: Achievement, student: Student)->bool:
         try:
-            print("achieve", achieve, "student", student)
             achieve.students.remove(student)
             await self.db.commit()
             await self.db.refresh(achieve)
