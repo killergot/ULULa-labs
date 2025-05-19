@@ -29,8 +29,8 @@ class UserLogin(BaseModel):
     password: str
 
 class UserUpdateIn(BaseModel):
-    id: int
-    password: str
+    new_password: str = Field(min_length=MIN_LEN_PASS,default=None)
+    old_password: str
 
 
 
