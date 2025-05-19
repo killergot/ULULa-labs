@@ -109,15 +109,13 @@ async def get_all(dependencies = Depends(get_current_user), service = Depends(ge
 
 
 
-@router.get("/get_student_by_group/{group_num}",
+@router.get("/get_student_by_group/<path: group_numb>",
              status_code=status.HTTP_200_OK,
              summary='Get the list of students for group',
              description='Get the list of students for group.\n')
-async def get_students_by_group(group_num: str, dependencies = Depends(get_current_user), service = Depends(get_student_service), group_service = Depends(get_group_service)):
-    group_number = StudentIn.model_validate({"group_number": group_num})
-    # Получение id группы по номеру
-    group_id = await  group_service.get_by_number(group_number)
-    return await service.get_by_group(int(group_id))
+async def get_students_by_group(group_num: str, dependencies = Depends(get_current_user), service = Depends(get_student_service)):
+    print(group_num)
+    return await service.get_by_group(group_num)
 
 
 @router.get("/get_my_groupmates",
@@ -127,4 +125,4 @@ async def get_my_groupmates(student: UserOut = Depends(get_current_user), servic
     #Получение номера группы студента по его id
     group_id = await service.get_group(student.id)
     #Получение студентов по id группы
-    return await service.get_by_group(group_id)
+    return await service._get_by_group(group_id)

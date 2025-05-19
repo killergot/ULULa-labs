@@ -3,7 +3,7 @@ from wtforms.validators import Optional
 from app.database.models.achievent import Achievement
 from app.database.models.students import Student
 from app.repositoryes.template import TemplateRepository
-from sqlalchemy import select
+from sqlalchemy import select, and_
 from typing import Optional
 from sqlalchemy.orm import selectinload
 from app.core.except_handler import except_handler
@@ -66,7 +66,7 @@ class AchivementRepository(TemplateRepository):
 
 
 
-    async def give(self, achieve: Achievement, student: Student)->Achievement:
+    async def give(self, achieve: Achievement, student: Student):
         achieve.students.append(student)
         await self.db.commit()
         await self.db.refresh(achieve)
@@ -81,6 +81,27 @@ class AchivementRepository(TemplateRepository):
             return True
         except:
             return False
+
+
+    async def get_filtered(self, name: Optional[str] = None,
+                           description: Optional[str] = None,
+                           amount: Optional[int] = None,
+                          ) -> list[Achievement]:
+        stmt = select(Achievement)
+
+        filters = []
+        if name is not None:
+            filters.append(Achievement.name == name)
+        if amount is not None:
+            filters.append(Achievement.amount == amount)
+        if description is not None:
+            filters.append(Achievement.description.contains(description))
+        if filters:
+            stmt = stmt.where(and_(*filters))
+
+        result = await self.db.execute(stmt)
+        return result.scalars().all()
+
 
 
     async def get_all(self)->list[Achievement]:

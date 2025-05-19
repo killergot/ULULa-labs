@@ -1,11 +1,16 @@
+from idlelib.query import Query
+
+from attr.validators import min_len
 from watchfiles import awatch
+from typing import Optional
+
 from app.database.models.achievent import Achievement
 from app.api.depencies.guard import get_current_user, require_role
 from app.shemas.teachers import FIO, WeekNumber
 from app.shemas.teacher_subject import SubjectName, TeacherSubjectBase
 from app.shemas.auth import UserOut
 from app.shemas.achievements import AchieveIn, AchieveID, AchieveUpdate
-from fastapi import Depends, status
+from fastapi import Depends, status, Query
 from fastapi.routing import APIRouter
 from app.api.depencies.services import get_teacher_service
 from app.api.depencies.services import get_student_service
@@ -97,7 +102,7 @@ async def delete(FIO: str, teacher: UserOut = Depends(get_current_user), service
 # РУЧКИ ДЛЯ АЧИВОК
 # перенести в отдельную группу?
 
-@router.post("/achievement/",
+@router.post("/achievements/",
              status_code=status.HTTP_201_CREATED,
              summary='Create achievement',
              description='Create new achievement by teacher.\n',
@@ -106,7 +111,7 @@ async def delete(FIO: str, teacher: UserOut = Depends(get_current_user), service
 async def create(achievement: AchieveIn,service = Depends(get_teacher_service)):
     return await service.create_achievement(achievement.name, achievement.description, achievement.amount)
 
-@router.delete("/achievement/",
+@router.delete("/achievements/",
              status_code=status.HTTP_200_OK,
              summary='Delete achievement',
              description='Delete achievement for id.\n',
@@ -115,7 +120,7 @@ async def create(achievement: AchieveIn,service = Depends(get_teacher_service)):
 async def delete(achievement: AchieveID,service = Depends(get_teacher_service))->bool:
     return await service.delete_achievement(achievement.id)
 
-@router.patch("/achievement/",
+@router.patch("/achievements/",
               status_code=status.HTTP_200_OK,
               summary='Update achievement',
               description='Update achievement.\n',
@@ -131,6 +136,8 @@ async def update(achievement: AchieveUpdate, service = Depends(get_teacher_servi
             dependencies=[Depends(get_current_user)]
             )
 async def get(id_schema: AchieveID = Depends(get_achieve_id), service = Depends(get_teacher_service)):
+        achieve =  await service.get_achievement(id_schema.id)
+        print (achieve.students)
         return await service.get_achievement(id_schema.id)
 
 @router.get("/achievements/",
@@ -139,17 +146,26 @@ async def get(id_schema: AchieveID = Depends(get_achieve_id), service = Depends(
             description='Update achievement by id.\n',
             dependencies=[Depends(get_current_user)]
             )
-async def get(service = Depends(get_teacher_service)):
-        return await service.get_all_achievements()
+async def get(
+        name: Optional[str] = Query(default = None, min_length = 1),
+        description: Optional[str] = Query(default = None, min_length = 1),
+        amount: Optional[int] = Query(default=None, ge=1),
+        service = Depends(get_teacher_service)):
+        return await service.get_filtered(name, description, amount
+        )
 
-@router.post("/give_achievement",
+@router.post("/award_achievement",
              status_code=status.HTTP_200_OK,
              summary='Give achievement',
              description='Give achievement by student.\n',
              dependencies=[Depends(get_current_user)]
              )
 async def give(student_id: int, achieve_id: int, service = Depends(get_teacher_service)):
-    return await service.give_achievement(student_id=student_id, achievement_id=achieve_id)
+    achieve = await service.give_achievement(student_id=student_id, achievement_id=achieve_id)
+    print(achieve.name)
+    print(achieve.students)
+    print(achieve)
+    return {'id': achieve.id, 'name': achieve.name, 'description': achieve.description, 'amount': achieve.amount, 'students:': achieve.students}
 
 
 @router.delete("/revoke_achievement",
