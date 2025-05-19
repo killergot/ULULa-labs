@@ -1,7 +1,7 @@
-from fastapi import Depends, status, HTTPException, BackgroundTasks
+from fastapi import Depends, status,Response, HTTPException, BackgroundTasks
 from fastapi.routing import APIRouter
 
-from app.api.depencies.guard import get_refresh_token_payload
+from app.api.depencies.guard import get_refresh_token_payload, get_token_from_header
 from app.api.depencies.services import get_auth_service
 
 from app.shemas.auth import UserOut, UserIn, UserLogin, TokenOut, TwoFactorOut, TwoFactorIn
@@ -19,16 +19,19 @@ async def create_user(user: UserIn, service: AuthService = Depends(get_auth_serv
 
 @router.post("/login", status_code=status.HTTP_201_CREATED,
              summary='Login a user')
-async def login(background_tasks: BackgroundTasks,user: UserLogin, service: AuthService = Depends(get_auth_service),
+async def login(
+        background_tasks: BackgroundTasks,user: UserLogin, service: AuthService = Depends(get_auth_service),
                 ):
+
     return await service.login(user,background_tasks)
 
 @router.post("/verify-2fa", response_model=TokenOut, status_code=status.HTTP_201_CREATED)
-async def login(code: TwoFactorIn, service: AuthService = Depends(get_auth_service)):
-    return await service.verify_2fa(code)
+async def login(response: Response,code: TwoFactorIn, service: AuthService = Depends(get_auth_service)):
+    return await service.verify_2fa(code, response)
 
 
 @router.post('/refresh', response_model=TokenOut)
 async def refresh(payload: dict = Depends(get_refresh_token_payload)
-                  , service: AuthService = Depends(get_auth_service)):
-    return await service.refresh(payload)
+                  , service: AuthService = Depends(get_auth_service),
+                  token = Depends(get_token_from_header)):
+    return await service.refresh(payload,token)

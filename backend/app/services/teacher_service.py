@@ -12,6 +12,7 @@ from app.database import TeacherSubject
 from app.utils.get_schedule import get_teacher_schedule
 from app.database.models.achievent import Achievement
 
+
 class TeacherService:
     def __init__(self, db: AsyncSession):
         self.repo = Repository(db)
@@ -27,27 +28,33 @@ class TeacherService:
                                 detail='Teacher already exist')
         new_teacher = await self.repo.create(teacher['id'], teacher['FIO'])
         #подгрузка расписания для препода
-        schedule = await  get_teacher_schedule([{'id': teacher['id'], 'FIO': teacher['FIO']}])
+        try:
+            schedule = await  get_teacher_schedule([{'id': teacher['id'], 'FIO': teacher['FIO']}])
         #получаем из get_schedule расписание
         #закидываем его в таблицу
         #print ("schedule is", schedule[0])
-        if schedule[0]!=[{}]:
-            await self.schedule_repo.create_by_list(schedule)
+            if schedule[0]!=[{}]:
+                await self.schedule_repo.create_by_list(schedule)
+        except:
+            print(teacher)
         return new_teacher
 
-    #получение расписания для конкретного преподавателя по ФИО
+    #получение расписания для конкретного преподавателя по id
     async def get_schedule(self, id: int, week_number: int)->dict:
         # получить id
-        full_schedule = await self.schedule_repo.get(id, week_number)
-        result = {
-                'monday': full_schedule.monday,
-                'tuesday': full_schedule.tuesday,
-                'wednesday': full_schedule.wednesday,
-                'thursday': full_schedule.thursday,
-                'friday': full_schedule.friday,
-                'saturday': full_schedule.saturday,
-                'sunday': full_schedule.sunday
-            }
+        try:
+            full_schedule = await self.schedule_repo.get(id, week_number)
+            result = {
+                    'monday': full_schedule.monday,
+                    'tuesday': full_schedule.tuesday,
+                    'wednesday': full_schedule.wednesday,
+                    'thursday': full_schedule.thursday,
+                    'friday': full_schedule.friday,
+                    'saturday': full_schedule.saturday,
+                    'sunday': full_schedule.sunday
+                }
+        except:
+            return {}
         return result
 
 
@@ -147,7 +154,12 @@ class TeacherService:
         # создать новую ачивку
         return await self.achieve_repo.create(name, description, amount)
 
-
+    async def get_empty_achievement(self, id):
+        achievement = await self.achieve_repo.get_by_id(id)
+        if not achievement:
+            raise HTTPException(status_code=404,
+                                detail="Achievement not found")
+        return achievement
 
     async def delete_achievement(self, id: int)->bool:
         # проверка существования
@@ -161,15 +173,24 @@ class TeacherService:
         return await self.achieve_repo.update(achievement, name, description, amount)
 
 
-    async def give_achievement(self, student_id: int, achievement_id: int)->Achievement:
+    async def give_achievement(self, student_id: int, achievement_id: int)->dict:
         student = await self.student_repo.get(student_id)
-        achievement = await self.get_achievement(achievement_id)
+        achievement = await self.get_empty_achievement(achievement_id)
+        if achievement in student.achievements:
+            raise HTTPException(status_code=status.HTTP_409_CONFLICT,
+                                detail=f"Achievement {achievement.id} already exist in student {student_id}"
+            )
         return await self.achieve_repo.give(achievement, student)
+
 
     async def revoke_achievement(self, student_id: int, achievement_id: int) -> bool:
         student = await self.student_repo.get(student_id)
-        achievement = await self.get_achievement(achievement_id)
+        achievement = await self.get_empty_achievement(achievement_id)
         return await self.achieve_repo.revoke(achievement, student)
 
     async def get_all_achievements(self)->list[Achievement]:
         return await self.achieve_repo.get_all()
+
+
+    async def get_filtered(self, name: str, description: str, amount: int) -> list[Achievement]:
+        return await self.achieve_repo.get_filtered(name, description, amount)

@@ -1,5 +1,6 @@
 from sqladmin import Admin, ModelView
 from app.database import User
+from app.database.models.auth import UserSession
 from app.database.models.group_files import GroupFile
 from app.database.models.students import Student
 from app.database.models.subjects import Subject
@@ -36,6 +37,11 @@ class FilesAdmin(ModelView, model=GroupFile):
                    'group.group_number',
                    'subject.name']
 
+class SessionAdmin(ModelView, model=UserSession):
+    column_list = ['user.id',
+                   UserSession.token]
+
+
 
 # Функция для инициализации админки
 def setup_admin(app, engine):
@@ -46,3 +52,4 @@ def setup_admin(app, engine):
     admin.add_view(SubjectAdmin)
     admin.add_view(TaskAdmin)
     admin.add_view(FilesAdmin)
+    admin.add_view(SessionAdmin)

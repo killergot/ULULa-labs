@@ -7,6 +7,7 @@ from .tasks import router as tasks_router
 from .teachers import router as teacher_router
 from .subjects import router as subject_router
 from .files import router as files_router
+from .achievements import router as achievement_router
 from fastapi.routing import APIRouter
 
 
@@ -20,3 +21,4 @@ api_router.include_router(schedule_router)
 api_router.include_router(tasks_router)
 api_router.include_router(teacher_router)
 api_router.include_router(subject_router)
+api_router.include_router(achievement_router)

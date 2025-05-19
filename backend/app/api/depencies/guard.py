@@ -24,14 +24,21 @@ async def get_access_token_payload(
     return payload
 
 async def get_refresh_token_payload(
-    token: str = Depends(get_token_from_header)
+    token: str = Depends(get_token_from_header),
+    service = Depends(get_user_service)
 ) -> dict:
-    # проверять, есть ли в базе
+
     payload = decode_refresh_token(token)
     if not payload or "sub" not in payload:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,
                             detail="Invalid refresh token payload")
-    return payload
+
+    sessions = await service.get_sessions(int(payload["sub"]))
+    for i in sessions:
+        if i.token == token:
+            return payload
+    raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,
+                        detail="Invalid refresh token payload")
 
 async def get_current_user(
     payload: dict = Depends(get_access_token_payload),

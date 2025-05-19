@@ -166,7 +166,16 @@ class StudentService:
 
     async def get_by_group(self, id: int):
         students = await self.repo.get_by_group(id)
-        if not students:
-            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
-                                detail="Groups not found")
-        return students
+        result = []
+
+        for student in students:
+            temp = StudentOut(
+                student_id=student.id,
+                email=student.user.email,
+                group_number=student.group.group_number,
+                full_name=student.full_name,
+                telegram=student.telegram,
+            )
+            result.append(temp)
+
+        return result

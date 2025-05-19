@@ -1,4 +1,5 @@
 from idlelib.window import add_windows_to_menu
+from uuid import UUID
 
 from fastapi import Depends, status, HTTPException
 from fastapi.routing import APIRouter
@@ -28,6 +29,14 @@ async def get_user_by_id(user_id: int,
 async def get_all_users(user_service = Depends(get_user_service)):
     return await user_service.get_all_users()
 
+@router.get("/my_sessions", status_code=status.HTTP_200_OK)
+async def get_all_users(user_service = Depends(get_user_service),
+                        user = Depends(get_current_user)):
+    return await user_service.get_sessions(user.id)
+
+@router.delete("/my_sessions/{session_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_session(session_id: str, user_service = Depends(get_user_service)):
+    return await user_service.delete_session(session_id)
 @router.patch("/update_user", response_model=UserOut, status_code=status.HTTP_200_OK,
               dependencies=[Depends(require_role(ADMIN_ROLE))])
 async def update_user(user: UserUpdateIn, user_service = Depends(get_user_service)):

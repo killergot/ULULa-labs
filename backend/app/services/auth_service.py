@@ -1,10 +1,12 @@
-from fastapi import HTTPException, status, Depends
+from fastapi import HTTPException, status, Depends,Response
 from fastapi.security import HTTPBearer
+
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.repositoryes.two_factor_repository import TwoFactorRepository
 from app.repositoryes.user_repository import UserRepository
+from app.repositoryes.user_session_repository import UserSessionRepository
 from app.utils.hash import get_hash
 from app.core.security import create_access_token, create_refresh_token
 from app.shemas.auth import UserIn, UserOut, TokenOut, UserLogin, TwoFactorIn, TwoFactorOut
@@ -15,6 +17,7 @@ class AuthService:
     def __init__(self, db: AsyncSession):
         self.repo = UserRepository(db)
         self.repo_twofa = TwoFactorRepository(db)
+        self.repo_session = UserSessionRepository(db)
 
     async def register(self, user: UserIn):
         if await self.repo.get_by_email(user.email):
@@ -46,7 +49,7 @@ class AuthService:
             "detail": "2FA required. Check your email."
         }
 
-    async def verify_2fa(self, code: TwoFactorIn):
+    async def verify_2fa(self, code: TwoFactorIn, response: Response):
         session = await self.repo_twofa.check_session(code.session_token)
         if not session:
             raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,
@@ -60,19 +63,33 @@ class AuthService:
 
         access_token = create_access_token(user.id, user.email, user.role)
         refresh_token = create_refresh_token(user.id)
+
+        await self.repo_session.create(user.id,refresh_token)
+
+        response.set_cookie(
+            key="admin_token",
+            value=access_token,  # Или сгенерируйте отдельный токен для админки
+            httponly=True,  # Защита от XSS
+            secure=False,  # Только HTTPS (в production)
+        )
         return TokenOut(access_token=access_token, refresh_token=refresh_token)
 
 
-    async def refresh(self, payload: dict) -> TokenOut:
+    async def refresh(self, payload: dict, token) -> TokenOut:
         user_id = int(payload.get('sub'))
 
-        user = await self.repo.get_by_id(user_id)
+        user = await self.repo.get_with_sessions(user_id)
         if not user:
             raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,
                                 detail="User not found")
 
         access_token = create_access_token(user.id, user.email, user.role)
         refresh_token = create_refresh_token(user.id)
+
+        for i in user.sessions:
+            if i.token == token:
+                await self.repo_session.update(i,token=refresh_token)
+
 
         return TokenOut(access_token=access_token, refresh_token=refresh_token)
 
