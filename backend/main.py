@@ -34,7 +34,7 @@ app = FastAPI(
     }
 )
 app.add_middleware(SessionMiddleware, secret_key=config.secret_keys.yandex)
-app.add_middleware(AdminAuthMiddleware)
+# app.add_middleware(AdminAuthMiddleware)
 
 app.include_router(api_router)
 get_cors_middleware(app)
