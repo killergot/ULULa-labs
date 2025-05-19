@@ -17,6 +17,9 @@ class UserSessionRepository(TemplateRepository):
         users = await self.db.execute(data)
         return users.scalars().all()
 
+    async def get(self, session: UUID) -> Optional[UserSession]:
+        return await self.db.get(UserSession, session)
+
     async def create(self,user_id,
                      token) -> UserSession:
         new_UserSession = UserSession(
@@ -30,8 +33,7 @@ class UserSessionRepository(TemplateRepository):
         return new_UserSession
 
     @except_handler
-    async def update(self, UserSession_id: int, token: str):
-        session = await self.db.get(UserSession,UserSession_id)
+    async def update(self, session, token: str):
         session.token = token
         await self.db.commit()
         await self.db.refresh(session)

@@ -1,7 +1,7 @@
 from fastapi import Depends, status,Response, HTTPException, BackgroundTasks
 from fastapi.routing import APIRouter
 
-from app.api.depencies.guard import get_refresh_token_payload
+from app.api.depencies.guard import get_refresh_token_payload, get_token_from_header
 from app.api.depencies.services import get_auth_service
 
 from app.shemas.auth import UserOut, UserIn, UserLogin, TokenOut, TwoFactorOut, TwoFactorIn
@@ -32,5 +32,6 @@ async def login(response: Response,code: TwoFactorIn, service: AuthService = Dep
 
 @router.post('/refresh', response_model=TokenOut)
 async def refresh(payload: dict = Depends(get_refresh_token_payload)
-                  , service: AuthService = Depends(get_auth_service)):
-    return await service.refresh(payload)
+                  , service: AuthService = Depends(get_auth_service),
+                  token = Depends(get_token_from_header)):
+    return await service.refresh(payload,token)

@@ -2,9 +2,11 @@ from uuid import UUID
 
 from fastapi import  HTTPException, status
 
+from app.database.models.auth import UserSession
 from app.repositoryes.user_repository import UserRepository
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.repositoryes.user_session_repository import UserSessionRepository
 from app.shemas.auth import UserOut, UserUpdateIn
 from app.utils.hash import get_hash
 from app.database import User
@@ -13,6 +15,7 @@ from app.database import User
 class UserService:
     def __init__(self, db: AsyncSession):
         self.repo = UserRepository(db)
+        self.repo_session = UserSessionRepository(db)
 
     async def _get_user(self, user_id: int) -> User:
         user = await self.repo.get_by_id(user_id)
@@ -48,3 +51,19 @@ class UserService:
         new_password = get_hash(user.password) if user.password else temp.password
         user = await self.repo.update(user.id,  new_password)
         return UserOut.model_validate(user)
+
+    async def get_sessions(self, user: int):
+        sessions = await self.repo.get_with_sessions(user)
+        if not sessions:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
+                                detail="User not found")
+        return sessions.sessions
+
+    async def delete_session(self, session_id: int):
+        session = await self.repo_session.get(session_id)
+        if not session:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
+                                detail="Session not found")
+        if not await self.repo_session.delete(session):
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
+                                detail="Error deleting session")

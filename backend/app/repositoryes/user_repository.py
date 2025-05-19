@@ -20,7 +20,7 @@ class UserRepository(TemplateRepository):
         users = await self.db.execute(data)
         return users.scalars().all()
 
-    async def get_sessions(self,user_id: int):
+    async def get_with_sessions(self,user_id:int):
         data = (select(User).
         where(User.id == user_id).
         options(
@@ -28,7 +28,7 @@ class UserRepository(TemplateRepository):
             ))
         users = await self.db.execute(data)
         user = users.scalars().first()
-        return user.sessions
+        return user
 
     async def get_by_email(self, email: str):
         data = select(User).where(User.email == email)
