@@ -4,7 +4,10 @@ import logging
 from sqlalchemy import select
 
 from uuid import UUID
-from app.database.models.auth import User
+
+from sqlalchemy.orm import selectinload
+
+from app.database.models.auth import User, UserSession
 from app.database.models.groups import Group
 from app.repositoryes.template import TemplateRepository
 from app.core.except_handler import except_handler
@@ -16,6 +19,16 @@ class UserRepository(TemplateRepository):
         data = select(User)
         users = await self.db.execute(data)
         return users.scalars().all()
+
+    async def get_sessions(self,user_id: int):
+        data = (select(User).
+        where(User.id == user_id).
+        options(
+                selectinload(User.sessions)
+            ))
+        users = await self.db.execute(data)
+        user = users.scalars().first()
+        return user.sessions
 
     async def get_by_email(self, email: str):
         data = select(User).where(User.email == email)
