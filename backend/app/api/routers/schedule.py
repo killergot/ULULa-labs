@@ -120,7 +120,7 @@ async def get_schedule(group_id: int, week_number: int, service = Depends(get_sc
         return await service.get_by_id(group_week.group_id, group_week.week_number)
 
 
-@router.get("/get_by_number/{group_number}&{week_number}",
+@router.get("/get_by_number",
              status_code=status.HTTP_200_OK,
              summary='Get schedule by group number',
              description='Get schedule by number.\n',
