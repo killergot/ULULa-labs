@@ -12,6 +12,13 @@ class WeekNumber(BaseModel):
 class TeacherOut(FIO):
     id: int
     email: EmailStr
-    avatar: Optional[str] = None
+    avatar_url: Optional[str] = None
     telegram: Optional[str] = None
+    nickname: Optional[str] = None
+
+class TeacherUpdateIn(BaseModel):
+    FIO: Optional[str] = Field(min_length=1,default=None)
+    email: Optional[EmailStr] = None
+    telegram: Optional[str] = None
+    avatar_url: Optional[str] = None
     nickname: Optional[str] = None

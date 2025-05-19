@@ -7,7 +7,7 @@ from typing import Optional
 from app.database.models.achievent import Achievement
 from app.api.depencies.guard import get_current_user, require_role
 from app.services.teacher_service import TeacherService
-from app.shemas.teachers import FIO, WeekNumber
+from app.shemas.teachers import FIO, WeekNumber, TeacherUpdateIn
 from app.shemas.teacher_subject import SubjectName, TeacherSubjectBase
 from app.shemas.auth import UserOut
 from app.shemas.achievements import AchieveIn, AchieveID, AchieveUpdate
@@ -47,6 +47,13 @@ async def create_student(FIO: str, teacher: UserOut = Depends(get_current_user),
 async def get_current_user(user: UserOut = Depends(get_current_user),
                            service: TeacherService = Depends(get_teacher_service)):
     return await service.get(user.id)
+
+@router.put("/me",
+            status_code=status.HTTP_200_OK)
+async def update_student(new_teacher: TeacherUpdateIn,
+                        user: UserOut = Depends(get_current_user),
+                         service: TeacherService = Depends(get_teacher_service)):
+    return await service.update(new_teacher,user.id)
 
 
 

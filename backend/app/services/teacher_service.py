@@ -9,6 +9,8 @@ from app.repositoryes.student_repository import Repository as StudentRepository
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.repositoryes.achievements_repository import AchivementRepository
 from app.database import TeacherSubject
+from app.repositoryes.user_repository import UserRepository
+from app.shemas.teachers import TeacherOut, TeacherUpdateIn
 from app.utils.get_schedule import get_teacher_schedule
 from app.database.models.achievent import Achievement
 
@@ -21,6 +23,7 @@ class TeacherService:
         self.subject_repo = SubjectRepository(db)
         self.achieve_repo = AchivementRepository(db)
         self.student_repo = StudentRepository(db)
+        self.user_repo = UserRepository(db)
 
     async def create_teacher(self, teacher):
         if await self.repo.get_by_id(teacher['id']):
@@ -39,12 +42,42 @@ class TeacherService:
             print(teacher)
         return new_teacher
 
-    async def get(self, teacher_id):
-        teacher = await self.repo.get_by_id(teacher_id)
+    async def update(self, new_student: TeacherUpdateIn, id: int):
+        teacher = await self.repo.get(id)
         if teacher is None:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
                                 detail='Teacher not found')
-        return teacher
+        user = await self.user_repo.get_by_email(new_student.email)
+        if user and user.email != teacher.user.email:
+            raise HTTPException(status_code=status.HTTP_409_CONFLICT,
+                                detail='Email already busy')
+        new_student = await self.repo.update(student=teacher,
+                                             FIO=new_student.FIO,
+                                             telegram=new_student.telegram,
+                                             avatar=new_student.avatar_url,
+                                             nickname=new_student.nickname,
+                                             email=new_student.email)  # Это поменять на EmailStr
+        return TeacherOut(
+                          FIO=new_student.FIO,
+                          nickname=new_student.nickname,
+                          id=new_student.id,
+                          email=new_student.user.email,
+                          telegram=new_student.telegram,
+                          avatar_url=new_student.avatar_url)
+
+    async def get(self, teacher_id):
+        teacher = await self.repo.get(teacher_id)
+        if teacher is None:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
+                                detail='Teacher not found')
+        return TeacherOut(
+            id=teacher.id,
+            FIO=teacher.FIO,
+            email=teacher.user.email,
+            avatar_url=teacher.avatar_url,
+            telegram=teacher.telegram,
+            nickname=teacher.nickname
+        )
 
     #получение расписания для конкретного преподавателя по id
     async def get_schedule(self, id: int, week_number: int)->dict:
