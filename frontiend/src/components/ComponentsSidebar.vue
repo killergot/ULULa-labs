@@ -4,7 +4,10 @@
       <div class="header">
         <button @click="select('Schedule')">Schedule</button>
         <button @click="select('Calendar')">Calendar</button>
-        <button @click="select('Materials')">Materials</button>
+        
+        <button v-if="isStudent" @click="select('Materials')">Materials</button>
+        
+        <button v-if="isTeacher" @click="select('TeacherSubjects')">Subjects</button>
 
         <button class="toggle" @click="toggle">❯</button>
       </div>
@@ -24,28 +27,57 @@
 </template>
 
 <script>
+import api from '@/services/api';
+
 import Schedule  from './Schedule.vue'
 import Calendar  from './Calendar.vue'
 import Materials from './Materials.vue'
+import TeacherSubjects from './TeacherSubjects.vue'
+
+const TEACHER_ROLE = 1;
+const STUDENT_ROLE = 2;
 
 export default {
   name: 'ComponentSidebar',
-  components: { Schedule, Calendar, Materials },
+  components: { Schedule, Calendar, Materials,  TeacherSubjects},
   data() {
     return {
       collapsed: false,
-      currentView: 'Schedule'
+      currentView: 'Schedule',
+      userRole: null
     }
+  },
+  computed: {
+    isStudent() {
+      return this.userRole === STUDENT_ROLE;
+    },
+    isTeacher() {
+      return this.userRole === TEACHER_ROLE;
+    }
+  },
+  async created() {
+    await this.fetchRole();
   },
   mounted() {
     this.$emit('toggle-panel', this.collapsed)
   },
   methods: {
+    async fetchRole() {
+      try {
+        const response = await api.get('/users/get_me');
+        if (response.status !== 200) throw new Error(`Error ${response.status}`);
+        this.userRole = response.data.role;
+      } catch (err) {
+        console.error('Failed to fetch role:', err);
+      }
+    },
     toggle() {
       this.collapsed = !this.collapsed;
       this.$emit('toggle-panel', this.collapsed);
     },
     select(view) {
+      if (view === 'Materials' && !this.isStudent) return;
+      if (view === 'TeacherSubjects' && !this.isTeacher) return;
       this.currentView = view;
     }
   }

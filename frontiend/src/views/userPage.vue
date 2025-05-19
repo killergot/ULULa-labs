@@ -172,8 +172,6 @@ export default {
             achievements: student_response.data.achievements,
             telegram: student_response.data.telegram
           };
-
-          this.fetchGroups();
         }
         else {
         //   const teacher_response = await api.get('/teachers/me');
@@ -250,6 +248,7 @@ export default {
       if (!this.editMode) {
         this.form = { ...this.user };
         this.editMode = true;
+        this.fetchGroups();
 
       } else {
         this.cancelEdit();
