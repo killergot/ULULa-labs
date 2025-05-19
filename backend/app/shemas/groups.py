@@ -11,7 +11,10 @@ class GroupBase(BaseModel):
 
 class GroupNumber(BaseModel): #Используется при регистрации студента по номеру группы, а не по id
     group_number: str = Field(min_length=1)
-    # поля не могут быть пустыми
+
+    model_config = {
+        'from_attributes': True
+    }
 
 class GroupID(BaseModel): #Используется при регистрации студента по номеру группы, а не по id
     group_id: int = Field(ge = 1)
