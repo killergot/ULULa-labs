@@ -14,7 +14,7 @@ from app.services.schedule_service import ScheduleService
 from app.services.task_service import TaskService
 from app.services.teacher_service import TeacherService
 from app.services.subject_service import SubjectService
-
+from app.services.achievement_service import AchievementService
 
 async def get_auth_service(db: AsyncSession = Depends(get_db)) -> AuthService:
     return AuthService(db)
@@ -42,3 +42,6 @@ async def get_subject_service(db: AsyncSession = Depends(get_db)) -> SubjectServ
 
 async def get_files_service(db: AsyncSession = Depends(get_db)) -> GroupFilesService:
     return GroupFilesService(db)
+
+async def get_achievement_service(db: AsyncSession = Depends(get_db)) -> AchievementService:
+    return AchievementService(db)

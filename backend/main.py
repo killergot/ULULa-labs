@@ -41,7 +41,6 @@ get_cors_middleware(app)
 setup_admin(app, engine)
 
 
-
 if __name__ == "__main__":
     # Для докера
     # uvicorn.run("main:app",host="0.0.0.0", reload=True)
