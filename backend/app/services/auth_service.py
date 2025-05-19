@@ -1,5 +1,6 @@
-from fastapi import HTTPException, status, Depends
+from fastapi import HTTPException, status, Depends,Response
 from fastapi.security import HTTPBearer
+
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -46,7 +47,7 @@ class AuthService:
             "detail": "2FA required. Check your email."
         }
 
-    async def verify_2fa(self, code: TwoFactorIn):
+    async def verify_2fa(self, code: TwoFactorIn, response: Response):
         session = await self.repo_twofa.check_session(code.session_token)
         if not session:
             raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,
@@ -60,6 +61,13 @@ class AuthService:
 
         access_token = create_access_token(user.id, user.email, user.role)
         refresh_token = create_refresh_token(user.id)
+
+        response.set_cookie(
+            key="admin_token",
+            value=access_token,  # Или сгенерируйте отдельный токен для админки
+            httponly=True,  # Защита от XSS
+            secure=False,  # Только HTTPS (в production)
+        )
         return TokenOut(access_token=access_token, refresh_token=refresh_token)
 
 
