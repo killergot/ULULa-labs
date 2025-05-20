@@ -31,10 +31,15 @@
   
   <script>
   import api from '@/services/api';
+
+  const TEACHER_ROLE = 1;
+  const STUDENT_ROLE = 2;
+
   export default {
     name: 'SchedulePage',
     data() {
       return {
+        userRole: null,
         weekNumber: 1,
         schedule: {},
         dayList: [
@@ -61,15 +66,36 @@
         return start && end ? `${start} - ${end}` : `Week ${this.weekNumber}`;
       }
     },
+    async created() {
+      await this.fetchRole();
+      await this.fetchSchedule();
+    },
+
     methods: {
+      async fetchRole() {
+        try {
+          const res = await api.get('/users/get_me');
+          if (res.status !== 200) throw new Error(`Error ${res.status}`);
+          this.userRole = res.data.role;
+        } catch (err) {
+          console.error('Failed to fetch role:', err);
+        }
+      },
       async fetchSchedule() {
         try {
-          const response = await api.get(`/schedule/get_for_current_student/${this.weekNumber}`)
-          if (!response.status === 200) throw new Error(`Error ${response.status}`);
-          this.schedule = await response.data;
+          let url = '';
+          if (this.userRole === TEACHER_ROLE) {
+            url = `/teachers/schedules/${this.weekNumber}`;
+          } else {
+            url = `/schedule/get_for_current_student/${this.weekNumber}`;
+          }
+
+          const response = await api.get(url);
+          if (response.status !== 200) throw new Error(`Error ${response.status}`);
+          this.schedule = response.data;
         } catch (err) {
           console.error('Failed to fetch schedule:', err);
-          this.schedule = {}
+          this.schedule = {};
         }
       },
       prevWeek() {

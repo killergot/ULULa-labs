@@ -233,7 +233,7 @@ export default {
             achievements: response.data.achievements,
             telegram: response.data.telegram
           };
-          
+
             console.log('User updated:', response.data);
           }
         }
@@ -253,10 +253,7 @@ export default {
           };
             
             console.log('User updated:', response.data);
-
           }
-
-
         }
 
       } catch (error) {
