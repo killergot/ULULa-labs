@@ -7,6 +7,7 @@ from app.api.depencies.db import get_db
 
 from app.services.auth_service import AuthService
 from app.services.group_files_service import GroupFilesService
+from app.services.shared_links_service import SharedLinkService
 from app.services.user_service import UserService
 from app.services.student_service import StudentService
 from app.services.group_service import GroupService
@@ -45,3 +46,6 @@ async def get_files_service(db: AsyncSession = Depends(get_db)) -> GroupFilesSer
 
 async def get_achievement_service(db: AsyncSession = Depends(get_db)) -> AchievementService:
     return AchievementService(db)
+
+async def get_shared_links_service(db: AsyncSession = Depends(get_db)) -> SharedLinkService:
+    return SharedLinkService(db)
