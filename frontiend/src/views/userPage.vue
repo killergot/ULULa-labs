@@ -174,22 +174,22 @@ export default {
           };
         }
         else {
-        //   const teacher_response = await api.get('/teachers/me');
-        //   if (teach.status !== 200) throw new Error(`Error ${teach.status}`);
+          const teacher_response = await api.get('/teachers/me');
+          if (teacher_response.status !== 200) throw new Error(`Error ${teacher_response.status}`);
           
-        //   this.user = {
-        //     fullName: response.data.full_name,
-        //     group: '',
-        //     nick: '',
-        //     email: response.data.email,
-        //     avatarUrl: null,
-        //     achievements: [],
-        //     telegram: ''
-        //   };
+          this.user = {
+            fullName: teacher_response.data.FIO,
+            group: '',
+            nick: teacher_response.data.nickname,
+            email: teacher_response.data.email,
+            avatarUrl: teacher_response.data.avatar_url,
+            achievements: null,
+            telegram: teacher_response.data.telegram
+          };
         }
       } catch (error) {
         console.error('Failed to fetch user:', error);
-      }
+      }        
     },
 
 
@@ -233,11 +233,31 @@ export default {
             achievements: response.data.achievements,
             telegram: response.data.telegram
           };
-            
+          
+            console.log('User updated:', response.data);
           }
         }
+        else {
+          const response = await api.put('/teachers/me', payload);
 
-        console.log('User updated:', response.data);
+          if (response.status !== 200) throw new Error(`Error ${response.status}`);
+          else {
+            this.user = {
+            fullName: response.data.FIO,
+            group: '',
+            nick: response.data.nickname,
+            email: response.data.email,
+            avatarUrl: response.data.avatar_url,
+            achievements: null,
+            telegram: response.data.telegram
+          };
+            
+            console.log('User updated:', response.data);
+
+          }
+
+
+        }
 
       } catch (error) {
         console.error('Failed to update user:', error);
