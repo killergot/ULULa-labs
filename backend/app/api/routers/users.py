@@ -29,6 +29,12 @@ async def get_user_by_id(user_id: int,
 async def get_all_users(user_service = Depends(get_user_service)):
     return await user_service.get_all_users()
 
+@router.patch("", response_model=UserOut, status_code=status.HTTP_200_OK)
+async def update_user(new_user: UserUpdateIn,
+                      user = Depends(get_current_user),
+                      user_service = Depends(get_user_service)):
+    return await user_service.update_user(new_user, user.id)
+
 @router.get("/my_sessions", status_code=status.HTTP_200_OK)
 async def get_all_users(user_service = Depends(get_user_service),
                         user = Depends(get_current_user)):
@@ -37,10 +43,7 @@ async def get_all_users(user_service = Depends(get_user_service),
 @router.delete("/my_sessions/{session_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_session(session_id: str, user_service = Depends(get_user_service)):
     return await user_service.delete_session(session_id)
-@router.patch("/update_user", response_model=UserOut, status_code=status.HTTP_200_OK,
-              dependencies=[Depends(require_role(ADMIN_ROLE))])
-async def update_user(user: UserUpdateIn, user_service = Depends(get_user_service)):
-    return await user_service.update_user(user)
+
 
 
 @router.delete("/{user_id}", status_code=status.HTTP_204_NO_CONTENT,

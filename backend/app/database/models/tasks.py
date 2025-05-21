@@ -34,3 +34,5 @@ class Task(Base):
                                                  nullable=True)
 
     user: Mapped["app.database.models.auth.User"] = relationship("app.database.models.auth.User", back_populates="tasks")
+    links: Mapped[list["SharedLink"]] = relationship("SharedLink", back_populates="task",
+                                                         cascade="all, delete-orphan")

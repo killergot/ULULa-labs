@@ -55,12 +55,12 @@ class UserRepository(TemplateRepository):
         return new_user
 
     @except_handler
-    async def update(self, user_id: int, password: str):
-        user = await self.get_by_id(user_id)
+    async def update(self, user: User, password: str):
         user.password = password
         await self.db.commit()
         await self.db.refresh(user)
         return user
+
 
     @except_handler
     async def delete(self, user_id: int) -> bool:

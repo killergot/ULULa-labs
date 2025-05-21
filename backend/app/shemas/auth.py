@@ -7,7 +7,7 @@ MIN_LEN_PASS: int = 2
 
 class UserBase(BaseModel):
     email: EmailStr
-    role: Optional[int] = 0
+    role: Optional[int] = Field(ge=0, le=7)
     auth_provider: Optional[Literal['google', 'facebook', 'github','yandex']] = None
     provider_id: Optional[str] = None
 
@@ -22,14 +22,15 @@ class UserBase(BaseModel):
 
 class UserIn(UserBase):
     password: str =  Field(min_length=MIN_LEN_PASS,default=None)
+    role: int = Field(ge=0, le=2)
 
 class UserLogin(BaseModel):
     email: EmailStr
     password: str
 
 class UserUpdateIn(BaseModel):
-    id: int
-    password: str
+    new_password: str = Field(min_length=MIN_LEN_PASS,default=None)
+    old_password: str
 
 
 

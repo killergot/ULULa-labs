@@ -46,10 +46,14 @@ class UserService:
             raise HTTPException(status_code=status.HTTP_500_NOT_FOUND,
                                 detail="Error deleting user")
 
-    async def update_user(self, user: UserUpdateIn):
-        temp = await self._get_user(user.id)
-        new_password = get_hash(user.password) if user.password else temp.password
-        user = await self.repo.update(user.id,  new_password)
+    async def update_user(self, user: UserUpdateIn, user_id: int):
+        temp = await self._get_user(user_id)
+        new_password = get_hash(user.new_password) if user.new_password else temp.password
+        old_password = get_hash(user.old_password)
+        if old_password != temp.password:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
+                                detail="Wrong password")
+        user = await self.repo.update(temp,  new_password)
         return UserOut.model_validate(user)
 
     async def get_sessions(self, user: int):
