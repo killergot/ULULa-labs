@@ -251,8 +251,8 @@
           const payload = {
             task_id: task.id,
             description: task.text,
-            deadline: this.modalData.deadline
-              ? new Date(this.modalData.deadline).toISOString()
+            deadline: task.deadline
+              ? new Date(task.deadline).toISOString()
               : null,
             task_flag: (task.important ? 1 : 0) | (newCompleted ? 2 : 0)
           };
