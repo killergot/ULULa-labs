@@ -5,6 +5,7 @@
       <button class="edit-btn" :class="{ hidden: editMode }" @click="toggleEdit">✎</button>
 
       <div class="profile-info">
+        <div class="main-fields">
         <template v-if="!editMode">
         <h1>{{ user.fullName || '–' }}</h1>
         <p v-if="isStudent"><span class="field-icon">🎓</span> Group number: {{ user.group || '–' }}</p>
@@ -47,7 +48,32 @@
             <button @click="saveEdit">OK</button>
           </div>
         </template>
+        </div>
+
+        <div class="security-section">
+          <h2>Security</h2>
+          <h3 class="sessions-title">Password</h3>
+          <button class="security-btn" @click="handleChangePassword">Change Password</button>
+          <h3 class="sessions-title">Sessions</h3>
+          <div class="sessions-container">
+            <div class="sessions-list">
+              <div
+                v-for="session in sessions"
+                :key="session.id"
+                class="session-item"
+              >
+                <span>{{ formatDate(session.created_at) }}</span>
+                <span>Token: ...{{ shortToken(session.token) }}</span>
+                <button @click="deleteSession(session.id)" class="delete-session">✕</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
       </div>
+
+      
+
     </div>
 
 
@@ -149,6 +175,7 @@ export default {
   },
   created() {
     this.fetchUser();
+    this.fetchSessions();
   },
   
   methods:{
@@ -192,6 +219,23 @@ export default {
       }        
     },
 
+    async fetchSessions() {
+      try {
+        const response = await api.get('/users/my_sessions');
+        if (response.status === 200) this.sessions = response.data;
+      } catch (err) {
+        console.error('Failed to fetch sessions:', err);
+      }
+    },
+
+    async deleteSession(sessionId) {
+      try {
+        await api.delete(`/users/my_sessions/${sessionId}`);
+        this.sessions = this.sessions.filter(s => s.id !== sessionId);
+      } catch (err) {
+        console.error('Failed to delete session:', err);
+      }
+    },
 
     async fetchGroups() {
        try {
@@ -303,7 +347,15 @@ export default {
       this.form.avatarUrl = null;
       await this.updateUser();
       this.closeDeleteModal();
-    }
+    },
+    formatDate(dateStr) {
+    const date = new Date(dateStr);
+    return date.toLocaleString(); 
+  },
+  shortToken(token) {
+    if (!token) return '–';
+    return token.slice(-10);
+  }
   }
 }
 
@@ -329,21 +381,43 @@ export default {
     2px                  
     minmax(350px, 1fr);
 
-    grid-template-rows: repeat(5, auto);
+    /* grid-template-rows: repeat(5, auto); */
     gap: 8px;
+
+    background-color: #e3e9f0;
+}
+
+button {
+  color: #003366;     
+  font-weight: 600;   
+
 }
 
 .div1 {
   grid-column: 1 / 2;
-  grid-row: 1 / 3;
+  /* grid-row: 1 / 3; */
 
   padding: 16px;
   box-sizing: border-box; 
   position: relative;
 
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+
   display: grid; 
   grid-template-columns: auto 1fr; 
   column-gap: 16px;
+}
+
+.profile-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.main-fields {
+  flex-shrink: 0;
 }
 
 .profile-info h1 { 
@@ -428,9 +502,84 @@ export default {
   
 }
 
+.security-section {
+  margin-top: 32px;
+  margin-top: auto;
+  /* background-color: #f1f1f1; */
+  border-radius: 4px;
+}
+
+.security-section h2 {
+  font-size: 1.5rem;
+  margin-bottom: 12px;
+}
+
+.security-btn {
+  background: #79b9f5;
+  border: none;
+  border-radius: 4px;
+  padding: 8px 16px;
+  font-size: clamp(14px, 1.2vw, 18px);
+  cursor: pointer;
+  margin-bottom: 24px;
+  width: 100%;
+}
+
+.sessions-title {
+  font-size: 1.2rem;
+  margin: 0 8px 8px 8px;
+  text-align: left;
+}
+
+.sessions-container {
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  padding: 12px;
+  margin: 0 8px 16px 8px;
+  height: 400px;
+  overflow-y: auto;
+  /* background-color: #e9e8e8; */
+  background-color: #f1f1f1;
+  max-height: 33vh;
+}
+
+.sessions-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.session-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+
+  font-size: 1.2rem;
+  background: #fff;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  padding: 8px 12px;
+  margin-bottom: 8px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+  transition: background-color 0.2s ease;
+}
+
+.session-item:hover {
+  background-color: #f0f8ff;
+}
+
+.delete-session {
+  background: transparent;
+  border: none;
+  color: #cc0000;
+  font-size: 1.2rem;
+  cursor: pointer;
+}
+
 .div2 {
   grid-column: 2 / 3; 
-  grid-row: 1 / 4;
+  /* grid-row: 1 / 4; */
 
   display: flex;
   flex-direction: column;
@@ -449,7 +598,7 @@ export default {
 .avatar-container img {
   width: 100%;
   height: 100%;
-  max-height: 500px;
+  max-height: 400px;
   object-fit: contain;
 }
 
@@ -458,7 +607,7 @@ export default {
   max-width: 100%;
   padding: 12px 0;
   margin-top: 12px;
-  font-size: clamp(18px, 1.2vw, 22px);
+  font-size: clamp(14px, 1.2vw, 18px);
   background-color: #79b9f5;
   border: none;
   border-radius: 6px;
@@ -469,14 +618,14 @@ export default {
 
 .separator {
   grid-column: 3;
-  grid-row: 1 / 6;
+  /* grid-row: 1 / 6; */
   background-color: #ccc;
   width: 100%;
 }
 
 .div3 {
   grid-column: 4 / 5; 
-  grid-row: 1 / 6;
+  /* grid-row: 1 / 6; */
 }
 
 .div3 ul {
