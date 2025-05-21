@@ -144,6 +144,7 @@
   
 <script>
  import api from '@/services/api';
+ import { getRefreshToken, clearTokens } from '@/utils/token';  
  const defaultAvatar = '/default_avatar.jpg';
 
   const TEACHER_ROLE = 1
@@ -231,11 +232,22 @@ export default {
 
     async deleteSession(sessionId) {
       try {
-        await api.delete(`/users/my_sessions/${sessionId}`);
-        this.sessions = this.sessions.filter(s => s.id !== sessionId);
-      } catch (err) {
-        console.error('Failed to delete session:', err);
+      const session = this.sessions.find(s => s.id === sessionId);
+
+      await api.delete(`/users/my_sessions/${sessionId}`);
+
+      this.sessions = this.sessions.filter(s => s.id !== sessionId);
+
+      const currentToken = getRefreshToken();
+      if (session && session.token === currentToken) {
+        clearTokens();
+        this.$router.push('/login');
+        return;
       }
+
+    } catch (err) {
+      console.error('Failed to delete session:', err);
+    }
       this.fetchSessions();
     },
 
