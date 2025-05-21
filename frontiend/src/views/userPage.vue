@@ -82,7 +82,8 @@
       <div class="avatar-container">
         <img
           :src="user.avatarUrl || defaultAvatar"
-          alt="Фото {{ user.fullName }}"
+          alt="Profile photo is not available :("
+          crossorigin="anonymous" referrerpolicy="no-referrer"
         />
       </div>
 
@@ -235,6 +236,7 @@ export default {
       } catch (err) {
         console.error('Failed to delete session:', err);
       }
+      this.fetchSessions();
     },
 
     async fetchGroups() {
