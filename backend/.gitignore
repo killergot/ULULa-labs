@@ -7,3 +7,4 @@ ulula_venv/
 *.log
 *uploads/
 tests/*
+bandit*

@@ -1,4 +1,6 @@
+import re
 from typing import Optional, List
+from fastapi import Depends, FastAPI, HTTPException, status
 
 from pydantic import BaseModel, EmailStr, field_validator, Field
 
@@ -25,6 +27,18 @@ class StudentUpdateIn(BaseModel): #Используется при регист�
     telegram: Optional[str] = None
     avatar_url: Optional[str] = None
     nickname: Optional[str] = None
+
+    @field_validator('avatar_url')
+    def name_must_contain_space(cls, v):
+        pattern = r"^https?://[^/]+(/[^?#]*)?(\.jpg|\.jpeg|\.png|\.gif|\.webp)(\?.*)?$"
+        if v and not re.match(pattern, v, re.I):
+            print(v)
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
+                                detail='only https://vk.com/')
+        if v and ('javascript' in v or 'data' in v):
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
+                                detail='"javascript" or "data" are not allowed')
+        return v
 
 
 
