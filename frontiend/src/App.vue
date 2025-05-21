@@ -30,7 +30,7 @@ export default {
     return {
       isCollapsed: false,
       panelCollapsed: true,
-      hiddenSidebarRoutes: []
+      hiddenSidebarRoutes: ['/login']
     }
   },
   methods: {

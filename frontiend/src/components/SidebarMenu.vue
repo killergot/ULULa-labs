@@ -53,10 +53,7 @@ export default {
     return {
       pages: [
         { name: 'Home', link: '/' },
-        { name: 'My Profile', link: '/userPage' },
-        { name: 'Registration', link: '/login' },
-        { name: 'Test', link: '/test' },
-        { name: 'Test2', link: '/test2' },
+        { name: 'My profile', link: '/userPage' }
       ],
       folders: [
         { name: 'Личные' },
