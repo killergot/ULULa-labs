@@ -86,7 +86,7 @@
           let url = '';
           if (this.userRole === TEACHER_ROLE) {
             url = `/teachers/schedules/${this.weekNumber}`;
-          } else {
+          } else if (this.userRole === STUDENT_ROLE){
             url = `/schedule/get_for_current_student/${this.weekNumber}`;
           }
 
@@ -114,9 +114,6 @@
         this.weekNumber++;
         this.fetchSchedule();
       }
-    },
-    mounted() {
-      this.fetchSchedule();
     }
   }
   </script>
