@@ -137,6 +137,35 @@
       </div>
     </div>
 
+    <div v-if="showChangePasswordModal" class="modal-overlay">
+      <div class="modal">
+        <h2>User Password Change</h2>
+        <div class="edit-field">
+          <label for="old-password">Old Password</label>
+          <input
+            id="old-password"
+            v-model="passwordForm.old_password"
+            type="password"
+            class="task-input"
+          />
+        </div>
+        <div class="edit-field">
+          <label for="new-password">New Password</label>
+          <input
+            id="new-password"
+            v-model="passwordForm.new_password"
+            type="password"
+            class="task-input"
+          />
+        </div>
+        <div class="modal-actions">
+          <button @click="closeChangePasswordModal">Cancel</button>
+          <button @click="submitChangePassword">OK</button>
+        </div>
+      </div>
+    </div>
+
+
 </div>
     
 </template>
@@ -169,7 +198,12 @@ export default {
       groups: [],     
       defaultAvatar,  
       showModal: false,
-      showDeleteModal: false
+      showDeleteModal: false,
+      showChangePasswordModal: false,
+      passwordForm: {
+        old_password: '',
+        new_password: ''
+      }
     }
   },
   computed: {
@@ -369,7 +403,28 @@ export default {
   shortToken(token) {
     if (!token) return '–';
     return token.slice(-10);
-  }
+  },
+  handleChangePassword() {
+      this.passwordForm = { old_password: '', new_password: '' };
+      this.showChangePasswordModal = true;
+    },
+    closeChangePasswordModal() {
+      this.showChangePasswordModal = false;
+    },
+    async submitChangePassword() {
+      try {
+        const payload = {
+          old_password: this.passwordForm.old_password,
+          new_password: this.passwordForm.new_password
+        };
+        const response = await api.patch('/users', payload);
+        if (response.status === 200) {
+          this.closeChangePasswordModal();
+        }
+      } catch (err) {
+        console.error('Change password failed:', err);
+      }
+    },
   }
 }
 
@@ -666,25 +721,47 @@ button {
 }
 
 
-.modal-overlay { 
-  position: fixed; 
-  top: 0; 
-  left: 0; 
-  width: 100%; 
-  height: 100%; 
-  background: rgba(0,0,0,0.4); 
-  display: flex; 
-  align-items: center; 
-  justify-content: center; 
-  z-index: 1000; 
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0,0,0,0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
 }
-.modal { 
-  background: #fff; 
-  padding: 24px; 
-  border-radius: 8px; 
-  width: 90%; 
-  max-width: 400px; 
-  box-shadow: 0 4px 12px rgba(0,0,0,0.15); 
+.modal {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 45%;
+  /* min-width: 250px; */
+  max-width: 60%;
+  padding: 24px;
+  box-sizing: border-box;
+  background: #ffffff;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+.edit-field {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 16px;
+}
+.task-input {
+  width: 100%;
+  padding: 8px 12px;
+  font-size: 16px;
+  border-radius: 4px;
+  box-sizing: border-box;
+  resize: vertical;
+  height: auto;
+  background: #f5f5f5;
+  border: 1px solid #ddd;
 }
 .modal h2 { 
   margin-top: 0; 
