@@ -81,7 +81,7 @@ class SharedLinkService:
                     "expires_at": link.expires_at.isoformat(),
                     "task": {
                         "description": link.task.description,
-                        "deadline": link.task.deadline.isoformat(),
+                        "deadline": link.task.deadline.isoformat() if link.task.deadline else None,
                         "task_flag": link.task.task_flag
                     } if link.task else None
                 }

@@ -1,202 +1,152 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Task Link Details</title>
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500&display=swap" rel="stylesheet">
+    <title>Информация о ссылке</title>
     <style>
-        :root {
-            --primary: #4361ee;
-            --secondary: #3f37c9;
-            --light: #f8f9fa;
-            --dark: #212529;
-            --success: #4cc9f0;
-            --warning: #f8961e;
-            --danger: #f72585;
-        }
-
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
-
         body {
-            font-family: 'Roboto', sans-serif;
-            line-height: 1.6;
-            color: var(--dark);
-            background-color: #f5f7fa;
-            padding: 20px;
+            font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f0f2f5;
+            padding: 40px;
+            color: #333;
         }
 
         .container {
-            max-width: 800px;
+            max-width: 700px;
             margin: 0 auto;
             background: white;
+            padding: 30px;
             border-radius: 10px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            overflow: hidden;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.1);
         }
 
-        .header {
-            background: linear-gradient(135deg, var(--primary), var(--secondary));
-            color: white;
-            padding: 20px;
+        h1 {
             text-align: center;
-        }
-
-        .header h1 {
-            font-weight: 500;
-            font-size: 1.8rem;
-        }
-
-        .content {
-            padding: 25px;
+            color: #2c3e50;
+            margin-bottom: 30px;
         }
 
         .section {
-            margin-bottom: 25px;
-            border-bottom: 1px solid #eee;
-            padding-bottom: 20px;
+            margin-bottom: 20px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            overflow: hidden;
         }
 
-        .section:last-child {
-            border-bottom: none;
-        }
-
-        .section-title {
-            color: var(--primary);
-            font-size: 1.2rem;
-            margin-bottom: 15px;
+        .section-header {
+            background-color: #ecf0f1;
+            padding: 12px 20px;
+            cursor: pointer;
+            user-select: none;
+            font-weight: bold;
             display: flex;
+            justify-content: space-between;
             align-items: center;
         }
 
-        .field {
-            display: flex;
-            margin-bottom: 12px;
-            align-items: baseline;
+        .section-header:hover {
+            background-color: #e0e7ea;
         }
 
-        .field-name {
-            font-weight: 500;
-            min-width: 120px;
-            color: #6c757d;
+        .section-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.4s ease;
+            padding: 0 20px;
+            background-color: #fff;
         }
 
-        .field-value {
-            flex-grow: 1;
-            padding: 8px 12px;
-            background: var(--light);
-            border-radius: 5px;
-            word-break: break-word;
+        .section-content.open {
+            padding: 15px 20px;
         }
 
-        .badge {
-            display: inline-block;
-            padding: 3px 8px;
-            border-radius: 20px;
-            font-size: 0.8rem;
-            font-weight: 500;
+        .item {
+            margin-bottom: 10px;
         }
 
-        .badge-primary {
-            background-color: #e0e7ff;
-            color: var(--primary);
+        .label {
+            font-weight: bold;
         }
 
-        .date {
-            color: #495057;
-            font-family: monospace;
+        .value {
+            margin-left: 10px;
+            color: #555;
         }
 
-        .task-flag-0 {
-            background-color: #ebfbee;
-            color: #2b8a3e;
+        .no-data {
+            font-style: italic;
+            color: #aaa;
         }
 
-        .task-flag-1 {
-            background-color: #fff3bf;
-            color: #e67700;
+        .arrow {
+            transition: transform 0.3s ease;
         }
 
-        @media (max-width: 600px) {
-            .field {
-                flex-direction: column;
-            }
-
-            .field-name {
-                margin-bottom: 5px;
-            }
+        .arrow.down {
+            transform: rotate(90deg);
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <div class="header">
-            <h1>Task Link Details</h1>
+        <h1>Информация о ссылке</h1>
+
+        <div class="section">
+            <div class="section-header" onclick="toggleSection(this)">
+                Ссылка №{{ link.id }}
+                <span class="arrow">▶</span>
+            </div>
+            <div class="section-content">
+                <div class="item"><span class="label">ID:</span> <span class="value">{{ link.id }}</span></div>
+                <div class="item"><span class="label">Пользователь:</span> <span class="value">{{ link.user_id }}</span></div>
+                <div class="item"><span class="label">Истекает:</span> <span class="value">{{ link.expires_at }}</span></div>
+            </div>
         </div>
 
-        <div class="content">
-            <div class="section">
-                <div class="section-title">Link Information</div>
-
-                <div class="field">
-                    <div class="field-name">ID</div>
-                    <div class="field-value">{{ id }}</div>
-                </div>
-
-                <div class="field">
-                    <div class="field-name">User ID</div>
-                    <div class="field-value badge badge-primary">{{ user_id }}</div>
-                </div>
-
-                <div class="field">
-                    <div class="field-name">Task ID</div>
-                    <div class="field-value badge badge-primary">{{ task_id }}</div>
-                </div>
-
-                <div class="field">
-                    <div class="field-name">Expires At</div>
-                    <div class="field-value date">{{ expires_at }}</div>
-                </div>
+        <div class="section">
+            <div class="section-header" onclick="toggleSection(this)">
+                Задача
+                <span class="arrow">▶</span>
             </div>
-
-            {% if task %}
-            <div class="section">
-                <div class="section-title">Task Details</div>
-
-                <div class="field">
-                    <div class="field-name">Task ID</div>
-                    <div class="field-value badge badge-primary">{{ task.task_id }}</div>
-                </div>
-
-                <div class="field">
-                    <div class="field-name">User ID</div>
-                    <div class="field-value badge badge-primary">{{ task.user_id }}</div>
-                </div>
-
-                <div class="field">
-                    <div class="field-name">Description</div>
-                    <div class="field-value">{{ task.description }}</div>
-                </div>
-
-                <div class="field">
-                    <div class="field-name">Deadline</div>
-                    <div class="field-value date">{{ task.deadline }}</div>
-                </div>
-
-                <div class="field">
-                    <div class="field-name">Status</div>
-                    <div class="field-value badge task-flag-{{ task.task_flag }}">
-                        {% if task.task_flag == 0 %}Active{% endif %}
-                        {% if task.task_flag == 1 %}Pending{% endif %}
-                    </div>
-                </div>
+            <div class="section-content">
+                {% if link.task %}
+                    <div class="item"><span class="label">Описание:</span> <span class="value">{{ link.task.description }}</span></div>
+                    <div class="item"><span class="label">Срок:</span> <span class="value">{{ link.task.deadline }}</span></div>
+                    <div class="item"><span class="label">Флаг задачи:</span> <span class="value">{{ link.task.task_flag }}</span></div>
+                {% else %}
+                    <div class="no-data">Задача не прикреплена.</div>
+                {% endif %}
             </div>
-            {% endif %}
         </div>
     </div>
+
+    <script>
+        function toggleSection(header) {
+            const content = header.nextElementSibling;
+            const arrow = header.querySelector(".arrow");
+
+            if (content.style.maxHeight && content.style.maxHeight !== "0px") {
+                content.style.maxHeight = "0";
+                content.classList.remove("open");
+                arrow.classList.remove("down");
+            } else {
+                content.style.maxHeight = content.scrollHeight + "px";
+                content.classList.add("open");
+                arrow.classList.add("down");
+            }
+        }
+
+        // Если хочешь, чтобы первый блок был открыт по умолчанию:
+        window.addEventListener("DOMContentLoaded", () => {
+            const firstSection = document.querySelector(".section-content");
+            const firstArrow = document.querySelector(".section-header .arrow");
+
+            if (firstSection) {
+                firstSection.style.maxHeight = firstSection.scrollHeight + "px";
+                firstSection.classList.add("open");
+                if (firstArrow) firstArrow.classList.add("down");
+            }
+        });
+    </script>
 </body>
 </html>
