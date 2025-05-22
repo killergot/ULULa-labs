@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Task Link Details</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #4361ee;
+            --secondary: #3f37c9;
+            --light: #f8f9fa;
+            --dark: #212529;
+            --success: #4cc9f0;
+            --warning: #f8961e;
+            --danger: #f72585;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Roboto', sans-serif;
+            line-height: 1.6;
+            color: var(--dark);
+            background-color: #f5f7fa;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-weight: 500;
+            font-size: 1.8rem;
+        }
+
+        .content {
+            padding: 25px;
+        }
+
+        .section {
+            margin-bottom: 25px;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 20px;
+        }
+
+        .section:last-child {
+            border-bottom: none;
+        }
+
+        .section-title {
+            color: var(--primary);
+            font-size: 1.2rem;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+        }
+
+        .field {
+            display: flex;
+            margin-bottom: 12px;
+            align-items: baseline;
+        }
+
+        .field-name {
+            font-weight: 500;
+            min-width: 120px;
+            color: #6c757d;
+        }
+
+        .field-value {
+            flex-grow: 1;
+            padding: 8px 12px;
+            background: var(--light);
+            border-radius: 5px;
+            word-break: break-word;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+
+        .badge-primary {
+            background-color: #e0e7ff;
+            color: var(--primary);
+        }
+
+        .date {
+            color: #495057;
+            font-family: monospace;
+        }
+
+        .task-flag-0 {
+            background-color: #ebfbee;
+            color: #2b8a3e;
+        }
+
+        .task-flag-1 {
+            background-color: #fff3bf;
+            color: #e67700;
+        }
+
+        @media (max-width: 600px) {
+            .field {
+                flex-direction: column;
+            }
+
+            .field-name {
+                margin-bottom: 5px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Task Link Details</h1>
+        </div>
+
+        <div class="content">
+            <div class="section">
+                <div class="section-title">Link Information</div>
+
+                <div class="field">
+                    <div class="field-name">ID</div>
+                    <div class="field-value">{{ id }}</div>
+                </div>
+
+                <div class="field">
+                    <div class="field-name">User ID</div>
+                    <div class="field-value badge badge-primary">{{ user_id }}</div>
+                </div>
+
+                <div class="field">
+                    <div class="field-name">Task ID</div>
+                    <div class="field-value badge badge-primary">{{ task_id }}</div>
+                </div>
+
+                <div class="field">
+                    <div class="field-name">Expires At</div>
+                    <div class="field-value date">{{ expires_at }}</div>
+                </div>
+            </div>
+
+            {% if task %}
+            <div class="section">
+                <div class="section-title">Task Details</div>
+
+                <div class="field">
+                    <div class="field-name">Task ID</div>
+                    <div class="field-value badge badge-primary">{{ task.task_id }}</div>
+                </div>
+
+                <div class="field">
+                    <div class="field-name">User ID</div>
+                    <div class="field-value badge badge-primary">{{ task.user_id }}</div>
+                </div>
+
+                <div class="field">
+                    <div class="field-name">Description</div>
+                    <div class="field-value">{{ task.description }}</div>
+                </div>
+
+                <div class="field">
+                    <div class="field-name">Deadline</div>
+                    <div class="field-value date">{{ task.deadline }}</div>
+                </div>
+
+                <div class="field">
+                    <div class="field-name">Status</div>
+                    <div class="field-value badge task-flag-{{ task.task_flag }}">
+                        {% if task.task_flag == 0 %}Active{% endif %}
+                        {% if task.task_flag == 1 %}Pending{% endif %}
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</body>
+</html>
