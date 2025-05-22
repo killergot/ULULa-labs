@@ -84,9 +84,10 @@
       async fetchSchedule() {
         try {
           let url = '';
-          if (this.userRole === TEACHER_ROLE) {
+          if (this.userRole & TEACHER_ROLE === TEACHER_ROLE) {
             url = `/teachers/schedules/${this.weekNumber}`;
-          } else if (this.userRole === STUDENT_ROLE){
+          } else if (this.userRole & STUDENT_ROLE === STUDENT_ROLE){
+            console.log('sdfas')
             url = `/schedule/get_for_current_student/${this.weekNumber}`;
           }
 
