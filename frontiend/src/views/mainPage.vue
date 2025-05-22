@@ -24,6 +24,13 @@
                 </label>
                 <span class="task-text">{{ task.text }}</span>
                 <div class="more-actions">
+                  <button
+                    class="share-btn"
+                    @click="shareTask(task)"
+                    title="Share"
+                  >
+                    🔗
+                  </button>
                   <button @click="openEditModal(task)">⋮</button>
                 </div>
               </li>
@@ -55,6 +62,13 @@
                 </label>
                 <span class="task-text">{{ task.text }}</span>
                 <div class="more-actions">
+                  <button
+                    class="share-btn"
+                    @click="shareTask(task)"
+                    title="Share"
+                  >
+                    🔗
+                  </button>
                   <button @click="openEditModal(task)">⋮</button>
                 </div>
               </li>
@@ -80,6 +94,13 @@
                 </label>
                 <span class="task-text">{{ task.text }}</span>
                 <div class="more-actions">
+                  <button
+                    class="share-btn"
+                    @click="shareTask(task)"
+                    title="Share"
+                  >
+                    🔗
+                  </button>
                   <button @click="openEditModal(task)">⋮</button>
                 </div>
               </li>
@@ -135,6 +156,20 @@
       </div>
     </div>
 
+    <div v-if="showShareModal" class="modal-overlay">
+      <div class="modal">
+        <h2>Task Shared</h2>
+        <p>You have successfully shared your task.</p>
+        <p>
+          The link is available in your profile or here:<br />
+          <a :href="shareLink" target="_blank">{{ shareLink }}</a>
+        </p>
+        <div class="modal-actions">
+          <button @click="closeShareModal">OK</button>
+        </div>
+      </div>
+    </div>
+
   </div>
 </template>
 
@@ -150,8 +185,12 @@
     data() {
       return {
         tasks: [],
+        userId: null,
         showAddModal: false,
         showEditModal: false,
+        showShareModal: false, 
+        shareLink: '',
+        shareError: '', 
         modalData: { id: null, text: '', deadline: '', important: false, completed: false },
         collapsedImportant: false,
         collapsedOthers: false,
@@ -185,6 +224,7 @@
           const userResp = await api.get('/users/get_me');
           if (userResp.status !== 200) throw new Error();
           const role = userResp.data.role;
+          this.userId = userResp.data.id;
 
           if (role === STUDENT_ROLE) { 
             const stud = await api.get('/students/me');
@@ -296,6 +336,35 @@
           console.error('Toggle complete error', err.response?.data || err);
         }
       },
+      async shareTask(task) {
+      try {
+        const payload = {
+          task_id: task.id,
+          user_id: this.userId
+        };
+        const response = await api.post('/shared_links', payload);
+        if (response.status === 201) {
+          const token = response.data.token;
+          this.shareLink = `${window.location.origin}/shared/${token}`;
+          this.shareError = '';
+          this.showShareModal = true;
+        } else {
+          this.shareError = `Failed to share task (status ${status}).`;
+          this.shareLink = '';
+          this.showShareModal = true;
+        }
+      } catch (err) {
+        console.error('Error sharing task:', err);
+        this.shareError = 'An error occurred while sharing. Please try again later.';
+        this.shareLink = '';
+        this.showShareModal = true;
+      }
+    },
+    closeShareModal() {
+      this.showShareModal = false;
+      this.shareLink = '';
+      this.shareError = '';
+    },
       
 
       groupByDate(list) {
@@ -495,6 +564,21 @@
     padding: 4px;
   }
 
+  .more-actions {
+  display: flex;
+  gap: 4px;
+  visibility: hidden;
+}
+.task-item:hover .more-actions {
+  visibility: visible;
+}
+.share-btn {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  font-size: 18px;      
+  padding: 4px;
+}
 
   .task-item:hover {
     background-color: rgba(0,0,0,0.05);

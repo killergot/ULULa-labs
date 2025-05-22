@@ -50,6 +50,30 @@
         </template>
         </div>
 
+        <div class="shared-links-container">
+        <h2 class="security-section">Shared Links</h2>
+        <div class="sessions-container">
+          <div class="sessions-list">
+            <div
+              v-for="link in sharedLinks"
+              :key="link.id"
+              class="session-item"
+            >
+              <div class="link-info">
+                <a :href="`${sharedBaseUrl}/${link.token}`" target="_blank">
+                  {{ (getTaskText(link.task_id) || '').slice(0, 20) }}...
+                </a>
+
+                <span class="expires">
+                  Expiration: {{ formatDate(link.expires_at) }}
+                </span>
+              </div>
+              <button @click="deleteShared(link.id)" class="delete-session">✕</button>
+            </div>
+          </div>
+        </div>
+        </div>
+
         <div class="security-section">
           <h2>Security</h2>
           <h3 class="sessions-title">Password</h3>
@@ -192,13 +216,16 @@ export default {
       userRole: null,
       editMode: false,
       form: {},
-      groups: [],     
+      groups: [], 
+      userTasks: [],    
       defaultAvatar,  
       showModal: false,
       showDeleteModal: false,
       showRequiredDataModal: false,
       requiredRole: null,
-      requiredForm: { full_name: '', group_number: '', FIO: '' }
+      requiredForm: { full_name: '', group_number: '', FIO: '' },
+      sharedLinks: [],
+      sharedBaseUrl: window.location.origin + '/shared',
     }
   },
   computed: {
@@ -208,6 +235,8 @@ export default {
     this.fetchGroups();
     this.fetchUser();
     this.fetchSessions();
+    this.fetchTasks();
+    this.fetchShared();
   },
   
   methods:{
@@ -379,6 +408,48 @@ export default {
         console.error('Failed to update user:', error);
       }
     },
+    async fetchShared() {
+      try {
+        const resp = await api.get('/shared_links');
+        if (resp.status === 200) {
+          this.sharedLinks = resp.data;
+        }
+      } catch (err) {
+        console.error('Failed to fetch shared links:', err);
+      }
+    },
+
+    async deleteShared(id) {
+      try {
+        const resp = await api.delete(`/shared_links/${id}`);
+        if (resp.status === 204) {
+          this.sharedLinks = this.sharedLinks.filter(l => l.id !== id);
+        }
+      } catch (err) {
+        console.error('Failed to delete shared link:', err);
+      }
+    },
+    async fetchTasks(){
+        try {
+          const response = await api.get('tasks/get_tasks_for_me');
+          
+          if (response.status !== 201) throw new Error(`Error ${response.status}`);
+          
+          this.userTasks = response.data.map(task => ({
+            id: task.task_id,
+            text: task.description,
+            deadline: task.deadline,
+            important: Boolean(task.task_flag & 1),
+            completed: Boolean(task.task_flag & 2),
+          }));
+      } catch (error) {
+        console.error('Failed to fetch tasks:', error);
+      }
+    },
+    getTaskText(taskId) {
+      const task = this.userTasks?.find(t => t.id === taskId);
+      return task ? task.text : '';
+    },
     
     toggleEdit() {
       if (!this.editMode) {
@@ -424,12 +495,12 @@ export default {
       this.closeDeleteModal();
     },
     formatDate(dateStr) {
-    const date = new Date(dateStr);
-    return date.toLocaleString(); 
+    // const date = new Date(dateStr);
+    // return date.toLocaleString(); 
+    return dateStr ? new Date(dateStr).toLocaleString() : '–';
   },
   shortToken(token) {
-    if (!token) return '–';
-    return token.slice(-10);
+    return token ? token.slice(-10) : '–';
   }
   }
 }
@@ -611,7 +682,7 @@ button {
   border-radius: 8px;
   padding: 12px;
   margin: 0 8px 16px 8px;
-  height: 400px;
+  height: 150px;
   overflow-y: auto;
   /* background-color: #e9e8e8; */
   background-color: #f1f1f1;
@@ -813,4 +884,15 @@ button {
   background: #ccc; 
   color: #000; 
 }
+.shared-links-container { margin-top: 24px; }
+.link-info { 
+  display: flex; 
+  justify-content: space-between; 
+
+  width: 100%; 
+}
+.expires { 
+  margin-left: 12px; 
+  font-size: 0.9rem; 
+  color: #555; }
 </style>
