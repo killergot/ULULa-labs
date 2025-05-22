@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Информация о ссылке</title>
+    <style>
+        body {
+            font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f0f2f5;
+            padding: 40px;
+            color: #333;
+        }
+
+        .container {
+            max-width: 700px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+        }
+
+        h1 {
+            text-align: center;
+            color: #2c3e50;
+            margin-bottom: 30px;
+        }
+
+        .section {
+            margin-bottom: 20px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .section-header {
+            background-color: #ecf0f1;
+            padding: 12px 20px;
+            cursor: pointer;
+            user-select: none;
+            font-weight: bold;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .section-header:hover {
+            background-color: #e0e7ea;
+        }
+
+        .section-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.4s ease;
+            padding: 0 20px;
+            background-color: #fff;
+        }
+
+        .section-content.open {
+            padding: 15px 20px;
+        }
+
+        .item {
+            margin-bottom: 10px;
+        }
+
+        .label {
+            font-weight: bold;
+        }
+
+        .value {
+            margin-left: 10px;
+            color: #555;
+        }
+
+        .no-data {
+            font-style: italic;
+            color: #aaa;
+        }
+
+        .arrow {
+            transition: transform 0.3s ease;
+        }
+
+        .arrow.down {
+            transform: rotate(90deg);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Информация о ссылке</h1>
+
+        <div class="section">
+            <div class="section-header" onclick="toggleSection(this)">
+                Ссылка №{{ link.id }}
+                <span class="arrow">▶</span>
+            </div>
+            <div class="section-content">
+                <div class="item"><span class="label">ID:</span> <span class="value">{{ link.id }}</span></div>
+                <div class="item"><span class="label">Пользователь:</span> <span class="value">{{ link.user_id }}</span></div>
+                <div class="item"><span class="label">Истекает:</span> <span class="value">{{ link.expires_at }}</span></div>
+            </div>
+        </div>
+
+        <div class="section">
+            <div class="section-header" onclick="toggleSection(this)">
+                Задача
+                <span class="arrow">▶</span>
+            </div>
+            <div class="section-content">
+                {% if link.task %}
+                    <div class="item"><span class="label">Описание:</span> <span class="value">{{ link.task.description }}</span></div>
+                    <div class="item"><span class="label">Срок:</span> <span class="value">{{ link.task.deadline }}</span></div>
+                    <div class="item"><span class="label">Флаг задачи:</span> <span class="value">{{ link.task.task_flag }}</span></div>
+                {% else %}
+                    <div class="no-data">Задача не прикреплена.</div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function toggleSection(header) {
+            const content = header.nextElementSibling;
+            const arrow = header.querySelector(".arrow");
+
+            if (content.style.maxHeight && content.style.maxHeight !== "0px") {
+                content.style.maxHeight = "0";
+                content.classList.remove("open");
+                arrow.classList.remove("down");
+            } else {
+                content.style.maxHeight = content.scrollHeight + "px";
+                content.classList.add("open");
+                arrow.classList.add("down");
+            }
+        }
+
+        // Если хочешь, чтобы первый блок был открыт по умолчанию:
+        window.addEventListener("DOMContentLoaded", () => {
+            const firstSection = document.querySelector(".section-content");
+            const firstArrow = document.querySelector(".section-header .arrow");
+
+            if (firstSection) {
+                firstSection.style.maxHeight = firstSection.scrollHeight + "px";
+                firstSection.classList.add("open");
+                if (firstArrow) firstArrow.classList.add("down");
+            }
+        });
+    </script>
+</body>
+</html>

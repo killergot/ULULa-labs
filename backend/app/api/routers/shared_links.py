@@ -1,7 +1,7 @@
 from idlelib.window import add_windows_to_menu
 from uuid import UUID
 
-from fastapi import Depends, status, HTTPException
+from fastapi import Depends, status, HTTPException,Request
 from fastapi.routing import APIRouter
 
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -32,6 +32,12 @@ async def get_all_my(user = Depends(get_current_user),
 async def get_shared_link(token: UUID,
                           service: SharedLinkService = Depends(get_shared_links_service)):
     return await service.get_by_token(token)
+
+@router.get("/pretty/{token}", status_code=status.HTTP_200_OK)
+async def get_shared_link(token: UUID,
+                          request: Request,
+                          service: SharedLinkService = Depends(get_shared_links_service)):
+    return await service.pretty_token(request,token)
 
 @router.delete("/{link_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_shared_link(link_id: int,

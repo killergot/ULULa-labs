@@ -1,0 +1,7 @@
+# .bandit.yml
+exclude_dirs:
+  - .venv           # Пропустить виртуальное окружение
+
+exclude_files:
+  - .env
+  - .env.example
