@@ -166,6 +166,17 @@
     </div>
 
 
+    <div v-if="showNotificationModal" class="modal-overlay">
+      <div class="modal">
+        <h2>{{ notificationSuccess ? 'Success' : 'Error' }}</h2>
+        <p>{{ notificationMessage }}</p>
+        <div class="modal-actions">
+          <button @click="closeNotificationModal">OK</button>
+        </div>
+      </div>
+    </div>
+
+
 </div>
     
 </template>
@@ -202,8 +213,11 @@ export default {
       showChangePasswordModal: false,
       passwordForm: {
         old_password: '',
-        new_password: ''
-      }
+        new_password: '',
+      },
+      showNotificationModal: false,
+      notificationMessage: '',
+      notificationSuccess: true
     }
   },
   computed: {
@@ -327,6 +341,7 @@ export default {
           };
 
             console.log('User updated:', response.data);
+            this.showNotification('Profile updated successfully', true);
           }
         }
         else {
@@ -345,11 +360,13 @@ export default {
           };
             
             console.log('User updated:', response.data);
+            this.showNotification('Profile updated successfully', true);
           }
         }
 
       } catch (error) {
         console.error('Failed to update user:', error);
+        this.showNotification('Profile update failed', false);
       }
     },
     
@@ -420,11 +437,21 @@ export default {
         const response = await api.patch('/users', payload);
         if (response.status === 200) {
           this.closeChangePasswordModal();
+          this.showNotification('Password changed successfully', true);
         }
       } catch (err) {
         console.error('Change password failed:', err);
+        this.showNotification('Password change failed', false);
       }
     },
+    showNotification(message, success) {
+      this.notificationMessage = message;
+      this.notificationSuccess = success;
+      this.showNotificationModal = true;
+    },
+    closeNotificationModal() {
+      this.showNotificationModal = false;
+    }
   }
 }
 
