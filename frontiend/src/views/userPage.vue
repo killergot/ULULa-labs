@@ -301,7 +301,7 @@ export default {
     },
      async submitRequiredData() {
       try {
-        if (this.requiredRole === STUDENT_ROLE) {
+        if (this.requiredRole & STUDENT_ROLE) {
           await api.post('/students', {
             full_name: this.requiredForm.full_name,
             group_number: this.requiredForm.group_number
