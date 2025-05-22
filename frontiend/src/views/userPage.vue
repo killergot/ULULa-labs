@@ -249,6 +249,11 @@ export default {
             achievements: student_response.data.achievements,
             telegram: student_response.data.telegram
           };
+
+          if (!data.full_name || !data.group_number) {
+            this.showNotification('Full name and group number are required to use Ulula Labs', false);
+          }
+
         }
         else {
           const teacher_response = await api.get('/teachers/me');
@@ -263,6 +268,11 @@ export default {
             achievements: null,
             telegram: teacher_response.data.telegram
           };
+
+          if (!data.FIO) {
+            this.showNotification('Full name is required to use Ulula Labs', false);
+          }
+
         }
       } catch (error) {
         console.error('Failed to fetch user:', error);

@@ -177,6 +177,32 @@
 
     },
     methods: {
+      async checkProfileComplete() {
+        try {
+          const userResp = await api.get('/users/get_me');
+          if (userResp.status !== 200) throw new Error();
+          const role = userResp.data.role;
+
+          if (role === 2) { 
+            const stud = await api.get('/students/me');
+          if (
+            stud.status !== 200 ||
+            !stud.data.full_name ||
+            !stud.data.group_number
+            ) {
+            return this.$router.replace({ name: 'userPage' });
+          }
+          } else if (role === 1) { 
+            const teach = await api.get('/teachers/me');
+          if (teach.status !== 200 || !teach.data.FIO) {
+          return this.$router.replace({ name: 'userPage' });
+          }
+          }
+          return Promise.resolve();
+        } catch {
+          return this.$router.replace({ name: 'userPage' });
+        }
+      },
       async fetchTasks(){
         try {
           const response = await api.get('tasks/get_tasks_for_me');
@@ -323,9 +349,10 @@
         return diffInDays < 0 || diffInDays <= 3;
       }
     },
-    mounted(){
-      this.fetchTasks();
-    }
+    created() {
+      this.checkProfileComplete()
+      .then(() => this.fetchTasks());
+    },
   };
   </script>
   
