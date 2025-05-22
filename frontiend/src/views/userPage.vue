@@ -84,7 +84,7 @@
               <div
                 v-for="session in sessions"
                 :key="session.id"
-                class="session-item"
+                :class="['session-item', { 'current-session': session.token === currentToken }]"
               >
                 <span>{{ formatDate(session.created_at) }}</span>
                 <span>Token: ...{{ shortToken(session.token) }}</span>
@@ -229,7 +229,12 @@ export default {
     }
   },
   computed: {
-    isStudent() { return this.userRole === STUDENT_ROLE; }
+    isStudent() { 
+      return this.userRole === STUDENT_ROLE; 
+    },
+    currentToken() {
+      return getRefreshToken();
+    }
   },
   created() {
     this.fetchGroups();
@@ -700,7 +705,6 @@ button {
   display: flex;
   justify-content: space-between;
   align-items: center;
-
   font-size: 1.2rem;
   background: #fff;
   border: 1px solid #ccc;
@@ -710,11 +714,13 @@ button {
   box-shadow: 0 1px 3px rgba(0,0,0,0.1);
   transition: background-color 0.2s ease;
 }
-
 .session-item:hover {
   background-color: #f0f8ff;
 }
-
+.current-session {
+  background-color: #e0f7ff;
+  border-color: #00aaff;
+}
 .delete-session {
   background: transparent;
   border: none;
