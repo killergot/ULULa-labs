@@ -137,45 +137,29 @@
       </div>
     </div>
 
-    <div v-if="showChangePasswordModal" class="modal-overlay">
+    <div v-if="showRequiredDataModal" class="modal-overlay">
       <div class="modal">
-        <h2>User Password Change</h2>
-        <div class="edit-field">
-          <label for="old-password">Old Password</label>
-          <input
-            id="old-password"
-            v-model="passwordForm.old_password"
-            type="password"
-            class="task-input"
-          />
+        <h2>Please enter the necessary information to work in Ulula Labs</h2>
+        <div v-if="requiredRole === STUDENT_ROLE" class="edit-field">
+          <label for="req-fullname" class="field-label">Full Name</label>
+          <input id="req-fullname" v-model="requiredForm.full_name" type="text" class="task-input" />
         </div>
-        <div class="edit-field">
-          <label for="new-password">New Password</label>
-          <input
-            id="new-password"
-            v-model="passwordForm.new_password"
-            type="password"
-            class="task-input"
-          />
+        <div v-if="requiredRole === STUDENT_ROLE" class="edit-field">
+          <label for="req-group" class="field-label">Group</label>
+          <select id="req-group" v-model="requiredForm.group_number" class="task-input">
+            <option value="" disabled>Select group</option>
+            <option v-for="g in groups" :key="g.id" :value="g.number">{{ g.number }}</option>
+          </select>
+        </div>
+        <div v-if="requiredRole === TEACHER_ROLE" class="edit-field">
+          <label for="req-fio" class="field-label">Full Name</label>
+          <input id="req-fio" v-model="requiredForm.FIO" type="text" class="task-input" />
         </div>
         <div class="modal-actions">
-          <button @click="closeChangePasswordModal">Cancel</button>
-          <button @click="submitChangePassword">OK</button>
+          <button @click="submitRequiredData">Confirm</button>
         </div>
       </div>
     </div>
-
-
-    <div v-if="showNotificationModal" class="modal-overlay">
-      <div class="modal">
-        <h2>{{ notificationSuccess ? 'Success' : 'Error' }}</h2>
-        <p>{{ notificationMessage }}</p>
-        <div class="modal-actions">
-          <button @click="closeNotificationModal">OK</button>
-        </div>
-      </div>
-    </div>
-
 
 </div>
     
@@ -194,6 +178,8 @@ export default {
   name: 'UserPage',
   data() {
     return {
+      STUDENT_ROLE: STUDENT_ROLE,
+      TEACHER_ROLE: TEACHER_ROLE,
       user: {
         fullName: '',
         group: '',
@@ -210,20 +196,16 @@ export default {
       defaultAvatar,  
       showModal: false,
       showDeleteModal: false,
-      showChangePasswordModal: false,
-      passwordForm: {
-        old_password: '',
-        new_password: '',
-      },
-      showNotificationModal: false,
-      notificationMessage: '',
-      notificationSuccess: true
+      showRequiredDataModal: false,
+      requiredRole: null,
+      requiredForm: { full_name: '', group_number: '', FIO: '' }
     }
   },
   computed: {
     isStudent() { return this.userRole === STUDENT_ROLE; }
   },
   created() {
+    this.fetchGroups();
     this.fetchUser();
     this.fetchSessions();
   },
@@ -249,11 +231,6 @@ export default {
             achievements: student_response.data.achievements,
             telegram: student_response.data.telegram
           };
-
-          if (!data.full_name || !data.group_number) {
-            this.showNotification('Full name and group number are required to use Ulula Labs', false);
-          }
-
         }
         else {
           const teacher_response = await api.get('/teachers/me');
@@ -268,15 +245,41 @@ export default {
             achievements: null,
             telegram: teacher_response.data.telegram
           };
-
-          if (!data.FIO) {
-            this.showNotification('Full name is required to use Ulula Labs', false);
-          }
-
         }
       } catch (error) {
-        console.error('Failed to fetch user:', error);
+        const resp = error.response;
+        if (resp && resp.status === 404) {
+          this.requiredRole = this.userRole || (await this.detectRole());
+          this.showRequiredDataModal = true;
+        } else {
+          console.error(error);
+        }
       }        
+    },
+    async detectRole() {
+      try { 
+        await api.get('/students/me'); 
+        return STUDENT_ROLE; 
+      }
+      catch {
+         return TEACHER_ROLE; 
+      }
+    },
+     async submitRequiredData() {
+      try {
+        if (this.requiredRole === STUDENT_ROLE) {
+          await api.post('/students', {
+            full_name: this.requiredForm.full_name,
+            group_number: this.requiredForm.group_number
+          });
+        } else {
+          await api.post('/teachers/register', { FIO: this.requiredForm.FIO });
+        }
+        this.showRequiredDataModal = false;
+        this.fetchUser();
+      } catch (err) {
+        console.error('Registration failed', err);
+      }
     },
 
     async fetchSessions() {
@@ -351,7 +354,6 @@ export default {
           };
 
             console.log('User updated:', response.data);
-            this.showNotification('Profile updated successfully', true);
           }
         }
         else {
@@ -370,13 +372,11 @@ export default {
           };
             
             console.log('User updated:', response.data);
-            this.showNotification('Profile updated successfully', true);
           }
         }
 
       } catch (error) {
         console.error('Failed to update user:', error);
-        this.showNotification('Profile update failed', false);
       }
     },
     
@@ -430,38 +430,7 @@ export default {
   shortToken(token) {
     if (!token) return '–';
     return token.slice(-10);
-  },
-  handleChangePassword() {
-      this.passwordForm = { old_password: '', new_password: '' };
-      this.showChangePasswordModal = true;
-    },
-    closeChangePasswordModal() {
-      this.showChangePasswordModal = false;
-    },
-    async submitChangePassword() {
-      try {
-        const payload = {
-          old_password: this.passwordForm.old_password,
-          new_password: this.passwordForm.new_password
-        };
-        const response = await api.patch('/users', payload);
-        if (response.status === 200) {
-          this.closeChangePasswordModal();
-          this.showNotification('Password changed successfully', true);
-        }
-      } catch (err) {
-        console.error('Change password failed:', err);
-        this.showNotification('Password change failed', false);
-      }
-    },
-    showNotification(message, success) {
-      this.notificationMessage = message;
-      this.notificationSuccess = success;
-      this.showNotificationModal = true;
-    },
-    closeNotificationModal() {
-      this.showNotificationModal = false;
-    }
+  }
   }
 }
 
@@ -758,55 +727,61 @@ button {
 }
 
 
-.modal-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(0,0,0,0.4);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 1000;
+.modal-overlay { 
+  position: fixed; 
+  top: 0; 
+  left: 0; 
+  width: 100%; 
+  height: 100%; 
+  background: rgba(0,0,0,0.4); 
+  display: flex; 
+  align-items: center; 
+  justify-content: center; 
+  z-index: 1000; 
 }
 .modal {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  width: 45%;
-  /* min-width: 250px; */
-  max-width: 60%;
+  background: #fff;
   padding: 24px;
-  box-sizing: border-box;
-  background: #ffffff;
   border-radius: 8px;
+  width: 90%;
+  max-width: 500px;
   box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-}
-.edit-field {
   display: flex;
   flex-direction: column;
-  margin-bottom: 16px;
+  align-items: center;
 }
-.task-input {
-  width: 100%;
-  padding: 8px 12px;
-  font-size: 16px;
-  border-radius: 4px;
-  box-sizing: border-box;
-  resize: vertical;
-  height: auto;
-  background: #f5f5f5;
-  border: 1px solid #ddd;
-}
-.modal h2 { 
-  margin-top: 0; 
-  margin-bottom: 12px; 
+.modal h2 {
+  margin-bottom: 20px;
+  font-size: 1.5rem;
+  text-align: center;
 }
 .modal p { 
   font-size: 1.2rem;
   margin-bottom: 8px; 
+}
+.edit-field {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 16px;
+}
+.field-label {
+  font-size: 1.1rem;
+  margin-bottom: 8px;
+  text-align: left;
+  padding-left: 4px;
+}
+.edit-field label {
+  font-size: 1.2rem;
+  margin-bottom: 8px;
+}
+.task-input {
+  width: 100%;
+  font-size: 1.1rem;
+  padding: 8px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  box-sizing: border-box;
 }
 .modal-input { 
   width: 100%; 

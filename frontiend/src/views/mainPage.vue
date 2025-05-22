@@ -142,6 +142,9 @@
   <script>
   import api from '@/services/api';
 
+  const TEACHER_ROLE = 1
+  const STUDENT_ROLE = 2
+
   export default {
     name: 'TaskManager',
     data() {
@@ -183,7 +186,7 @@
           if (userResp.status !== 200) throw new Error();
           const role = userResp.data.role;
 
-          if (role === 2) { 
+          if (role === STUDENT_ROLE) { 
             const stud = await api.get('/students/me');
           if (
             stud.status !== 200 ||
@@ -192,10 +195,10 @@
             ) {
             return this.$router.replace({ name: 'userPage' });
           }
-          } else if (role === 1) { 
+          } else if (role === TEACHER_ROLE) { 
             const teach = await api.get('/teachers/me');
           if (teach.status !== 200 || !teach.data.FIO) {
-          return this.$router.replace({ name: 'userPage' });
+            return this.$router.replace({ name: 'userPage' });
           }
           }
           return Promise.resolve();
