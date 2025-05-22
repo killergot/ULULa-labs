@@ -218,19 +218,19 @@
       const data = await response.json();
   
   
-      if (response.ok) 
-      {
-        if (this.action === 'signin') {
-          if (data.session_token) {
-            // Сохраняем токен в localStorage
-            localStorage.setItem('session_token', data.session_token);
+      if (response.ok) {
+            if (this.action === 'signin') {
+              localStorage.setItem('session_token', data.session_token || '');
+              this.showTwoFactor = true;
+            } else if (this.action === 'signup') {
+              this.messageTitle = 'Sign up Successful';
+              this.messageText = 'Registration completed successfully';
+              this.showMessage = true;
+            }
+          } else {
+            this.messageText = 'signin' ? 'Sign in Failed' : 'Sign up Failed';
+            this.showMessage = true;
           }
-          this.showTwoFactor = true;
-        }
-  
-      } else {
-        console.error('Error:', data.message);
-      }
     } catch (error) {
       console.error('Error:', error);
     } finally {
