@@ -16,7 +16,7 @@
         </ul>
       </nav>
 
-      <hr class="divider">
+      <!-- <hr class="divider">
 
       <div class="folders-section">
         <ul>
@@ -26,7 +26,7 @@
           </li>
         </ul>
         <button @click="addFolder" class="add-folder-btn">+ folder</button>
-      </div>
+      </div> -->
     </div>
 
 
