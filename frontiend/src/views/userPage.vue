@@ -185,6 +185,14 @@
       </div>
     </div>
 
+
+    <div v-if="showMessage" class="modal-overlay">
+        <div class="modal">
+          <span class="close-button" @click="closeMessage">&times;</span>
+          <p class="message-text">{{ messageText }}</p>
+        </div>
+      </div>
+
 </div>
     
 </template>
@@ -226,6 +234,8 @@ export default {
       requiredForm: { full_name: '', group_number: '', FIO: '' },
       sharedLinks: [],
       sharedBaseUrl: 'http://127.0.0.1:8000' + '/shared_links/pretty',
+      showMessage: false,
+      messageText: ''
     }
   },
   computed: {
@@ -301,18 +311,38 @@ export default {
     },
      async submitRequiredData() {
       try {
-        if (this.requiredRole & STUDENT_ROLE) {
-          await api.post('/students', {
+        let response;
+
+        if (this.requiredRole === this.STUDENT_ROLE) {
+          response = await api.post('/students', {
             full_name: this.requiredForm.full_name,
             group_number: this.requiredForm.group_number
           });
-        } else {
-          await api.post('/teachers/register', { FIO: this.requiredForm.FIO });
+        } else if (this.requiredRole === this.TEACHER_ROLE) {
+          response = await api.post('/teachers/register', {
+            FIO: this.requiredForm.FIO
+          });
         }
-        this.showRequiredDataModal = false;
-        this.fetchUser();
+
+
+        if (response.status !== 201) {
+          this.messageText = 'The required data could not be saved. Please try again';
+          this.showMessage = true;
+          throw new Error(`Unexpected status ${response ? response.status : 'no response'}`);
+        }
+        else {
+          this.showRequiredDataModal = false;
+          this.fetchUser();
+        }
+
+        
+
       } catch (err) {
-        console.error('Registration failed', err);
+        console.error('submitRequiredData failed:', err);
+        if (!this.showMessage) {
+          this.messageText = 'The required data could not be saved. Please try again';
+          this.showMessage = true;
+        }
       }
     },
 
@@ -375,7 +405,12 @@ export default {
         if (this.isStudent) {
           const response = await api.put('/students/me', payload);
 
-          if (response.status !== 200) throw new Error(`Error ${response.status}`);
+          if (response.status !== 200) {
+            this.messageText = 'An error occurred while updating user information';
+            this.showMessage = true;
+            throw new Error(`Error ${response.status}`);
+          }
+          
           else {
             this.user = {
             fullName: response.data.full_name,
@@ -387,13 +422,20 @@ export default {
             telegram: response.data.telegram
           };
 
+            this.messageText = 'User information has been successfully updated';
+            this.showMessage = true;
+
             console.log('User updated:', response.data);
           }
         }
         else {
           const response = await api.put('/teachers/me', payload);
 
-          if (response.status !== 200) throw new Error(`Error ${response.status}`);
+          if (response.status !== 200) {
+            this.messageText = 'An error occurred while updating user information';
+            this.showMessage = true;
+            throw new Error(`Error ${response.status}`);
+          }
           else {
             this.user = {
             fullName: response.data.FIO,
@@ -404,6 +446,9 @@ export default {
             achievements: null,
             telegram: response.data.telegram
           };
+
+          this.messageText = 'User information has been successfully updated';
+          this.showMessage = true;
             
             console.log('User updated:', response.data);
           }
@@ -506,6 +551,10 @@ export default {
   },
   shortToken(token) {
     return token ? token.slice(-10) : '–';
+  },
+  closeMessage() {
+    this.showMessage = false;
+    this.messageText = '';
   }
   }
 }
@@ -817,6 +866,7 @@ button {
   z-index: 1000; 
 }
 .modal {
+  position: relative;
   background: #fff;
   padding: 24px;
   border-radius: 8px;
@@ -889,6 +939,24 @@ button {
 .modal-actions button:first-of-type { 
   background: #ccc; 
   color: #000; 
+}
+.modal button:hover {
+  background: #007BA5;
+}
+.modal .close-button {
+  color: #000000;
+  position: absolute;
+  top: 1px;
+  right: 10px;
+  cursor: pointer;
+  font-size: 36px;
+}
+.message-text {
+  font-size: 27px;
+  font-family: 'Raleway', sans-serif;
+  font-weight: bold;
+  margin-bottom: 10px;
+  text-align: center;
 }
 .shared-links-container { margin-top: 24px; }
 .link-info { 
