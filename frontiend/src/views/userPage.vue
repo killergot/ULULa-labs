@@ -225,7 +225,7 @@ export default {
       requiredRole: null,
       requiredForm: { full_name: '', group_number: '', FIO: '' },
       sharedLinks: [],
-      sharedBaseUrl: 'http://127.0.0.1:8000' + '/shared_links/pretty',
+      sharedBaseUrl: 'http://185.95.159.198/api' + '/shared_links/pretty',
     }
   },
   computed: {

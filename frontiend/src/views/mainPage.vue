@@ -345,7 +345,7 @@
         const response = await api.post('/shared_links', payload);
         if (response.status === 201) {
           const token = response.data.token;
-          this.shareLink = `http://127.0.0.1:8000/shared_links/pretty/${token}`;
+          this.shareLink = `http://185.95.159.198/api/shared_links/pretty/${token}`;
           this.shareError = '';
           this.showShareModal = true;
         } else {

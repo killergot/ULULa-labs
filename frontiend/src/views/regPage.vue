@@ -5,7 +5,7 @@
   
         <h1 class="project-name">ULULa</h1>
   
-        <a href="http://127.0.0.1:8000/auth/login_oauth" class="oauth-button">
+        <a href="http://185.95.159.198/api/auth/login_oauth" class="oauth-button">
            Login with OAuth
         </a>
   
@@ -82,6 +82,7 @@
   
   <script>
   import { saveTokens } from '@/utils/token'
+  import api from '@/services/api';
 
   const TEACHER_ROLE = 1
   const STUDENT_ROLE = 2
@@ -182,7 +183,7 @@
     this.isLoading = true;
   
     try {
-      let url = 'http://127.0.0.1:8000/auth';
+      let url = 'auth';
       let payload = {};
       var response = 0;
       if (this.action === 'signin') {
@@ -191,13 +192,7 @@
           email: this.email,
           password: this.password
         };
-        response = await fetch(url, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(payload)
-      });
+        response = await api.post(url, payload);
       }
       if (this.action === 'signup') {
         url += '/signup';
@@ -206,19 +201,13 @@
           password: this.password,
           role: this.selectedRole
         };
-        response = await fetch(url, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(payload)
-      });
+        response = await api.post(url, payload);
     }
       
-      const data = await response.json();
+      const data = response.data
   
   
-      if (response.ok) {
+      if (response.status < 400) {
             if (this.action === 'signin') {
               localStorage.setItem('session_token', data.session_token || '');
               this.showTwoFactor = true;
@@ -251,15 +240,9 @@
           code: this.twoFactorCode,
         };
         
-      const response = await fetch('http://127.0.0.1:8000/auth/verify-2fa', {
-      method: 'POST',
-      headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(payload)
-    });
-    if (response.ok) {
-        const data = await response.json();
+      const response = await api.post('auth/verify-2fa', payload);
+    if (response.status < 400) {
+        const data = response.data
         this.showTwoFactor = false;
         this.twoFactorCode = '';
         saveTokens({
