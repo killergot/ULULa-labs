@@ -40,7 +40,8 @@ async def get_all_users(user_service = Depends(get_user_service),
                         user = Depends(get_current_user)):
     return await user_service.get_sessions(user.id)
 
-@router.delete("/my_sessions/{session_id}", status_code=status.HTTP_204_NO_CONTENT)
+@router.delete("/my_sessions/{session_id}", status_code=status.HTTP_204_NO_CONTENT,
+               dependencies=[Depends(get_current_user)])
 async def delete_session(session_id: str, user_service = Depends(get_user_service)):
     return await user_service.delete_session(session_id)
 

@@ -17,13 +17,6 @@ router = APIRouter(prefix="/tasks", tags=["Tasks"])
 # ++ 3 Изменять задачу по id задачи
 # 4 Удалять задачу по id задачи
 
-@router.post("/create_task",
-             status_code=status.HTTP_201_CREATED,
-             summary='Create new task',
-             description='Create new task. For admins and teachers? (Now for any user).\n')
-async def create_task(new_task: TaskIn, service = Depends(get_task_service)):
-    return await service.create_task(new_task)
-
 @router.post("/create_task_for_me",
              status_code=status.HTTP_201_CREATED,
              summary='Create new task for current user',
@@ -47,13 +40,6 @@ async def get_task(service = Depends(get_task_service), user: UserOut = Depends(
     return await service.get_by_user(user.id)
 
 
-@router.get("/get_task",
-             status_code=status.HTTP_201_CREATED,
-             summary='Get task by its id',
-             description='Get task by id.\n')
-async def get_task(task_id: int, service = Depends(get_task_service)):
-    return await service.get_by_id(TaskID.model_validate({"task_id": task_id}).task_id)
-
 @router.patch("/update_task",
              status_code=status.HTTP_201_CREATED,
              summary='Update task by id',
@@ -64,6 +50,8 @@ async def update_task(task: TaskUpdate,  service: TaskService = Depends(get_task
 @router.delete("/delete_task",
              status_code=status.HTTP_201_CREATED,
              summary='Delete task by id',
-             description='Delete task by id.\n')
+             description='Delete task by id.\n',
+             dependencies = [Depends(get_current_user)]
+)
 async def delete_task(task: TaskID,  service = Depends(get_task_service)):
     return await service.delete(task.task_id)

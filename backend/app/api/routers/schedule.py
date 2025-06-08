@@ -2,6 +2,7 @@ from fastapi.routing import APIRouter
 from fastapi import Depends, status, BackgroundTasks
 from app.api.depencies.guard import get_current_user, require_role
 from app.api.depencies.services import get_schedule_service, get_student_service
+from app.services.role_service import ADMIN_ROLE
 from app.shemas.schedule import ScheduleIn, ScheduleBase, ScheduleGetIn
 from app.shemas.groups import GroupNumber
 from app.shemas.students import StudentID
@@ -29,83 +30,12 @@ router = APIRouter(prefix="/schedule", tags=["schedule"])
 
 
 
-@router.post("/load_schedule")
+@router.post("/load_schedule",
+               dependencies=[Depends(require_role(ADMIN_ROLE))])
 async def load_schedule( background_tasks: BackgroundTasks, service = Depends(get_schedule_service)):
     # Получать группы по одной из списка
     await service.load_schedule(background_tasks)
     return {"Result": "Загрузка расписания начата"}
-
-
-
-@router.post("/change_schedule_by_number",
-             status_code=status.HTTP_201_CREATED,
-             summary='Change_schedule',
-             description='Change existing schedule (For all groups schedule already exist)\n',
-             #dependencies=[Depends(get_current_user)] #заменить на закомментированную строку, чтобы работало только от админа
-             #dependencies=[Depends(require_role(1))
-)
-async def create_schedule(schedule: ScheduleIn,  service = Depends(get_schedule_service), group_service = Depends(get_group_service)):
-    # group_id = преобразовать нормер в id
-    group_id = await  group_service.get_by_number(GroupNumber.model_validate({"group_number": schedule.group_number}))
-    print (type(schedule.monday))
-    new_schedule = ScheduleBase.model_validate({"group_id": group_id, "week_number": schedule.week_number,
-                                                "monday": schedule.monday,
-                                                "tuesday":  [],
-                                                "wednesday": [],
-                                                "thursday":  [],
-                                                "friday":  [],
-                                                "saturday":  [],
-                                                "sunday":  []
-                                                })
-    return await service.create_schedule(new_schedule)
-
-
-@router.post("/change_schedule_by_id",
-             status_code=status.HTTP_201_CREATED,
-             summary='Change_schedule',
-             description='Change existing schedule (For all groups schedule already exist)\n',
-             #dependencies=[Depends(get_current_user)] #заменить на закомментированную строку, чтобы работало только от админа
-             #dependencies=[Depends(require_role(1))
-)
-async def create_schedule(schedule: ScheduleBase,  service = Depends(get_schedule_service)):
-    return await service.create_schedule(schedule)
-
-
-
-@router.delete("/delete_schedule_by_id",
-             status_code=status.HTTP_200_OK,
-             summary='Delete schedule',
-             description='Delete schedule by group number.\n',
-             dependencies=[Depends(get_current_user)] #заменить на закомментированную строку, чтобы работало только от админа
-             #dependencies=[Depends(require_role(1))
-)
-async def delete_schedule(group_id: int, service = Depends(get_schedule_service)):
-    return await service.delete_schedule(group_id)
-
-
-@router.delete("/delete_schedule_by_number",
-             status_code=status.HTTP_200_OK,
-             summary='Delete schedule',
-             description='Delete schedule by group number.\n',
-             dependencies=[Depends(get_current_user)] #заменить на закомментированную строку, чтобы работало только от админа
-             #dependencies=[Depends(require_role(1))
-)
-async def delete_schedule(group_number: str, service = Depends(get_schedule_service), group_service = Depends(get_group_service)):
-    group_id = await  group_service.get_by_number(GroupNumber.model_validate({"group_number": group_number}))
-    return await service.delete_schedule(group_id)
-
-
-
-@router.get("/get_all",
-             status_code=status.HTTP_200_OK,
-             summary='Get all schedule',
-             description='Get all schedule.\n',
-             dependencies=[Depends(get_current_user)] #заменить на закомментированную строку, чтобы работало только от админа
-             #dependencies=[Depends(require_role(1))
-)
-async def get_all(service = Depends(get_schedule_service)):
-       return await service.get_all()
-
 
 
 @router.get("/get_by_id/{group_id}&{week_number}",

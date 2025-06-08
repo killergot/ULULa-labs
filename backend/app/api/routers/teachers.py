@@ -6,6 +6,7 @@ from typing import Optional
 
 from app.database.models.achievent import Achievement
 from app.api.depencies.guard import get_current_user, require_role
+from app.services.role_service import TEACHER_ROLE
 from app.services.teacher_service import TeacherService
 from app.shemas.teachers import FIO, WeekNumber, TeacherUpdateIn
 from app.shemas.teacher_subject import SubjectName, TeacherSubjectBase
@@ -60,7 +61,8 @@ async def update_student(new_teacher: TeacherUpdateIn,
 @router.get("/schedules/{week_number}&{FIO}",
              status_code=status.HTTP_200_OK,
              summary='Get schedule for teacher',
-             description='Get schedule for any teacher.\n')
+             description='Get schedule for any teacher.\n',
+             dependencies=[Depends(require_role(TEACHER_ROLE))])
 # добавить зависимость для зареганного юзера
 async def get_schedule(week_number_schema: WeekNumber=Depends(get_week_number),  FIO_schema: FIO=Depends(get_FIO), service = Depends(get_teacher_service))->dict:
     return await service.get_schedule_by_FIO(FIO_schema.FIO, week_number_schema.week_number)
@@ -71,7 +73,8 @@ async def get_schedule(week_number_schema: WeekNumber=Depends(get_week_number), 
 @router.get("/schedules/{week_number}",
              status_code=status.HTTP_200_OK,
              summary='Get my schedule',
-             description='Get schedule for current teacher.\n')
+             description='Get schedule for current teacher.\n',
+             dependencies=[Depends(require_role(TEACHER_ROLE))])
 async def get_schedule(week_number_schema: WeekNumber=Depends(get_week_number), teacher: UserOut = Depends(get_current_user), service = Depends(get_teacher_service))->dict:
     return await service.get_schedule(teacher.id, week_number_schema.week_number)
 
@@ -80,7 +83,8 @@ async def get_schedule(week_number_schema: WeekNumber=Depends(get_week_number), 
 @router.get("/subjects_for_teacher/{FIO}",
              status_code=status.HTTP_200_OK,
              summary='Get subjects for any teacher',
-             description='Get subjects for current teacher.\n')
+             description='Get subjects for current teacher.\n',
+             dependencies=[Depends(require_role(TEACHER_ROLE))])
 async def get_subjects(FIO_schema: FIO=Depends(get_FIO), service = Depends(get_teacher_service))->list[str]:
     return await service.get_subjects_by_FIO(FIO_schema.FIO)
 
