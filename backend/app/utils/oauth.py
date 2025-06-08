@@ -5,7 +5,7 @@ config = load_config()
 
 YANDEX_CLIENT_ID = "a9e81891c8c742dc8cf988a6816424a6"
 YANDEX_CLIENT_SECRET = config.secret_keys.yandex
-REDIRECT_URI = "http://localhost:8000/auth/callback"
+REDIRECT_URI = "http://185.95.159.198/api/auth/callback"
 
 oauth = OAuth()
 oauth.register(

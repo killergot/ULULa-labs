@@ -9,7 +9,7 @@ from app.repositoryes.user_repository import UserRepository
 from app.repositoryes.user_session_repository import UserSessionRepository
 from app.utils.hash import get_hash
 from app.core.security import create_access_token, create_refresh_token
-from app.shemas.auth import UserIn, UserOut, TokenOut, UserLogin, TwoFactorIn, TwoFactorOut
+from app.shemas.auth import UserIn, UserOut, TokenOut, UserLogin, TwoFactorIn, TwoFactorOut, UserBase
 from app.utils.twafa import generate_2fa_code, generate_session_token, send_2fa_email
 
 
@@ -31,6 +31,20 @@ class AuthService:
                                           user.role)
 
         return UserOut.model_validate(new_user)
+
+    async def login_oauth(self, user: UserBase, ):
+        user = await self.repo.get_by_email(user.email)
+        if not user:
+            user = self.repo.create(
+                email=user.email,
+                password=get_hash('123'),
+                role=user.role,
+                auth_provider=user.auth_provider,
+                provider_id=user.provider_id
+            )
+        access_token = create_access_token(user.id, user.email, user.role)
+        refresh_token = create_refresh_token(user.id)
+
 
 
     async def login(self, test_user: UserLogin, bg_tasks):
