@@ -6,6 +6,7 @@ from app.database.models.students import Student
 from app.database.models.subjects import Subject
 from app.database.models.tasks import Task
 from app.database.models.teachers import Teacher
+from app.database import TwoFactorCode
 
 
 # Определяем админ-представление
@@ -37,9 +38,11 @@ class FilesAdmin(ModelView, model=GroupFile):
                    'group.group_number',
                    'subject.name']
 
-class SessionAdmin(ModelView, model=UserSession):
-    column_list = ['user.id',
-                   UserSession.token]
+class SessionAdmin(ModelView, model=TwoFactorCode):
+    column_list = [TwoFactorCode.code,
+                   'user.email']
+
+class TwoFa(ModelView, model = TwoFa)
 
 
 
