@@ -44,10 +44,10 @@ services:
   frontend:
     build:
       context: ./frontiend
-    container_name: vue_appp
-    restart: unless-stopped
-    depends_on:
-      - backend
+      dockerfile: Dockerfile
+    volumes:
+      - ./frontiend:/app  # для разработки (HMR)
+      - ./frontiend/dist:/app/dist  # сборка появляется на хосте
 
   nginx:
     image: nginx:alpine
@@ -56,6 +56,7 @@ services:
       - "80:80"
       - "443:443"
     volumes:
+      - ./frontiend/dist:/usr/share/nginx/html  # монтируем с хоста
       - ./nginx.conf:/etc/nginx/nginx.conf
       - ./ssl:/etc/nginx/ssl  # Папка с SSL сертификатами
     depends_on:
