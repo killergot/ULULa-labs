@@ -15,9 +15,9 @@ class AdminAuthMiddleware(BaseHTTPMiddleware):
             # Получаем токен из cookie
             token = request.cookies.get("admin_token")
             if not token:
-                raise HTTPException(
+                return JSONResponse(
                     status_code=status.HTTP_401_UNAUTHORIZED,
-                    detail="Not authenticated",
+                    content={"detail": "Not authenticated"},
                 )
 
             # Проверяем токен
@@ -26,9 +26,15 @@ class AdminAuthMiddleware(BaseHTTPMiddleware):
                 user_service = UserService(AsyncSessionLocal())
                 user = await get_current_user(payload=payload, service=user_service)
                 if not user.role & 4:
-                    raise HTTPException(status_code=403, detail="Forbidden")
+                    return JSONResponse(
+                            status_code=status.HTTP_403_FORBIDDEN,
+                            content={"detail": "Forbidden"},
+                        )
                 request.state.user = user
             except Exception as e:
-                raise HTTPException(status_code=403, detail=str(e))
+                return JSONResponse(
+                            status_code=status.HTTP_403_FORBIDDEN,
+                            content={"detail": "Forbidden"},
+                        )
 
         return await call_next(request)
