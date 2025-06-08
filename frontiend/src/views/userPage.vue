@@ -112,7 +112,7 @@
       </div>
 
       <button @click="openModal">Change profile photo</button>
-      <button @click="openDeleteModal" :disabled="!user.avatarUrl">Delete profile photo</button>
+      <!-- <button @click="openDeleteModal" :disabled="!user.avatarUrl">Delete profile photo</button> -->
 
       <input
         ref="fileInput"
@@ -185,6 +185,37 @@
       </div>
     </div>
 
+    <div v-if="showChangePasswordModal" class="modal-overlay">
+      <div class="modal">
+        <h2>Change Password</h2>
+
+        <div class="edit-field">
+          <label class="field-label">Old Password</label>
+          <input
+            v-model="changePasswordForm.old_password"
+            type="password"
+            class="task-input"
+            placeholder="Enter old password"
+          />
+        </div>
+
+        <div class="edit-field">
+          <label class="field-label">New Password</label>
+          <input
+            v-model="changePasswordForm.new_password"
+            type="password"
+            class="task-input"
+            placeholder="Enter new password"
+          />
+        </div>
+
+        <div class="modal-actions">
+          <button @click="closeChangePasswordModal">Cancel</button>
+          <button @click="submitChangePassword">OK</button>
+        </div>
+      </div>
+    </div>
+
 
     <div v-if="showMessage" class="modal-overlay">
         <div class="modal">
@@ -235,7 +266,12 @@ export default {
       sharedLinks: [],
       sharedBaseUrl: 'http://127.0.0.1:8000' + '/shared_links/pretty',
       showMessage: false,
-      messageText: ''
+      messageText: '',
+      showChangePasswordModal: false,
+      changePasswordForm: {
+        old_password: '',
+        new_password: ''
+      }
     }
   },
   computed: {
@@ -496,6 +532,35 @@ export default {
         console.error('Failed to fetch tasks:', error);
       }
     },
+    async submitChangePassword() {
+      const oldPwd = this.changePasswordForm.old_password?.trim()
+      const newPwd = this.changePasswordForm.new_password?.trim()
+      if (!oldPwd || !newPwd){
+        this.messageText = 'Password input fields should not be empty'
+        this.showMessage = true
+        return;
+      }
+
+      try {
+        const payload = {
+          old_password: this.changePasswordForm.old_password,
+          new_password: this.changePasswordForm.new_password
+        }
+        const resp = await api.patch('/users', payload)
+
+        if (resp.status === 200) {
+          this.messageText = 'Password changed successfully'
+        } else {
+          this.messageText = 'Password change failed'
+        }
+      } catch (err) {
+        console.error('Change password error:', err)
+        this.messageText = 'Password change failed'
+      } finally {
+        this.showMessage = true
+        this.closeChangePasswordModal()
+      }
+    },
     getTaskText(taskId) {
       const task = this.userTasks?.find(t => t.id === taskId);
       return task ? task.text : '';
@@ -555,6 +620,14 @@ export default {
   closeMessage() {
     this.showMessage = false;
     this.messageText = '';
+  },
+  handleChangePassword() {
+    this.changePasswordForm.old_password = ''
+    this.changePasswordForm.new_password = ''
+    this.showChangePasswordModal = true
+  },
+  closeChangePasswordModal() {
+    this.showChangePasswordModal = false
   }
   }
 }
