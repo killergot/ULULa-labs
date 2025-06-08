@@ -38,11 +38,14 @@ class FilesAdmin(ModelView, model=GroupFile):
                    'group.group_number',
                    'subject.name']
 
-class SessionAdmin(ModelView, model=TwoFactorCode):
-    column_list = [TwoFactorCode.code,
-                   'user.email']
+class SessionAdmin(ModelView, model=UserSession):
+    column_list = ['user.id',
+                   'user.email',
+                   UserSession.token]
 
-class TwoFa(ModelView, model = TwoFa)
+class TwoFa(ModelView, model = TwoFactorCode):
+    column_list = [TwoFactorCode.code,
+                    'user.email']
 
 
 
@@ -56,3 +59,4 @@ def setup_admin(app, engine):
     admin.add_view(TaskAdmin)
     admin.add_view(FilesAdmin)
     admin.add_view(SessionAdmin)
+    admin.add_view(TwoFa)
