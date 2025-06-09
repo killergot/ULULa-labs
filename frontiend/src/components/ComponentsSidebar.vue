@@ -3,7 +3,7 @@
     <div :class="['panel', { collapsed }]">
       <div class="header">
         <button @click="select('Schedule')">Schedule</button>
-        <button @click="select('Calendar')">Calendar</button>
+        <!-- <button @click="select('Calendar')">Calendar</button> -->
         
         <button v-if="isStudent" @click="select('Materials')">Materials</button>
         
