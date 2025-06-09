@@ -277,6 +277,8 @@ class TeacherService:
     async def get_all_lab_work(self)->list[LabWork]:
         return await self.lab_repo.get_all()
 
+    async def get_teacher_subject_lab_works(self, teacher_id: int, subject_id: int)->list[LabWork]:
+        return await self.lab_repo.get_filtered(created_by=teacher_id, subject_id=subject_id)
 
     async def create_assignment(self, group_id: int, lab_id: int, teacher_id: int,
                                 created_at: datetime.datetime, deadline_at: datetime.datetime, status: int)->Assignment:
@@ -322,8 +324,8 @@ class TeacherService:
                                 detail="Assignment not found")
         return assignment
 
-    async def get_teacher_assignment(self, id: int)->list[Assignment]:
-        assignments = await self.assignment_repo.get_filtered(teacher_id=id)
+    async def get_teacher_assignment(self, teacher_id: int, lab_id:Optional[int]=None)->list[Assignment]:
+        assignments = await self.assignment_repo.get_filtered(teacher_id=teacher_id, lab_id= lab_id)
         return assignments
 
     async def get_all_assignment(self)->list[Assignment]:

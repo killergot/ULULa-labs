@@ -1,6 +1,6 @@
 import logging
 from typing import Optional
-from sqlalchemy import select
+from sqlalchemy import select, and_
 from sqlalchemy.orm import selectinload
 from app.database.models.lab_works import LabWork
 from app.repositoryes.template import TemplateRepository
@@ -27,3 +27,27 @@ class LabsRepository(TemplateRepository):
         result = await self.db.execute(data)
         lab = result.scalars().first()
         return lab
+
+    async def get_filtered(self, title: Optional[str] = None,
+                           description: Optional[str] = None,
+                           subject_id: Optional[int] = None,
+                           created_by: Optional[int] = None,
+                           file_id: Optional[int]=None) -> list[LabWork]:
+        data = select(LabWork)
+
+        filters = []
+        if title is not None:
+            filters.append(LabWork.title == title)
+        if description is not None:
+            filters.append(LabWork.description == description)
+        if subject_id is not None:
+            filters.append(LabWork.subject_id == subject_id)
+        if created_by is not None:
+            filters.append(LabWork.created_by == created_by)
+        if file_id is not None:
+            filters.append(LabWork.file_id == file_id)
+
+        if filters:
+            data = data.where(and_(*filters))
+        result = await self.db.execute(data)
+        return result.scalars().all()
