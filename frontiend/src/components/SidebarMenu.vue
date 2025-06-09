@@ -56,7 +56,7 @@ export default {
   },
   data() {
     return {
-      version: '1.0.1',
+      version: '1.0.2',
       pages: [
         { name: 'Home', link: '/' },
         { name: 'My profile', link: '/userPage' }
