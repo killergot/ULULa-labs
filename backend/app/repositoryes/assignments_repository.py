@@ -1,10 +1,10 @@
+import datetime
 import logging
-from typing import Optional
-from sqlalchemy import select
-from sqlalchemy.orm import selectinload
+from sqlalchemy import select, and_
 from datetime import date
 from app.database.models.assignments import Assignment
 from app.repositoryes.template import TemplateRepository
+from typing import Optional
 log = logging.getLogger(__name__)
 
 class AssignmentRepository(TemplateRepository):
@@ -35,3 +35,29 @@ class AssignmentRepository(TemplateRepository):
         result = await self.db.execute(data)
         assignment = result.scalars().first()
         return assignment
+
+    async def get_filtered(self, group_id: Optional[int] = None,
+                            lab_id: Optional[int] = None,
+                            teacher_id: Optional[int] = None,
+                            created_at: Optional[datetime.datetime] = None,
+                            deadline_at: Optional[datetime.datetime] = None,
+                            status: Optional[int] = None) -> list[Assignment]:
+        data = select(Assignment)
+
+        filters = []
+        if group_id is not None:
+            filters.append(Assignment.group_id == group_id)
+        if lab_id is not None:
+            filters.append(Assignment.lab_id == lab_id)
+        if status is not None:
+            filters.append(Assignment.status == status)
+        if teacher_id is not None:
+            filters.append(Assignment.teacher_id == teacher_id)
+        if created_at is not None:
+            filters.append(Assignment.created_at == created_at)
+        if deadline_at is not None:
+            filters.append(Assignment.deadline_at == deadline_at)
+        if filters:
+            data = data.where(and_(*filters))
+        result = await self.db.execute(data)
+        return result.scalars().all()
