@@ -12,7 +12,7 @@
         <ul>
           <li v-for="item in pages" :key="item.name">
             <router-link
-              v-if="!(isStudent && item.name === 'Lab works')"
+              v-if="item.name !== 'Lab works' || isTeacher"
               :to="item.link"
             >
               {{ item.name }}
@@ -73,8 +73,8 @@ export default {
     };
   },
   computed: {
-    isStudent() {
-      return Boolean(this.userRole & STUDENT_ROLE)
+    isTeacher() {
+      return Boolean(this.userRole & TEACHER_ROLE)
     }
   },
   created() {
