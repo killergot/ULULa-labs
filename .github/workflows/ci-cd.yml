@@ -62,4 +62,4 @@ jobs:
             cd /root/ULULa-labs/frontient
             npm run build
             cd /root/ULULa-labs
-            docker compose up  --build
+            docker compose up -d --build
