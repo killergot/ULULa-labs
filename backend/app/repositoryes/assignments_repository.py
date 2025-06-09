@@ -13,8 +13,8 @@ class AssignmentRepository(TemplateRepository):
         assignment = await self.db.execute(data)
         return assignment.scalars().all()
 
-    async def create(self, lab_id: int,
-                     group_id: int,
+    async def create(self, group_id: int,
+                     lab_id: int,
                      teacher_id: int,
                      created_at: date,
                      deadline_at: date,
