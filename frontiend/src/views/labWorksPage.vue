@@ -1,5 +1,5 @@
 <template>
-    <div class="content"> 
+    <div class="labWorkContainer"> 
         <h1>А тут будет выдача лаб</h1>
     </div>
 </template>
@@ -12,11 +12,18 @@
   
   
 <style scoped>
-.content {
-    overflow-x: auto;
-    overflow-y: auto;
-    background-color: #e3e9f0;
+.labWorkContainer {
+    position: relative;
+    height: 100vh;
+    overflow: hidden;
     min-width: 700px;
+    overflow-x: auto;
     
+}
+.content {
+    height: 100%;
+    overflow-y: auto;
+    background-color: #d9e2eb;
+    padding: 16px 56px 16px;
 }
 </style>
