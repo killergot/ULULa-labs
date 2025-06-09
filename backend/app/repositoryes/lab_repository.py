@@ -7,7 +7,7 @@ from app.repositoryes.template import TemplateRepository
 log = logging.getLogger(__name__)
 
 class LabsRepository(TemplateRepository):
-    async def get_all(self):
+    async def get_all(self)->list[LabWork]:
         data = select(LabWork)
         labs = await self.db.execute(data)
         return labs.scalars().all()
@@ -19,7 +19,7 @@ class LabsRepository(TemplateRepository):
         await self.db.refresh(new_lab)
         return new_lab
 
-    async def get(self, id: int):
+    async def get(self, id: int)->LabWork:
         data = (
             select(LabWork)
             .where(LabWork.id == id)

@@ -17,4 +17,4 @@ class Group(Base):
     group_subject: Mapped["app.database.models.group_subjects.GroupSubject"] = relationship("app.database.models.group_subjects.GroupSubject",  back_populates="group")# type: ignore
     files: Mapped[list["app.database.models.group_files.GroupFile"]] = relationship(
         "app.database.models.group_files.GroupFile", back_populates="group", cascade="all, delete-orphan")
-
+    assignment: Mapped["database.models.assignments.Assignment"] = relationship( "database.models.assignments.Assignment",back_populates="group")

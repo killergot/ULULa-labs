@@ -1,5 +1,9 @@
+import datetime
+
 from fastapi import  HTTPException, status
 from typing import Optional
+
+from watchfiles import awatch
 
 from app.repositoryes.teacher_repository import Repository
 from app.repositoryes.teacher_schedule_repository import Repository as TeacherScheduleRepository
@@ -10,14 +14,16 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.repositoryes.achievements_repository import AchivementRepository
 from app.repositoryes.lab_repository import LabsRepository
 from app.repositoryes.user_repository import UserRepository
+from app.repositoryes.assignments_repository import AssignmentRepository
 from app.repositoryes.group_files_repository import GroupFilesRepository
+from app.repositoryes.group_repository import Repository as GroupRepository
 from app.database import TeacherSubject
 
 from app.shemas.teachers import TeacherOut, TeacherUpdateIn
 from app.utils.get_schedule import get_teacher_schedule
 from app.database.models.achievent import Achievement
 from app.database.models.lab_works import LabWork
-
+from app.database.models.assignments import Assignment
 class TeacherService:
     def __init__(self, db: AsyncSession):
         self.repo = Repository(db)
@@ -29,7 +35,8 @@ class TeacherService:
         self.user_repo = UserRepository(db)
         self.lab_repo = LabsRepository(db)
         self.file_repo = GroupFilesRepository(db)
-
+        self.assignment_repo = AssignmentRepository(db)
+        self.group_repo = GroupRepository(db)
     async def create_teacher(self, teacher):
         if await self.repo.get_by_id(teacher['id']):
             raise HTTPException(status_code=status.HTTP_409_CONFLICT,
@@ -265,3 +272,39 @@ class TeacherService:
 
     async def get_all_lab_work(self)->list[LabWork]:
         return await self.lab_repo.get_all()
+
+
+    async def create_assignment(self, group_id: int, lab_id: int, teacher_id: int,
+                                created_at: datetime.datetime, deadline_at: datetime.datetime, status: int)->Assignment:
+        group = await self.group_repo.get_by_id(group_id)
+        if not group:
+            raise HTTPException(status_code=404,
+                                    detail="Group not found")
+        lab = await self.lab_repo.get(lab_id)
+        if not group:
+            raise HTTPException(status_code=404,
+                                    detail="Lab not found")
+        teacher = await self.repo.get(teacher_id)
+        if not teacher:
+            raise HTTPException(status_code=404,
+                                detail="Teacher not found")
+
+        return await self.assignment_repo.create(group_id, lab_id, teacher_id,
+                                                 created_at, deadline_at, status)
+
+    async def get_assignment(self, id: int)->Assignment:
+        assignment = await self.assignment_repo.get(id)
+        if not assignment:
+            raise HTTPException(status_code=404,
+                                detail="Assignment not found")
+        return assignment
+
+    async def get_all_assignment(self)->list[Assignment]:
+        return await self.assignment_repo.get_all()
+
+
+
+
+
+
+
