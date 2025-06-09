@@ -18,8 +18,7 @@ from fastapi.routing import APIRouter
 from app.api.depencies.services import get_teacher_service
 from app.api.depencies.services import get_student_service
 from app.api.depencies.validation import get_week_number, get_FIO, get_achieve_id, get_lab_work_id
-
-TEACHER_ROLE = 2
+from app.services.role_service import ADMIN_ROLE
 router = APIRouter(prefix="/teachers", tags=["teachers"])
 
 # Что хотим уметь для сущности студента?
