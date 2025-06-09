@@ -27,4 +27,9 @@ class Teacher(Base):
     teacher_subject: Mapped["database.models.teacher_subjects.TeacherSubject"] = relationship("database.models.teacher_subjects.TeacherSubject", back_populates="teachers",  cascade="all, delete-orphan")
     teacher_schedule: Mapped["database.models.teacher_schedule.TeacherSchedule"] = relationship(
         "database.models.teacher_schedule.TeacherSchedule", back_populates="teachers",  cascade="all, delete-orphan")
+    lab_work: Mapped["app.database.models.lab_works.LabWork"] = relationship(
+        "app.database.models.lab_works.LabWork", back_populates="teacher")
+
+    assignment: Mapped["database.models.assignments.Assignment"] = relationship("database.models.assignments.Assignment",
+                                                                          back_populates="teacher")
     #

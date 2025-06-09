@@ -28,6 +28,8 @@ class Student(Base):
 
     user: Mapped["database.models.auth.User"] = relationship("database.models.auth.User", back_populates="students")  # type: ignore
     group: Mapped["database.models.groups.Group"] = relationship("database.models.groups.Group", back_populates="students")
+    submission: Mapped["database.models.submissions.Submission"] = relationship("database.models.submissions.Submission",
+                                                                 back_populates="students")
 
     achievements: Mapped[list["Achievement"]] = relationship(
         "Achievement",

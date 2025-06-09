@@ -11,13 +11,14 @@ from app.shemas.teachers import FIO, WeekNumber, TeacherUpdateIn
 from app.shemas.teacher_subject import SubjectName, TeacherSubjectBase
 from app.shemas.auth import UserOut
 from app.shemas.achievements import AchieveIn, AchieveID, AchieveUpdate
+from app.shemas.labs import LabWorkIn, LabWorkID
 from fastapi import Depends, status, Query
 from fastapi.routing import APIRouter
 from app.api.depencies.services import get_teacher_service
 from app.api.depencies.services import get_student_service
-from app.api.depencies.validation import get_week_number, get_FIO, get_achieve_id
+from app.api.depencies.validation import get_week_number, get_FIO, get_achieve_id, get_lab_work_id
 
-
+TEACHER_ROLE = 2
 router = APIRouter(prefix="/teachers", tags=["teachers"])
 
 # Что хотим уметь для сущности студента?
@@ -166,3 +167,33 @@ async def give(student_id: int, achieve_id: int, service = Depends(get_teacher_s
 async def give(student_id: int, achieve_id: int, service = Depends(get_teacher_service))->bool:
     return await service.revoke_achievement(student_id=student_id, achievement_id=achieve_id)
 
+
+# Работа с лабами
+@router.post("/lab_work",
+             status_code=status.HTTP_201_CREATED,
+             summary="Create lab work",
+             description='Create new lab work\n',
+             dependencies=[Depends(require_role(TEACHER_ROLE))]
+             )
+async def create(lab_work: LabWorkIn, teacher: UserOut = Depends(get_current_user),
+                 service: TeacherService = Depends(get_teacher_service)):
+    return await service.create_lab_work(lab_work.title, lab_work.description, lab_work.subject_id, teacher.id, lab_work.file_id)
+
+
+@router.get("/lab_work/{lab_work_id}",
+             status_code=status.HTTP_201_CREATED,
+             summary="Get lab work",
+             description='Get lab work by id\n',
+             dependencies=[Depends(require_role(TEACHER_ROLE))]
+             )
+async def get(lab_work_schema: LabWorkID=Depends(get_lab_work_id), service: TeacherService = Depends(get_teacher_service)):
+    return await service.get_lab_work(lab_work_schema.id)
+
+@router.get("/lab_work",
+             status_code=status.HTTP_201_CREATED,
+             summary="Get all lab works",
+             description='Create new lab work\n',
+             dependencies=[Depends(require_role(TEACHER_ROLE))]
+             )
+async def get(service: TeacherService = Depends(get_teacher_service)):
+    return await service.get_all_lab_work()

@@ -8,12 +8,15 @@ from app.repositoryes.subject_repository import Repository as SubjectRepository
 from app.repositoryes.student_repository import Repository as StudentRepository
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.repositoryes.achievements_repository import AchivementRepository
-from app.database import TeacherSubject
+from app.repositoryes.lab_repository import LabsRepository
 from app.repositoryes.user_repository import UserRepository
+from app.repositoryes.group_files_repository import GroupFilesRepository
+from app.database import TeacherSubject
+
 from app.shemas.teachers import TeacherOut, TeacherUpdateIn
 from app.utils.get_schedule import get_teacher_schedule
 from app.database.models.achievent import Achievement
-
+from app.database.models.lab_works import LabWork
 
 class TeacherService:
     def __init__(self, db: AsyncSession):
@@ -24,6 +27,8 @@ class TeacherService:
         self.achieve_repo = AchivementRepository(db)
         self.student_repo = StudentRepository(db)
         self.user_repo = UserRepository(db)
+        self.lab_repo = LabsRepository(db)
+        self.file_repo = GroupFilesRepository(db)
 
     async def create_teacher(self, teacher):
         if await self.repo.get_by_id(teacher['id']):
@@ -234,3 +239,29 @@ class TeacherService:
 
     async def get_filtered(self, name: str, description: str, amount: int) -> list[Achievement]:
         return await self.achieve_repo.get_filtered(name, description, amount)
+
+
+
+    # управление лабораторными
+    async def create_lab_work(self, title: str, description: str, subject_id: int, created_by: int, file_id:int = None)->LabWork:
+        subject = await self.subject_repo.get(subject_id)
+        if not subject:
+            raise HTTPException(status_code=404,
+                                detail="Subject not found")
+        if file_id:
+            file = await self.file_repo.get(file_id)
+            if not file:
+                raise HTTPException(status_code=404,
+                                    detail="File not found")
+        return await self.lab_repo.create(title, description, subject_id, created_by, file_id)
+
+    async def get_lab_work(self, id: int)->LabWork:
+        lab = await self.lab_repo.get(id)
+        if lab:
+            return lab
+        else:
+            raise HTTPException(status_code=404,
+                                detail="Lab work not found")
+
+    async def get_all_lab_work(self)->list[LabWork]:
+        return await self.lab_repo.get_all()
