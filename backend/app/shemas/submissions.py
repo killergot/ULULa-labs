@@ -11,3 +11,6 @@ class SubmissionsMark(BaseModel):
 
 class SubmissionsID(BaseModel):
     id: int = Field(ge=1)
+
+class SubmissionsStatus(BaseModel):
+    status: int = Field(ge = 0, le=1)

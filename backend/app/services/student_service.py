@@ -12,6 +12,7 @@ from app.shemas.students import StudentBase, StudentOut, StudentIn, Achievement,
 from app.utils.hash import get_hash
 from app.database import Student
 from app.database import Submission
+from app.repositoryes.submission_repository import SubmissionsRepository
 from app.repositoryes.subject_repository import Repository as SubjectRepository
 
 
@@ -42,6 +43,7 @@ class StudentService:
         self.group_repo = GroupRepository(db)
         self.user_repo = UserRepository(db)
         self.subject_repo =SubjectRepository(db)
+        self.submission_repo = SubmissionsRepository(db)
 
     async def _get(self, id) -> Student:
         student = await self.repo.get(id)
@@ -180,3 +182,15 @@ class StudentService:
             result.append(temp)
 
         return result
+
+    async def get_submissions(self, id: int):
+        submissions = await self.submission_repo.get_filtered(student_id=id)
+        return submissions
+
+    async def change_status_submission(self, id: int, status: int):
+        submission = await self.submission_repo.get(id)
+        if not submission:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
+                                detail="Submission not found")
+        return await self.submission_repo.update(submission=submission, status=status)
+

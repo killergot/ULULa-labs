@@ -3,8 +3,10 @@ from app.api.depencies.services import get_student_service
 from app.shemas.students import StudentBase, StudentIn, StudentID, StudentOut, StudentUpdateIn
 from app.shemas.groups import GroupNumber
 from app.shemas.auth import UserOut
+from app.shemas.submissions import SubmissionsID, SubmissionsMark, SubmissionsStatus
 from fastapi import Depends, status
 from fastapi.routing import APIRouter
+from app.api.depencies.validation import get_submission_status, get_submission_id
 from app.database.models.students import Student
 from app.database.models.groups import Group
 from app.services import student_service
@@ -128,3 +130,17 @@ async def get_my_groupmates(student: UserOut = Depends(get_current_user), servic
     group_id = await service.get_group(student.id)
     #Получение студентов по id группы
     return await service.get_by_group(group_id)
+
+@router.get("/submissions",
+            summary='Get submissions of current user',
+            description='Get submissions of current user.\n')
+async def get(student: UserOut = Depends(get_current_user), service=Depends(get_student_service)):
+    # Получение номера группы студента по его id
+    return await service.get_submissions(student.id)
+
+@router.patch("/submissions/{submissions_id}&{status}",
+            summary='Update submission',
+            description='Change labs submission status: ready or not.\n')
+async def get(id_schema: SubmissionsID = Depends(get_submission_id), status_schema: SubmissionsStatus = Depends(get_submission_status), service=Depends(get_student_service)):
+    # Получение номера группы студента по его id
+    return await service.change_status_submission(id_schema.id, status_schema.status)
