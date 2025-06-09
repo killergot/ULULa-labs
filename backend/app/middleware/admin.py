@@ -9,32 +9,19 @@ from app.api.depencies.guard import (
 from app.database.psql import AsyncSessionLocal
 from app.services.user_service import UserService  # Импорт вашего сервиса
 
-class AdminAuthMiddleware(BaseHTTPMiddleware):
-    async def dispatch(self, request: Request, call_next):
-        if request.url.path.startswith("/admin"):
-            # Получаем токен из cookie
-            token = request.cookies.get("admin_token")
-            if not token:
-                return JSONResponse(
-                    status_code=status.HTTP_401_UNAUTHORIZED,
-                    content={"detail": "Not authenticated"},
-                )
+async def admin_auth_middleware(request: Request, call_next):
+    if request.url.path.startswith("/admin"):
+        token = request.cookies.get("admin_token")
+        if not token:
+            raise HTTPException(status_code=401, detail="Not authenticated")
 
-            # Проверяем токен
-            try:
-                payload = await get_access_token_payload(token=token)
-                user_service = UserService(AsyncSessionLocal())
-                user = await get_current_user(payload=payload, service=user_service)
-                if not user.role & 4:
-                    return JSONResponse(
-                            status_code=status.HTTP_403_FORBIDDEN,
-                            content={"detail": "Forbidden"},
-                        )
-                request.state.user = user
-            except Exception as e:
-                return JSONResponse(
-                            status_code=status.HTTP_403_FORBIDDEN,
-                            content={"detail": "Forbidden"},
-                        )
+        payload = await get_access_token_payload(token=token)
+        user_service = UserService(AsyncSessionLocal())
+        user = await get_current_user(payload=payload, service=user_service)
 
-        return await call_next(request)
+        if not (user.role & 4):
+            raise HTTPException(status_code=403, detail="Forbidden: insufficient permissions")
+
+        request.state.user = user
+
+    return await call_next(request)
