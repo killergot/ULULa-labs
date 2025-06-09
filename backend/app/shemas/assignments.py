@@ -7,7 +7,7 @@ class AssignmentsIn(BaseModel):
     group_id: int = Field(ge=1)
     lab_id: int = Field(ge=1)
     created_at: datetime.datetime = Field(default=datetime.datetime.now())
-    deadline_at: datetime.date = Field(default=datetime.timedelta(days=7)+datetime.datetime.now())
+    deadline_at: datetime.datetime = Field(default=datetime.timedelta(days=7)+datetime.datetime.now())
     status: int = Field(ge=0)
 
 @field_validator('deadline_at')
