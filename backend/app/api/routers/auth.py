@@ -20,10 +20,10 @@ async def create_user(user: UserIn, service: AuthService = Depends(get_auth_serv
 @router.post("/login", status_code=status.HTTP_201_CREATED,
              summary='Login a user')
 async def login(
-        background_tasks: BackgroundTasks,user: UserLogin, service: AuthService = Depends(get_auth_service),
+        background_tasks: BackgroundTasks,user: UserLogin,request: Request, service: AuthService = Depends(get_auth_service),
                 ):
 
-    return await service.login(user,background_tasks)
+    return await service.login(user,background_tasks,request)
 
 @router.post("/verify-2fa", response_model=TokenOut, status_code=status.HTTP_201_CREATED)
 async def login(response: Response,code: TwoFactorIn, service: AuthService = Depends(get_auth_service)):
