@@ -1,6 +1,10 @@
 <template>
   <div class="sidebar" :class="{ collapsed }">
 
+    <div class="version-info" :class="{ 'collapsed-version': collapsed }">
+      v{{ version }}
+    </div>
+
     <button @click="$emit('toggle')" class="toggle-btn">
       <span v-if="!collapsed">❮</span>
       <span v-else>❯</span>
@@ -28,7 +32,8 @@
         <button @click="addFolder" class="add-folder-btn">+ folder</button>
       </div>
     </div>
-
+    
+    
 
     <button
       v-show="!collapsed"
@@ -51,6 +56,7 @@ export default {
   },
   data() {
     return {
+      version: '1.0.1',
       pages: [
         { name: 'Home', link: '/' },
         { name: 'My profile', link: '/userPage' }
@@ -103,6 +109,21 @@ export default {
 }
 .sidebar.collapsed {
   width: 50px;
+}
+
+.version-info {
+  padding: 0.5rem 1rem;
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.7);
+  text-align: center;
+  margin-bottom: 0.5rem;
+}
+
+.sidebar.collapsed .version-info {
+  writing-mode: vertical-rl;
+  transform: rotate(180deg);
+  padding: 1rem 0.2rem;
+  white-space: nowrap;
 }
 
 .toggle-btn {
