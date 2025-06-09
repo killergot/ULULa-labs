@@ -16,3 +16,5 @@ class GroupFile(Base):
     group_id: Mapped[int] = mapped_column(Integer, ForeignKey("groups.group_id", ondelete="CASCADE"))
     group: Mapped["Group"] = relationship("Group", back_populates="files")  # связь назад к Group
     subject: Mapped["Subject"] = relationship("Subject", back_populates="files")  # связь назад к Group
+    lab_work:  Mapped["app.database.models.lab_works.LabWork"] = relationship(
+        "app.database.models.lab_works.LabWork", back_populates="files")

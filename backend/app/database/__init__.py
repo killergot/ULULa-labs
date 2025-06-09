@@ -12,3 +12,6 @@ from .models.teacher_schedule import TeacherSchedule
 from .models.achievent import Achievement
 from .models.group_files import GroupFile
 from .models.shared_links import SharedLink
+from .models.lab_works import LabWork
+from .models.assignments import Assignment
+from .models.submissions import Submission

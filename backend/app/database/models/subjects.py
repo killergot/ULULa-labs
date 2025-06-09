@@ -29,7 +29,8 @@ class Subject(Base):
     teacher_subject: Mapped["app.database.models.teacher_subjects.TeacherSubject"] = relationship("app.database.models.teacher_subjects.TeacherSubject", back_populates="subject")
     files: Mapped[list["app.database.models.group_files.GroupFile"]] = relationship(
         "app.database.models.group_files.GroupFile", back_populates="subject", cascade="all, delete-orphan")
-
+    lab_work:  Mapped["app.database.models.lab_works.LabWorks"] = relationship(
+        "app.database.models.lab_works.LabWork", back_populates="subject")
     students: Mapped[list["Student"]] = relationship(
         "Student",
         secondary=student_subjects,
