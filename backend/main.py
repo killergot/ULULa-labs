@@ -39,6 +39,7 @@ app.add_middleware(SessionMiddleware, secret_key=config.secret_keys.yandex)
 # app.add_middleware(AdminAuthMiddleware)
 @app.middleware("http")
 async def admin_auth_middleware(request: Request, call_next):
+    print('admin middleware')
     if request.url.path.startswith("/admin"):
         try:
             token = request.cookies.get("admin_token")

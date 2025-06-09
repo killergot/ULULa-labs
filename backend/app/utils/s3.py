@@ -5,8 +5,6 @@ import io
 
 from app.core.config import load_config, Config
 
-
-# Инициализация S3 клиента
 def get_s3_client(config: Config):
     return boto3.client(
         's3',
@@ -16,11 +14,14 @@ def get_s3_client(config: Config):
         endpoint_url=config.s3.endpoint
     )
 
+config = load_config()
+s3_client = get_s3_client(config)
+# Инициализация S3 клиента
+bucket_name = config.s3.bucket_name
+
 
 # Функция загрузки файла
 def upload_file_to_s3(
-        s3_client,
-        bucket_name: str,
         file_content: bytes,
         original_name: str,
         group_number: str,
@@ -40,29 +41,11 @@ def upload_file_to_s3(
 
 # Функция получения файла
 def download_file_from_s3(
-        s3_client,
-        bucket_name: str,
         file_key: str,
         expected_group: Optional[str] = None,
         expected_subject: Optional[str] = None
 ) -> Tuple[str, bytes]:
-    """
-    Загружает файл из S3 и возвращает оригинальное имя файла и его содержимое
 
-    Args:
-        s3_client: Клиент S3
-        bucket_name: Имя бакета
-        file_key: Ключ файла в S3 (в формате group_subject_filename)
-        expected_group: Ожидаемый номер группы (для валидации, опционально)
-        expected_subject: Ожидаемый предмет (для валидации, опционально)
-
-    Returns:
-        Tuple[оригинальное_имя_файла, содержимое_файла]
-
-    Raises:
-        ValueError: Если формат имени файла неверный или группа/предмет не совпадают
-        Exception: При ошибках загрузки из S3
-    """
     try:
         # Загружаем файл из S3
         response = s3_client.get_object(Bucket=bucket_name, Key=file_key)
@@ -91,8 +74,6 @@ def download_file_from_s3(
 
 # Функция удаления файла
 def delete_file_from_s3(
-        s3_client,
-        bucket_name: str,
         file_key: str
 ) -> bool:
     try:
@@ -105,10 +86,6 @@ def delete_file_from_s3(
 
 
 if __name__ == "__main__":
-    # Загрузка конфигурации
-    config = load_config()
-    s3_client = get_s3_client(config)
-
     # Тестовые параметры
     test_bucket = config.s3.bucket_name
     test_group = "123"
