@@ -164,18 +164,18 @@
     <div v-if="showRequiredDataModal" class="modal-overlay">
       <div class="modal">
         <h2>Please enter the necessary information to work in Ulula Labs</h2>
-        <div v-if="requiredRole === STUDENT_ROLE" class="edit-field">
+        <div v-if="requiredRole & STUDENT_ROLE" class="edit-field">
           <label for="req-fullname" class="field-label">Full Name</label>
           <input id="req-fullname" v-model="requiredForm.full_name" type="text" class="task-input" />
         </div>
-        <div v-if="requiredRole === STUDENT_ROLE" class="edit-field">
+        <div v-if="requiredRole & STUDENT_ROLE" class="edit-field">
           <label for="req-group" class="field-label">Group</label>
           <select id="req-group" v-model="requiredForm.group_number" class="task-input">
             <option value="" disabled>Select group</option>
             <option v-for="g in groups" :key="g.id" :value="g.number">{{ g.number }}</option>
           </select>
         </div>
-        <div v-if="requiredRole === TEACHER_ROLE" class="edit-field">
+        <div v-if="requiredRole & TEACHER_ROLE" class="edit-field">
           <label for="req-fio" class="field-label">Full Name</label>
           <input id="req-fio" v-model="requiredForm.FIO" type="text" class="task-input" />
         </div>
@@ -276,7 +276,7 @@ export default {
   },
   computed: {
     isStudent() { 
-      return this.userRole === STUDENT_ROLE; 
+      return this.userRole & STUDENT_ROLE; 
     },
     currentToken() {
       return getRefreshToken();
@@ -297,7 +297,7 @@ export default {
         if (user_response.status !== 200) throw new Error(`Error ${user_response.status}`);
         this.userRole = user_response.data.role;
 
-        if (this.userRole === STUDENT_ROLE) {
+        if (this.userRole & STUDENT_ROLE) {
           const student_response = await api.get('/students/me');
 
           if (student_response.status !== 200) throw new Error(`Error ${student_response.status}`);
@@ -312,7 +312,7 @@ export default {
             telegram: student_response.data.telegram
           };
         }
-        else {
+        else if (this.userRole & TEACHER_ROLE){
           const teacher_response = await api.get('/teachers/me');
           if (teacher_response.status !== 200) throw new Error(`Error ${teacher_response.status}`);
           
@@ -327,34 +327,20 @@ export default {
           };
         }
       } catch (error) {
-        const resp = error.response;
-        if (resp && resp.status === 404) {
-          this.requiredRole = this.userRole || (await this.detectRole());
-          this.showRequiredDataModal = true;
-        } else {
-          console.error(error);
-        }
+        console.error(error);
       }        
     },
-    async detectRole() {
-      try { 
-        await api.get('/students/me'); 
-        return STUDENT_ROLE; 
-      }
-      catch {
-         return TEACHER_ROLE; 
-      }
-    },
+
      async submitRequiredData() {
       try {
         let response;
 
-        if (this.requiredRole === this.STUDENT_ROLE) {
+        if (this.requiredRole & this.STUDENT_ROLE) {
           response = await api.post('/students', {
             full_name: this.requiredForm.full_name,
             group_number: this.requiredForm.group_number
           });
-        } else if (this.requiredRole === this.TEACHER_ROLE) {
+        } else if (this.requiredRole & this.TEACHER_ROLE) {
           response = await api.post('/teachers/register', {
             FIO: this.requiredForm.FIO
           });

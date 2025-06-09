@@ -49,10 +49,10 @@ export default {
   },
   computed: {
     isStudent() {
-      return this.userRole === STUDENT_ROLE;
+      return this.userRole & STUDENT_ROLE;
     },
     isTeacher() {
-      return this.userRole === TEACHER_ROLE;
+      return this.userRole & TEACHER_ROLE;
     }
   },
   async created() {

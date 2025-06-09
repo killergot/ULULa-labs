@@ -226,7 +226,7 @@
           const role = userResp.data.role;
           this.userId = userResp.data.id;
 
-          if (role === STUDENT_ROLE) { 
+          if (role & STUDENT_ROLE) { 
             const stud = await api.get('/students/me');
           if (
             stud.status !== 200 ||
@@ -235,7 +235,7 @@
             ) {
             return this.$router.replace({ name: 'userPage' });
           }
-          } else if (role === TEACHER_ROLE) { 
+          } else if (role & TEACHER_ROLE) { 
             const teach = await api.get('/teachers/me');
           if (teach.status !== 200 || !teach.data.FIO) {
             return this.$router.replace({ name: 'userPage' });
