@@ -178,7 +178,7 @@ async def give(student_id: int, achieve_id: int, service = Depends(get_teacher_s
              )
 async def create(lab_work: LabWorkIn, teacher: UserOut = Depends(get_current_user),
                  service: TeacherService = Depends(get_teacher_service)):
-    return await service.create_lab_work(lab_work.title, lab_work.description, lab_work.subject_id, teacher.id, lab_work.file_id)
+    return await service.create_lab_work(lab_work.title, lab_work.description, lab_work.subject_name, teacher.id, lab_work.file_id)
 
 
 @router.get("/lab_work/{lab_work_id}",
@@ -209,5 +209,24 @@ async def create(assignment: AssignmentsIn, teacher: UserOut = Depends(get_curre
                  service: TeacherService = Depends(get_teacher_service)):
     return await service.create_assignment(assignment.group_id, assignment.lab_id, teacher.id, assignment.created_at,
                                            assignment.deadline_at, assignment.status)
+
+@router.get("/assignment/{assignment_id}",
+             status_code=status.HTTP_200_OK,
+             summary="Get assignment",
+             description='Get assigned lab\n',
+             dependencies=[Depends(require_role(TEACHER_ROLE))]
+             )
+async def get(assignment_schema: AssignmentID=Depends(get_lab_work_id), service: TeacherService = Depends(get_teacher_service)):
+    return await service.get_assignment(assignment_schema.id)
+
+
+@router.get("/assignment",
+             status_code=status.HTTP_200_OK,
+             summary="Get assignment",
+             description='Get assigned lab\n',
+             dependencies=[Depends(require_role(TEACHER_ROLE))]
+             )
+async def get(service: TeacherService = Depends(get_teacher_service)):
+    return await service.get_all_assignment()
 
 

@@ -2,6 +2,7 @@ from  app.shemas.teachers import FIO as fio_schema, WeekNumber
 from  app.shemas.teacher_subject import SubjectName
 from  app.shemas.achievements import AchieveID
 from  app.shemas.labs import LabWorkID
+from app.shemas.assignments import AssignmentID
 from fastapi import Path
 from fastapi import HTTPException
 from pydantic import ValidationError
@@ -51,4 +52,13 @@ def get_lab_work_id(id: int) -> LabWorkID:
         raise HTTPException(
             status_code=400,
             detail=f"Invalid lab work id\n: {str(e)}"
+        )
+
+def get_assignment_id(id: int) -> AssignmentID:
+    try:
+        return AssignmentID(id = id)
+    except ValidationError as e:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Invalid assignment id\n: {str(e)}"
         )

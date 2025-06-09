@@ -250,11 +250,12 @@ class TeacherService:
 
 
     # управление лабораторными
-    async def create_lab_work(self, title: str, description: str, subject_id: int, created_by: int, file_id:int = None)->LabWork:
-        subject = await self.subject_repo.get(subject_id)
+    async def create_lab_work(self, title: str, description: str, subject_name: str, created_by: int, file_id:int = None)->LabWork:
+        subject = await self.subject_repo.get_by_name(subject_name)
         if not subject:
             raise HTTPException(status_code=404,
                                 detail="Subject not found")
+        subject_id = subject.id
         if file_id:
             file = await self.file_repo.get(file_id)
             if not file:
