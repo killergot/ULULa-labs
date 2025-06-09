@@ -1,0 +1,65 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      ### Сборка и тестирование фронтенда (Vue.js)
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install frontend dependencies
+        working-directory: ./frontiend
+        run: npm install
+
+      - name: Build frontend
+        working-directory: ./frontiend
+        run: npm run build
+
+      ### Анализ и тестирование бэкенда (FastAPI)
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Install Python dependencies
+        working-directory: ./backend
+        run: |
+          python -m pip install --upgrade pip
+          pip install bandit
+
+      - name: Run Bandit (статический анализ)
+        working-directory: ./backend
+        run: bandit -r . --format html --output bandit-report.html -c .bandit.yml --exit-zero
+
+      - name: Upload Bandit report
+        uses: actions/upload-artifact@v4
+        with:
+          name: bandit-security-report
+          path: ./backend/bandit-report.html
+
+      ### Деплой на сервер (через SSH)
+      - name: Deploy to server
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USERNAME }}
+          password: ${{ secrets.SSH_PASSWORD }}
+          script: |
+            cd /root/ULULa-labs
+            git pull origin main
+            cd /root/ULULa-labs/frontient
+            npm run build
+            cd /root/ULULa-labs
+            docker compose up  --build
