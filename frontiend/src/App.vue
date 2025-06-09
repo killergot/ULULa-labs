@@ -13,7 +13,7 @@
 
 
     <ComponentSidebar
-      v-if="$route.name === 'main'"
+      v-if="['main','labWorksPage'].includes($route.name)"
       @toggle-panel="onPanelToggle"
     />
   </div>

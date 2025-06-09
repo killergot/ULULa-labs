@@ -11,7 +11,12 @@
       <nav class="menu">
         <ul>
           <li v-for="item in pages" :key="item.name">
-            <router-link :to="item.link">{{ item.name }}</router-link>
+            <router-link
+              v-if="!(isStudent && item.name === 'Lab works')"
+              :to="item.link"
+            >
+              {{ item.name }}
+            </router-link>
           </li>
         </ul>
       </nav>
@@ -44,6 +49,9 @@
 import { clearTokens, getRefreshToken } from '@/utils/token';
 import api from '@/services/api';
 
+const TEACHER_ROLE = 1
+const STUDENT_ROLE = 2
+
 export default {
   name: 'SidebarMenu',
   props: {
@@ -53,14 +61,26 @@ export default {
     return {
       pages: [
         { name: 'Home', link: '/' },
-        { name: 'My profile', link: '/userPage' }
+        { name: 'My profile', link: '/userPage' },
+        { name: 'Lab works', link: '/labWorksPage' }
       ],
       folders: [
         { name: 'Личные' },
         { name: 'Рабочие' }
       ],
-      counter: 1
+      counter: 1,
+      userRole: null,
     };
+  },
+  computed: {
+    isStudent() {
+      return Boolean(this.userRole & STUDENT_ROLE)
+    }
+  },
+  created() {
+    api.get('/users/get_me').then(resp => {
+      if (resp.status === 200) this.userRole = resp.data.role
+    }).catch(console.error)
   },
   methods: {
     addFolder() {
