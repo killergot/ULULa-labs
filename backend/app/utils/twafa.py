@@ -25,6 +25,7 @@ async def send_2fa_email(email: str, code: str):
     msg["To"] = email
 
     try:
+        1/0
         with smtplib.SMTP(SMTP_SERVER, SMTP_PORT) as server:
             server.starttls()
             server.login(SMTP_USER, SMTP_PASSWORD)
