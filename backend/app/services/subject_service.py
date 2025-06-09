@@ -43,3 +43,21 @@ class SubjectService:
         except:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
                                 detail="Subjects not found")
+
+    async def get_subject_name(self, id: int)->str:
+        try:
+            # получить id группы студента
+            subject = await self.repo.get(id)
+        except:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
+                                detail="Subjects not found")
+        return subject.name
+
+    async def get_subject_id(self, name: str)->int:
+        try:
+            # получить id группы студента
+            subject = await self.repo.get_by_name(name)
+        except:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
+                                detail="Subjects not found")
+        return subject.id

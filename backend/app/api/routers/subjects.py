@@ -26,3 +26,14 @@ async def get_groups(name_schema: SubjectName=Depends(get_subject_name),  servic
             status_code=status.HTTP_200_OK)
 async def get_all(service = Depends(get_subject_service)):
     return await service.get_all()
+
+
+@router.get("/id/{name}",
+            status_code=status.HTTP_200_OK)
+async def get(name, service = Depends(get_subject_service)):
+    return await service.get_subject_id(name)
+
+@router.get("/name/{id}",
+            status_code=status.HTTP_200_OK)
+async def get(id: int, service = Depends(get_subject_service)):
+    return await service.get_subject_name(id)
