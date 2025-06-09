@@ -180,6 +180,15 @@ async def create(lab_work: LabWorkIn, teacher: UserOut = Depends(get_current_use
                  service: TeacherService = Depends(get_teacher_service)):
     return await service.create_lab_work(lab_work.title, lab_work.description, lab_work.subject_name, teacher.id, lab_work.file_id)
 
+@router.get("/lab_work/subject/{subject_id}",
+             status_code=status.HTTP_200_OK,
+             summary="Get lab work",
+             description='Get lab work by id\n',
+             dependencies=[Depends(require_role(TEACHER_ROLE))]
+             )
+async def get(subject_schema: AssigmentSubjectFilter=Depends(get_subject_id), teacher: UserOut = Depends(get_current_user), service: TeacherService = Depends(get_teacher_service)):
+    return await service.get_teacher_subject_lab_works(teacher.id, subject_schema.id)
+
 
 @router.get("/lab_work/{lab_work_id}",
              status_code=status.HTTP_200_OK,

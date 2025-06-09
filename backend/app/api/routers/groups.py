@@ -62,7 +62,7 @@ async def update_group_by_id(old_number: GroupNumber, new_number: GroupNumber, s
     return await service.update_group_by_number(old_number, new_number)
 
 
-@router.get("/get_group_id/{group_number}",
+@router.get("/get_group_id",
              status_code=status.HTTP_200_OK,
              summary='Get group id',
              description='Get group id by group number.\n',
