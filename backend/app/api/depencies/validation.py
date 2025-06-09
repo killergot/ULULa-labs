@@ -2,8 +2,9 @@ from  app.shemas.teachers import FIO as fio_schema, WeekNumber
 from  app.shemas.teacher_subject import SubjectName
 from  app.shemas.achievements import AchieveID
 from  app.shemas.labs import LabWorkID
-from app.shemas.assignments import AssignmentID
+from app.shemas.assignments import AssignmentID, AssigmentSubjectFilter
 from app.shemas.submissions import SubmissionsID
+
 from fastapi import Path
 from fastapi import HTTPException
 from pydantic import ValidationError
@@ -72,3 +73,10 @@ def get_submission_id(id: int) -> SubmissionsID:
             status_code=400,
             detail=f"Invalid submission id\n: {str(e)}"
         )
+def get_subject_id(id: int) -> AssigmentSubjectFilter:
+    try:
+        return AssigmentSubjectFilter(id = id)
+    except ValidationError as e:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Invalid subject id\n: {str(e)}")

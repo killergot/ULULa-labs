@@ -12,13 +12,13 @@ from app.shemas.teacher_subject import SubjectName, TeacherSubjectBase
 from app.shemas.auth import UserOut
 from app.shemas.achievements import AchieveIn, AchieveID, AchieveUpdate
 from app.shemas.labs import LabWorkIn, LabWorkID
-from app.shemas.assignments import AssignmentsIn, AssignmentID
+from app.shemas.assignments import AssignmentsIn, AssignmentID, AssigmentSubjectFilter
 from app.shemas.submissions import SubmissionsMark
 from fastapi import Depends, status, Query
 from fastapi.routing import APIRouter
 from app.api.depencies.services import get_teacher_service
 from app.api.depencies.services import get_student_service
-from app.api.depencies.validation import get_week_number, get_FIO, get_achieve_id, get_lab_work_id, get_assignment_id
+from app.api.depencies.validation import get_week_number, get_FIO, get_achieve_id, get_lab_work_id, get_assignment_id, get_subject_id
 from app.services.role_service import TEACHER_ROLE
 router = APIRouter(prefix="/teachers", tags=["teachers"])
 
@@ -217,9 +217,16 @@ async def create(assignment: AssignmentsIn, teacher: UserOut = Depends(get_curre
              dependencies=[Depends(require_role(TEACHER_ROLE))]
              )
 async def get(service: TeacherService = Depends(get_teacher_service)):
-    print("hello!")
     return await service.get_all_assignment()
 
+@router.get("/assignments/{lab_work}",
+             status_code=status.HTTP_200_OK,
+             summary="Get assignments",
+             description='Get all assigned labs\n',
+             dependencies=[Depends(require_role(TEACHER_ROLE))]
+             )
+async def get(lab_schema: LabWorkID = Depends(get_lab_work_id), teacher: UserOut = Depends(get_current_user), service: TeacherService = Depends(get_teacher_service)):
+    return await service.get_teacher_assignment(teacher_id=teacher.id, lab_id=lab_schema.id)
 
 @router.get("/assignments/{assignment_id}",
              status_code=status.HTTP_200_OK,
@@ -229,9 +236,6 @@ async def get(service: TeacherService = Depends(get_teacher_service)):
              )
 async def get(assignment_schema: AssignmentID=Depends(get_assignment_id), service: TeacherService = Depends(get_teacher_service)):
     return await service.get_assignment(assignment_schema.id)
-
-
-
 
 @router.get("/assignments",
              status_code=status.HTTP_200_OK,

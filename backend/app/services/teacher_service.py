@@ -322,8 +322,8 @@ class TeacherService:
                                 detail="Assignment not found")
         return assignment
 
-    async def get_teacher_assignment(self, id: int)->list[Assignment]:
-        assignments = await self.assignment_repo.get_filtered(teacher_id=id)
+    async def get_teacher_assignment(self, teacher_id: int, lab_id:Optional[int]=None)->list[Assignment]:
+        assignments = await self.assignment_repo.get_filtered(teacher_id=teacher_id, lab_id= lab_id)
         return assignments
 
     async def get_all_assignment(self)->list[Assignment]:

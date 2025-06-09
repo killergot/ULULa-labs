@@ -22,3 +22,5 @@ class AssignmentID(BaseModel):
     id: int = Field(ge = 1)
 
 
+class AssigmentSubjectFilter(BaseModel):
+    id: Optional[int] = Field(ge=1, default=None)
