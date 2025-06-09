@@ -13,12 +13,13 @@ from app.shemas.auth import UserOut
 from app.shemas.achievements import AchieveIn, AchieveID, AchieveUpdate
 from app.shemas.labs import LabWorkIn, LabWorkID
 from app.shemas.assignments import AssignmentsIn, AssignmentID
+from app.shemas.submissions import SubmissionsMark
 from fastapi import Depends, status, Query
 from fastapi.routing import APIRouter
 from app.api.depencies.services import get_teacher_service
 from app.api.depencies.services import get_student_service
-from app.api.depencies.validation import get_week_number, get_FIO, get_achieve_id, get_lab_work_id
-from app.services.role_service import ADMIN_ROLE
+from app.api.depencies.validation import get_week_number, get_FIO, get_achieve_id, get_lab_work_id, get_assignment_id
+from app.services.role_service import TEACHER_ROLE
 router = APIRouter(prefix="/teachers", tags=["teachers"])
 
 # Что хотим уметь для сущности студента?
@@ -209,23 +210,56 @@ async def create(assignment: AssignmentsIn, teacher: UserOut = Depends(get_curre
     return await service.create_assignment(assignment.group_id, assignment.lab_id, teacher.id, assignment.created_at,
                                            assignment.deadline_at, assignment.status)
 
-@router.get("/assignment/{assignment_id}",
+@router.get("/assignments/all",
              status_code=status.HTTP_200_OK,
-             summary="Get assignment",
-             description='Get assigned lab\n',
-             dependencies=[Depends(require_role(TEACHER_ROLE))]
-             )
-async def get(assignment_schema: AssignmentID=Depends(get_lab_work_id), service: TeacherService = Depends(get_teacher_service)):
-    return await service.get_assignment(assignment_schema.id)
-
-
-@router.get("/assignment",
-             status_code=status.HTTP_200_OK,
-             summary="Get assignment",
-             description='Get assigned lab\n',
+             summary="Get assignments",
+             description='Get all assigned labs\n',
              dependencies=[Depends(require_role(TEACHER_ROLE))]
              )
 async def get(service: TeacherService = Depends(get_teacher_service)):
+    print("hello!")
     return await service.get_all_assignment()
 
 
+@router.get("/assignments/{assignment_id}",
+             status_code=status.HTTP_200_OK,
+             summary="Get assignment",
+             description='Get assigned lab\n',
+             dependencies=[Depends(require_role(TEACHER_ROLE))]
+             )
+async def get(assignment_schema: AssignmentID=Depends(get_assignment_id), service: TeacherService = Depends(get_teacher_service)):
+    return await service.get_assignment(assignment_schema.id)
+
+
+
+
+@router.get("/assignments",
+             status_code=status.HTTP_200_OK,
+             summary="Get assignments",
+             description='Get assigned labs for current teacher\n',
+             dependencies=[Depends(require_role(TEACHER_ROLE))]
+             )
+async def get(teacher: UserOut = Depends(get_current_user), service: TeacherService = Depends(get_teacher_service)):
+    return await service.get_teacher_assignment(teacher.id)
+
+
+@router.get("/submissions/{assignment_id}",
+             status_code=status.HTTP_200_OK,
+             summary="Get submissions",
+             description='Get students submissions by assignment id\n',
+             dependencies=[Depends(require_role(TEACHER_ROLE))]
+             )
+async def get(assignment_schema: AssignmentID=Depends(get_lab_work_id), service: TeacherService = Depends(get_teacher_service)):
+    return await service.get_submissions_by_assignment(assignment_schema.id)
+
+@router.patch("/submissions",
+             status_code=status.HTTP_200_OK,
+             summary="Update submissions",
+             description='Update submission: mark, make comment, etc\n',
+             dependencies=[Depends(require_role(TEACHER_ROLE))]
+             )
+async def update(update_submission: SubmissionsMark, service: TeacherService = Depends(get_teacher_service)):
+    return await service.update_submission(update_submission.id,
+                                           update_submission.mark,
+                                           update_submission.status,
+                                           update_submission.comment)

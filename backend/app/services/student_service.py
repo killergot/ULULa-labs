@@ -11,6 +11,7 @@ from app.shemas.auth import UserOut
 from app.shemas.students import StudentBase, StudentOut, StudentIn, Achievement, StudentUpdateIn
 from app.utils.hash import get_hash
 from app.database import Student
+from app.database import Submission
 from app.repositoryes.subject_repository import Repository as SubjectRepository
 
 

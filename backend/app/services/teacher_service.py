@@ -17,6 +17,7 @@ from app.repositoryes.user_repository import UserRepository
 from app.repositoryes.assignments_repository import AssignmentRepository
 from app.repositoryes.group_files_repository import GroupFilesRepository
 from app.repositoryes.group_repository import Repository as GroupRepository
+from app.repositoryes.submission_repository import SubmissionsRepository
 from app.database import TeacherSubject
 
 from app.shemas.teachers import TeacherOut, TeacherUpdateIn
@@ -24,6 +25,7 @@ from app.utils.get_schedule import get_teacher_schedule
 from app.database.models.achievent import Achievement
 from app.database.models.lab_works import LabWork
 from app.database.models.assignments import Assignment
+from app.database.models.submissions import Submission
 class TeacherService:
     def __init__(self, db: AsyncSession):
         self.repo = Repository(db)
@@ -37,6 +39,7 @@ class TeacherService:
         self.file_repo = GroupFilesRepository(db)
         self.assignment_repo = AssignmentRepository(db)
         self.group_repo = GroupRepository(db)
+        self.submission_repo = SubmissionsRepository(db)
     async def create_teacher(self, teacher):
         if await self.repo.get_by_id(teacher['id']):
             raise HTTPException(status_code=status.HTTP_409_CONFLICT,
@@ -289,9 +292,28 @@ class TeacherService:
         if not teacher:
             raise HTTPException(status_code=404,
                                 detail="Teacher not found")
+        exist_assigment = await self.assignment_repo.get_filtered(lab_id=lab_id, group_id=group_id)
+        if exist_assigment:
+            raise HTTPException(status_code=409,
+                                detail="This lab already assigned to group")
 
-        return await self.assignment_repo.create(group_id, lab_id, teacher_id,
+        assignment = await self.assignment_repo.create(group_id, lab_id, teacher_id,
                                                  created_at, deadline_at, status)
+
+        # создание задач для студентов
+        # получение списка студентов по id группы
+        students = await self.student_repo.get_by_group(group_id)
+        for student in students:
+            student_id = student.id
+            try:
+                print (student_id)
+                await self.submission_repo.create(assignment.id, student_id,
+                                              0, 0,"")
+            except:
+                raise HTTPException(status_code=500,
+                              detail="Error during create submission")
+        return assignment
+
 
     async def get_assignment(self, id: int)->Assignment:
         assignment = await self.assignment_repo.get(id)
@@ -300,10 +322,24 @@ class TeacherService:
                                 detail="Assignment not found")
         return assignment
 
+    async def get_teacher_assignment(self, id: int)->list[Assignment]:
+        assignments = await self.assignment_repo.get_filtered(teacher_id=id)
+        return assignments
+
     async def get_all_assignment(self)->list[Assignment]:
         return await self.assignment_repo.get_all()
 
 
+    async def get_submissions_by_assignment(self, id: int)->list[Submission]:
+        submissions = await self.submission_repo.get_filtered(assignment_id=id)
+        return submissions
+
+    async def update_submission(self, id: int, mark: Optional[int] = None, status: Optional[int] = None, comment: Optional[str] = None):
+        submission = await self.submission_repo.get(id)
+        if not submission:
+            raise HTTPException(status_code=404,
+                                detail="Submission not found")
+        return await self.submission_repo.update(submission=submission, status=status, mark=mark, comment=comment)
 
 
 

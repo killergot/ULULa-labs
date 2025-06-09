@@ -3,6 +3,7 @@ from  app.shemas.teacher_subject import SubjectName
 from  app.shemas.achievements import AchieveID
 from  app.shemas.labs import LabWorkID
 from app.shemas.assignments import AssignmentID
+from app.shemas.submissions import SubmissionsID
 from fastapi import Path
 from fastapi import HTTPException
 from pydantic import ValidationError
@@ -61,4 +62,13 @@ def get_assignment_id(id: int) -> AssignmentID:
         raise HTTPException(
             status_code=400,
             detail=f"Invalid assignment id\n: {str(e)}"
+        )
+
+def get_submission_id(id: int) -> SubmissionsID:
+    try:
+        return SubmissionsID(id = id)
+    except ValidationError as e:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Invalid submission id\n: {str(e)}"
         )
