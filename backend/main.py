@@ -68,6 +68,18 @@ async def admin_auth_middleware(request: Request, call_next):
 
     return await call_next(request)
 
+@app.middleware("http")
+async def add_security_headers(request: Request, call_next):
+    response: Response = await call_next(request)
+
+    # Защита от кликджекинга
+    response.headers["X-Frame-Options"] = "DENY"
+
+    # Современный CSP для защиты от встраивания
+    response.headers["Content-Security-Policy"] = "frame-ancestors 'none'"
+
+    return response
+
 app.include_router(api_router)
 get_cors_middleware(app)
 setup_admin(app, engine)
