@@ -95,3 +95,12 @@ async def get_group_by_number(group_id: int,service = Depends(get_group_service)
 )
 async def get_all(service = Depends(get_group_service)):
        return await service.get_all()
+
+
+# как составлять статистику для группы?
+# получаем всех студентов
+# для каждого получаем список submissions
+# если оценка больше 0 - добавляем её в сумму
+# поучаем список ачивок
+# считаем их сумму
+# возвращаем список ФИО рейтинг

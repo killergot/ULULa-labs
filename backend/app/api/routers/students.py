@@ -144,3 +144,10 @@ async def get(student: UserOut = Depends(get_current_user), service=Depends(get_
 async def get(id_schema: SubmissionsID = Depends(get_submission_id), status_schema: SubmissionsStatus = Depends(get_submission_status), service=Depends(get_student_service)):
     # Получение номера группы студента по его id
     return await service.change_status_submission(id_schema.id, status_schema.status)
+
+@router.get("/rate",
+            summary='Get rate',
+            description='Get group rate by achievements and marks.\n')
+async def get(student: UserOut = Depends(get_current_user), service=Depends(get_student_service)):
+    # Получение номера группы студента по его id
+    return await service.get_rate(student.id)

@@ -205,9 +205,9 @@ class TeacherService:
                             detail="Achievement not found")
         return achievement
 
-    async def create_achievement(self, name: str, description: str, amount: int):
+    async def create_achievement(self, name: str, description: str, amount: int, image_path: str):
         # создать новую ачивку
-        return await self.achieve_repo.create(name, description, amount)
+        return await self.achieve_repo.create(name, description, amount, image_path)
 
     async def get_empty_achievement(self, id):
         achievement = await self.achieve_repo.get_by_id(id)
@@ -223,9 +223,9 @@ class TeacherService:
         return await self.achieve_repo.delete(id)
 
 
-    async def update_achievement(self, id: int, name: Optional[str] = None, description: Optional[str] = None, amount: Optional[int] = None):
+    async def update_achievement(self, id: int, name: Optional[str] = None, description: Optional[str] = None, amount: Optional[int] = None, image_path: Optional[str] = None):
         achievement = await self.get_achievement(id)
-        return await self.achieve_repo.update(achievement, name, description, amount)
+        return await self.achieve_repo.update(achievement, name, description, amount, image_path)
 
 
     async def give_achievement(self, student_id: int, achievement_id: int)->dict:
@@ -304,8 +304,10 @@ class TeacherService:
 
         # создание задач для студентов
         # получение списка студентов по id группы
+        print ("Group_id", group_id)
         students = await self.student_repo.get_by_group(group_id)
         for student in students:
+            print("Student id", student.id)
             student_id = student.id
             try:
                 print (student_id)
