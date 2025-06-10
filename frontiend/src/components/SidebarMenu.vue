@@ -46,7 +46,7 @@
 </template>
 
 <script>
-import { clearTokens, getRefreshToken } from '@/utils/token';
+import { clearTokens, getRefreshToken, getAccessToken } from '@/utils/token';
 import api from '@/services/api';
 
 const TEACHER_ROLE = 1
@@ -78,9 +78,23 @@ export default {
     }
   },
   created() {
-    api.get('/users/get_me').then(resp => {
-      if (resp.status === 200) this.userRole = resp.data.role
-    }).catch(console.error)
+    const token = getAccessToken();
+    if (!token) {
+      this.userRole = null;
+      return;
+    }
+
+    api.get('/users/get_me')
+      .then(resp => {
+        if (resp.status === 200) {
+          this.userRole = resp.data.role;
+        }
+      })
+      .catch(err => {
+        console.error('Не удалось получить профиль:', err);
+
+        this.userRole = null;
+      });
   },
   methods: {
     addFolder() {

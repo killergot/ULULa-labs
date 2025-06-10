@@ -112,8 +112,6 @@
 
   </div>
 
-
-
     <button class="add-btn" @click="openAddModal">+</button>
 
 
@@ -186,6 +184,9 @@
       return {
         tasks: [],
         userId: null,
+        userRole: null,
+        TEACHER_ROLE: 1,
+        STUDENT_ROLE: 2,
         showAddModal: false,
         showEditModal: false,
         showShareModal: false, 
@@ -195,6 +196,7 @@
         collapsedImportant: false,
         collapsedOthers: false,
         collapsedCompleted: false,
+
       };
     },
     computed: {
@@ -225,6 +227,7 @@
           if (userResp.status !== 200) throw new Error();
           const role = userResp.data.role;
           this.userId = userResp.data.id;
+          this.userRole = userResp.data.role;
 
           if (role & STUDENT_ROLE) { 
             const stud = await api.get('/students/me');
@@ -237,6 +240,7 @@
           }
           } else if (role & TEACHER_ROLE) { 
             const teach = await api.get('/teachers/me');
+            this.userRole = teach.data.role;
           if (teach.status !== 200 || !teach.data.FIO) {
             return this.$router.replace({ name: 'userPage' });
           }
@@ -360,6 +364,7 @@
         this.showShareModal = true;
       }
     },
+    
     closeShareModal() {
       this.showShareModal = false;
       this.shareLink = '';
