@@ -127,7 +127,7 @@ async def delete(FIO: str, teacher: UserOut = Depends(get_current_user), service
              dependencies=[Depends(get_current_user)]
              )
 async def create(achievement: AchieveIn,service = Depends(get_teacher_service)):
-    return await service.create_achievement(achievement.name, achievement.description, achievement.amount)
+    return await service.create_achievement(achievement.name, achievement.description, achievement.amount, achievement.image_path)
 
 @router.delete("/achievements/",
              status_code=status.HTTP_200_OK,
@@ -145,7 +145,7 @@ async def delete(achievement: AchieveID,service = Depends(get_teacher_service))-
               dependencies=[Depends(get_current_user)]
               )
 async def update(achievement: AchieveUpdate, service = Depends(get_teacher_service)):
-    return await service.update_achievement(achievement.id, achievement.name, achievement.description, achievement.amount)
+    return await service.update_achievement(achievement.id, achievement.name, achievement.description, achievement.amount, achievement.image_path)
 
 
 @router.post("/award_achievement",

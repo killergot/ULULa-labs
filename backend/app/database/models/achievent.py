@@ -19,6 +19,7 @@ class Achievement(Base):
     name: Mapped[str] = mapped_column(String(255), nullable=False)
     description: Mapped[str] = mapped_column(Text, nullable=True)
     amount: Mapped[int] = mapped_column(Integer, nullable=False, default=1)
+    image_path: Mapped[str] = mapped_column(String(100), nullable=False, default = "frontiend\public\Achieve_1.jpg")
 
     students: Mapped[list["Student"]] = relationship(
         "Student",
