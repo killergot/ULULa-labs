@@ -182,8 +182,8 @@ async def create(lab_work: LabWorkIn, teacher: UserOut = Depends(get_current_use
 
 @router.get("/lab_work/subject/{subject_id}",
              status_code=status.HTTP_200_OK,
-             summary="Get lab work",
-             description='Get lab work by id\n',
+             summary="Get lab works",
+             description='Get lab works for current teacher by subject\n',
              dependencies=[Depends(require_role(TEACHER_ROLE))]
              )
 async def get(subject_schema: AssigmentSubjectFilter=Depends(get_subject_id), teacher: UserOut = Depends(get_current_user), service: TeacherService = Depends(get_teacher_service)):
@@ -231,7 +231,7 @@ async def get(service: TeacherService = Depends(get_teacher_service)):
 @router.get("/assignments/{lab_work}",
              status_code=status.HTTP_200_OK,
              summary="Get assignments",
-             description='Get all assigned labs\n',
+             description='Get assignments for current teacher by lab number\n',
              dependencies=[Depends(require_role(TEACHER_ROLE))]
              )
 async def get(lab_schema: LabWorkID = Depends(get_lab_work_id), teacher: UserOut = Depends(get_current_user), service: TeacherService = Depends(get_teacher_service)):
