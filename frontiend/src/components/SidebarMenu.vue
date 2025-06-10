@@ -15,12 +15,17 @@
       <nav class="menu">
         <ul>
           <li v-for="item in pages" :key="item.name">
-            <router-link :to="item.link">{{ item.name }}</router-link>
+            <router-link
+              v-if="item.name !== 'Lab works' || isTeacher"
+              :to="item.link"
+            >
+              {{ item.name }}
+            </router-link>
           </li>
         </ul>
       </nav>
 
-      <hr class="divider">
+      <!-- <hr class="divider">
 
       <div class="folders-section">
         <ul>
@@ -30,7 +35,7 @@
           </li>
         </ul>
         <button @click="addFolder" class="add-folder-btn">+ folder</button>
-      </div>
+      </div> -->
     </div>
     
     
@@ -49,6 +54,9 @@
 import { clearTokens, getRefreshToken } from '@/utils/token';
 import api from '@/services/api';
 
+const TEACHER_ROLE = 1
+const STUDENT_ROLE = 2
+
 export default {
   name: 'SidebarMenu',
   props: {
@@ -59,14 +67,26 @@ export default {
       version: '1.0.2',
       pages: [
         { name: 'Home', link: '/' },
-        { name: 'My profile', link: '/userPage' }
+        { name: 'My profile', link: '/userPage' },
+        { name: 'Lab works', link: '/labWorksPage' }
       ],
       folders: [
         { name: 'Личные' },
         { name: 'Рабочие' }
       ],
-      counter: 1
+      counter: 1,
+      userRole: null,
     };
+  },
+  computed: {
+    isTeacher() {
+      return Boolean(this.userRole & TEACHER_ROLE)
+    }
+  },
+  created() {
+    api.get('/users/get_me').then(resp => {
+      if (resp.status === 200) this.userRole = resp.data.role
+    }).catch(console.error)
   },
   methods: {
     addFolder() {

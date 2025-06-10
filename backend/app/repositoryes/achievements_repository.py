@@ -10,8 +10,8 @@ from app.core.except_handler import except_handler
 
 class AchivementRepository(TemplateRepository):
 
-    async def create(self, name: str, description: str, amount: int)->Achievement:
-        new = Achievement(name = name, description = description, amount = amount)
+    async def create(self, name: str, description: str, amount: int, image_path: str)->Achievement:
+        new = Achievement(name = name, description = description, amount = amount, image_path=image_path)
         self.db.add(new)
         await self.db.commit()
         await self.db.refresh(new)
@@ -56,13 +56,16 @@ class AchivementRepository(TemplateRepository):
     async def update(self, achievement: Achievement,
                      name: Optional[str] = None,
                      description: Optional[str] = None,
-                     amount: Optional[int] = None,):
+                     amount: Optional[int] = None,
+                     image_path: Optional[str] = None):
         if name is not None:
             achievement.name = name
         if description is not None:
             achievement.description = description
         if amount is not None:
             achievement.amount = amount
+        if image_path is not None:
+            achievement.image_path=image_path
         await self.db.commit()
         await self.db.refresh(achievement)
         return achievement

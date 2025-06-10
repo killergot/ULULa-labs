@@ -62,7 +62,7 @@ async def update_group_by_id(old_number: GroupNumber, new_number: GroupNumber, s
     return await service.update_group_by_number(old_number, new_number)
 
 
-@router.get("/get_group_id/{group_number}",
+@router.get("/get_group_id",
              status_code=status.HTTP_200_OK,
              summary='Get group id',
              description='Get group id by group number.\n',
@@ -95,3 +95,12 @@ async def get_group_by_number(group_id: int,service = Depends(get_group_service)
 )
 async def get_all(service = Depends(get_group_service)):
        return await service.get_all()
+
+
+# как составлять статистику для группы?
+# получаем всех студентов
+# для каждого получаем список submissions
+# если оценка больше 0 - добавляем её в сумму
+# поучаем список ачивок
+# считаем их сумму
+# возвращаем список ФИО рейтинг

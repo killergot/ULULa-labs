@@ -13,7 +13,7 @@ router = APIRouter(prefix="/achievements", tags=["achievements"])
 @router.get("/achievements/{id}",
             status_code=status.HTTP_200_OK,
             summary='Get achievement',
-            description='Update achievement by id.\n',
+            description='get achievement by id.\n',
             dependencies=[Depends(get_current_user)]
             )
 async def get(id_schema: AchieveID = Depends(get_achieve_id), service = Depends(get_achievement_service)):

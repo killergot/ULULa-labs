@@ -1,6 +1,10 @@
 from  app.shemas.teachers import FIO as fio_schema, WeekNumber
 from  app.shemas.teacher_subject import SubjectName
 from  app.shemas.achievements import AchieveID
+from  app.shemas.labs import LabWorkID
+from app.shemas.assignments import AssignmentID, AssigmentSubjectFilter
+from app.shemas.submissions import SubmissionsID, SubmissionsStatus
+
 from fastapi import Path
 from fastapi import HTTPException
 from pydantic import ValidationError
@@ -41,3 +45,50 @@ def get_achieve_id(id: int) -> AchieveID:
             status_code=400,
             detail=f"Invalid achievement id\n: {str(e)}"
         )
+
+
+def get_lab_work_id(id: int) -> LabWorkID:
+    try:
+        return LabWorkID(id = id)
+    except ValidationError as e:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Invalid lab work id\n: {str(e)}"
+        )
+
+def get_assignment_id(id: int) -> AssignmentID:
+    try:
+        return AssignmentID(id = id)
+    except ValidationError as e:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Invalid assignment id\n: {str(e)}"
+        )
+
+def get_submission_id(id: int) -> SubmissionsID:
+    try:
+        return SubmissionsID(id = id)
+    except ValidationError as e:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Invalid submission id\n: {str(e)}"
+        )
+
+
+def get_submission_status(status: int) -> SubmissionsStatus:
+    try:
+        return SubmissionsStatus(status=status)
+    except ValidationError as e:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Invalid submission status\n: {str(e)}"
+        )
+
+
+def get_subject_id(id: int) -> AssigmentSubjectFilter:
+    try:
+        return AssigmentSubjectFilter(id = id)
+    except ValidationError as e:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Invalid subject id\n: {str(e)}")

@@ -12,13 +12,15 @@ from app.shemas.teachers import FIO, WeekNumber, TeacherUpdateIn
 from app.shemas.teacher_subject import SubjectName, TeacherSubjectBase
 from app.shemas.auth import UserOut
 from app.shemas.achievements import AchieveIn, AchieveID, AchieveUpdate
+from app.shemas.labs import LabWorkIn, LabWorkID
+from app.shemas.assignments import AssignmentsIn, AssignmentID, AssigmentSubjectFilter
+from app.shemas.submissions import SubmissionsMark
 from fastapi import Depends, status, Query
 from fastapi.routing import APIRouter
 from app.api.depencies.services import get_teacher_service
 from app.api.depencies.services import get_student_service
-from app.api.depencies.validation import get_week_number, get_FIO, get_achieve_id
-
-
+from app.api.depencies.validation import get_week_number, get_FIO, get_achieve_id, get_lab_work_id, get_assignment_id, get_subject_id
+from app.services.role_service import TEACHER_ROLE
 router = APIRouter(prefix="/teachers", tags=["teachers"])
 
 # Что хотим уметь для сущности студента?
@@ -129,7 +131,7 @@ async def delete(FIO: str, teacher: UserOut = Depends(get_current_user), service
              dependencies=[Depends(get_current_user)]
              )
 async def create(achievement: AchieveIn,service = Depends(get_teacher_service)):
-    return await service.create_achievement(achievement.name, achievement.description, achievement.amount)
+    return await service.create_achievement(achievement.name, achievement.description, achievement.amount, achievement.image_path)
 
 @router.delete("/achievements/",
              status_code=status.HTTP_200_OK,
@@ -147,7 +149,7 @@ async def delete(achievement: AchieveID,service = Depends(get_teacher_service))-
               dependencies=[Depends(get_current_user)]
               )
 async def update(achievement: AchieveUpdate, service = Depends(get_teacher_service)):
-    return await service.update_achievement(achievement.id, achievement.name, achievement.description, achievement.amount)
+    return await service.update_achievement(achievement.id, achievement.name, achievement.description, achievement.amount, achievement.image_path)
 
 
 @router.post("/award_achievement",
@@ -170,3 +172,111 @@ async def give(student_id: int, achieve_id: int, service = Depends(get_teacher_s
 async def give(student_id: int, achieve_id: int, service = Depends(get_teacher_service))->bool:
     return await service.revoke_achievement(student_id=student_id, achievement_id=achieve_id)
 
+
+# Работа с лабами
+@router.post("/lab_work",
+             status_code=status.HTTP_201_CREATED,
+             summary="Create lab work",
+             description='Create new lab work\n',
+             dependencies=[Depends(require_role(TEACHER_ROLE))]
+             )
+async def create(lab_work: LabWorkIn, teacher: UserOut = Depends(get_current_user),
+                 service: TeacherService = Depends(get_teacher_service)):
+    return await service.create_lab_work(lab_work.title, lab_work.description, lab_work.subject_name, teacher.id, lab_work.file_id)
+
+@router.get("/lab_work/subject/{subject_id}",
+             status_code=status.HTTP_200_OK,
+             summary="Get lab works",
+             description='Get lab works for current teacher by subject\n',
+             dependencies=[Depends(require_role(TEACHER_ROLE))]
+             )
+async def get(subject_schema: AssigmentSubjectFilter=Depends(get_subject_id), teacher: UserOut = Depends(get_current_user), service: TeacherService = Depends(get_teacher_service)):
+    return await service.get_teacher_subject_lab_works(teacher.id, subject_schema.id)
+
+
+@router.get("/lab_work/{lab_work_id}",
+             status_code=status.HTTP_200_OK,
+             summary="Get lab work",
+             description='Get lab work by id\n',
+             dependencies=[Depends(require_role(TEACHER_ROLE))]
+             )
+async def get(lab_work_schema: LabWorkID=Depends(get_lab_work_id), service: TeacherService = Depends(get_teacher_service)):
+    return await service.get_lab_work(lab_work_schema.id)
+
+@router.get("/lab_work",
+             status_code=status.HTTP_200_OK,
+             summary="Get all lab works",
+             description='Create new lab work\n',
+             dependencies=[Depends(require_role(TEACHER_ROLE))]
+             )
+async def get(service: TeacherService = Depends(get_teacher_service)):
+    return await service.get_all_lab_work()
+
+@router.post("/assignments",
+             status_code=status.HTTP_201_CREATED,
+             summary="Create assignment",
+             description='Assign lab work to group\n',
+             dependencies=[Depends(require_role(TEACHER_ROLE))]
+             )
+async def create(assignment: AssignmentsIn, teacher: UserOut = Depends(get_current_user),
+                 service: TeacherService = Depends(get_teacher_service)):
+    return await service.create_assignment(assignment.group_id, assignment.lab_id, teacher.id, assignment.created_at,
+                                           assignment.deadline_at, assignment.status)
+
+@router.get("/assignments/all",
+             status_code=status.HTTP_200_OK,
+             summary="Get assignments",
+             description='Get all assigned labs\n',
+             dependencies=[Depends(require_role(TEACHER_ROLE))]
+             )
+async def get(service: TeacherService = Depends(get_teacher_service)):
+    return await service.get_all_assignment()
+
+@router.get("/assignments/{lab_work}",
+             status_code=status.HTTP_200_OK,
+             summary="Get assignments",
+             description='Get assignments for current teacher by lab number\n',
+             dependencies=[Depends(require_role(TEACHER_ROLE))]
+             )
+async def get(lab_schema: LabWorkID = Depends(get_lab_work_id), teacher: UserOut = Depends(get_current_user), service: TeacherService = Depends(get_teacher_service)):
+    return await service.get_teacher_assignment(teacher_id=teacher.id, lab_id=lab_schema.id)
+
+@router.get("/assignments/{assignment_id}",
+             status_code=status.HTTP_200_OK,
+             summary="Get assignment",
+             description='Get assigned lab\n',
+             dependencies=[Depends(require_role(TEACHER_ROLE))]
+             )
+async def get(assignment_schema: AssignmentID=Depends(get_assignment_id), service: TeacherService = Depends(get_teacher_service)):
+    return await service.get_assignment(assignment_schema.id)
+
+@router.get("/assignments",
+             status_code=status.HTTP_200_OK,
+             summary="Get assignments",
+             description='Get assigned labs for current teacher\n',
+             dependencies=[Depends(require_role(TEACHER_ROLE))]
+             )
+async def get(teacher: UserOut = Depends(get_current_user), service: TeacherService = Depends(get_teacher_service)):
+    return await service.get_teacher_assignment(teacher.id)
+
+
+@router.get("/submissions/{assignment_id}",
+             status_code=status.HTTP_200_OK,
+             summary="Get submissions",
+             description='Get students submissions by assignment id\n',
+             dependencies=[Depends(require_role(TEACHER_ROLE))]
+             )
+async def get(assignment_schema: AssignmentID=Depends(get_lab_work_id), service: TeacherService = Depends(get_teacher_service)):
+    return await service.get_submissions_by_assignment(assignment_schema.id)
+
+@router.patch("/submissions",
+             status_code=status.HTTP_200_OK,
+             summary="Update submissions",
+             description='Update submission: mark, make comment, etc\n',
+             dependencies=[Depends(require_role(TEACHER_ROLE))]
+             )
+async def update(update_submission: SubmissionsMark, service: TeacherService = Depends(get_teacher_service)):
+    return await service.update_submission(update_submission.id,
+                                           update_submission.mark,
+                                           update_submission.status,
+                                           update_submission.comment)

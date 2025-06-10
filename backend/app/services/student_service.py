@@ -1,3 +1,4 @@
+from tokenize import group
 from uuid import UUID
 from fastapi import  HTTPException, status
 
@@ -11,6 +12,9 @@ from app.shemas.auth import UserOut
 from app.shemas.students import StudentBase, StudentOut, StudentIn, Achievement, StudentUpdateIn
 from app.utils.hash import get_hash
 from app.database import Student
+from app.database import Submission
+from app.repositoryes.submission_repository import SubmissionsRepository
+from app.repositoryes.achievements_repository import AchivementRepository
 from app.repositoryes.subject_repository import Repository as SubjectRepository
 
 
@@ -41,6 +45,8 @@ class StudentService:
         self.group_repo = GroupRepository(db)
         self.user_repo = UserRepository(db)
         self.subject_repo =SubjectRepository(db)
+        self.submission_repo = SubmissionsRepository(db)
+        self.achievement_repo = AchivementRepository(db)
 
     async def _get(self, id) -> Student:
         student = await self.repo.get(id)
@@ -179,3 +185,39 @@ class StudentService:
             result.append(temp)
 
         return result
+
+    async def get_submissions(self, id: int):
+        submissions = await self.submission_repo.get_filtered(student_id=id)
+        return submissions
+
+    async def change_status_submission(self, id: int, status: int):
+        submission = await self.submission_repo.get(id)
+        if not submission:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
+                                detail="Submission not found")
+        return await self.submission_repo.update(submission=submission, status=status)
+
+    async def _get_reiting(self, id):
+        reiting = 0
+        student = await self.repo.get(id)
+        submissions = await self.get_submissions(id)
+        for submission in submissions:
+            reiting = reiting + submission.mark
+        for achievement in student.achievements:
+            reiting = reiting + achievement.amount
+        return reiting
+
+    async def get_rate(self, id)->list[dict]:
+        rate = []
+        current_student = await self._get(id)
+        group = current_student.group_id
+        students = await self.get_by_group(group)
+        for student in students:
+            raiting =await  self._get_reiting(student.student_id)
+            rate.append({"full_name": student.full_name, "rate": raiting})
+        return rate
+
+
+
+
+

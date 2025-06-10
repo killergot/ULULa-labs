@@ -7,7 +7,7 @@ from sqlalchemy.orm import selectinload
 from uuid import UUID
 from app.database.models.students import Student
 from app.database.models.groups import Group
-from app.database.models.subjects import Subject
+from app.database.models.subjects import Subject, student_subjects
 from app.repositoryes.template import TemplateRepository
 from app.core.except_handler import except_handler
 
@@ -101,3 +101,4 @@ class Repository(TemplateRepository):
         await self.db.commit()
         await self.db.refresh(student)
         return True
+

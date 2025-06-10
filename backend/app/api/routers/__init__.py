@@ -10,6 +10,7 @@ from .files import router as files_router
 from .achievements import router as achievement_router
 from .shared_links import router as shared_links_router
 from app.api.admin.monitoring import router as admin_router
+from .submissions import router as submossion_router
 
 from fastapi.routing import APIRouter
 
@@ -27,3 +28,4 @@ api_router.include_router(teacher_router)
 api_router.include_router(subject_router)
 api_router.include_router(achievement_router)
 api_router.include_router(shared_links_router)
+api_router.include_router(submossion_router)

@@ -428,7 +428,7 @@ def load_schedule_for_all_groups():
            # print(i, "gr_num: ", group_number)
             groups_list.append(id_itog)
             #print(len(groups_list))
-            load_schedule_for_group(id_itog, group_number)
+            load_schedule_for_group(id_itog, group_number, i)
    # print ("final", len(groups_list))
 
     return groups_list
@@ -527,7 +527,7 @@ def load_schedule_for_group(group_number, week_number, group_id):
             result.append(day_info)
           #  print('\n\n\n\n', monday)
         try:
-            final = ScheduleBase.model_validate({"group_id": group_id, "week_number": i, "monday": monday, "tuesday": tuesday, "wednesday": wednesday, "thursday": thursday, "friday": friday, "saturday": saturday, "sunday": sunday})
+            final = ScheduleBase.model_validate({"group_id": group_id, "week_number": week_number, "monday": monday, "tuesday": tuesday, "wednesday": wednesday, "thursday": thursday, "friday": friday, "saturday": saturday, "sunday": sunday})
           #  print(final)
         except Exception as e:
             print("Error during validate", e)

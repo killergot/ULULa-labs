@@ -3,11 +3,13 @@
     <div :class="['panel', { collapsed }]">
       <div class="header">
         <button @click="select('Schedule')">Schedule</button>
-        <button @click="select('Calendar')">Calendar</button>
+        <!-- <button @click="select('Calendar')">Calendar</button> -->
         
         <button v-if="isStudent" @click="select('Materials')">Materials</button>
         
         <button v-if="isTeacher" @click="select('TeacherSubjects')">Subjects</button>
+
+        <button v-if="isTeacher" @click="select('AcademicProgress')">Students progress</button>
 
         <button class="toggle" @click="toggle">❯</button>
       </div>
@@ -33,13 +35,14 @@ import Schedule  from './Schedule.vue'
 import Calendar  from './Calendar.vue'
 import Materials from './Materials.vue'
 import TeacherSubjects from './TeacherSubjects.vue'
+import AcademicProgress from './AcademicProgress.vue'
 
 const TEACHER_ROLE = 1;
 const STUDENT_ROLE = 2;
 
 export default {
   name: 'ComponentSidebar',
-  components: { Schedule, Calendar, Materials,  TeacherSubjects},
+  components: { Schedule, Calendar, Materials,  TeacherSubjects, AcademicProgress},
   data() {
     return {
       collapsed: false,
@@ -49,10 +52,10 @@ export default {
   },
   computed: {
     isStudent() {
-      return this.userRole === STUDENT_ROLE;
+      return this.userRole & STUDENT_ROLE;
     },
     isTeacher() {
-      return this.userRole === TEACHER_ROLE;
+      return this.userRole & TEACHER_ROLE;
     }
   },
   async created() {
@@ -78,6 +81,7 @@ export default {
     select(view) {
       if (view === 'Materials' && !this.isStudent) return;
       if (view === 'TeacherSubjects' && !this.isTeacher) return;
+      if (view === 'AcademicProgress' && !this.isTeacher) return;
       this.currentView = view;
     }
   }

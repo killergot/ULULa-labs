@@ -112,7 +112,7 @@
       </div>
 
       <button @click="openModal">Change profile photo</button>
-      <button @click="openDeleteModal" :disabled="!user.avatarUrl">Delete profile photo</button>
+      <!-- <button @click="openDeleteModal" :disabled="!user.avatarUrl">Delete profile photo</button> -->
 
       <input
         ref="fileInput"
@@ -164,18 +164,18 @@
     <div v-if="showRequiredDataModal" class="modal-overlay">
       <div class="modal">
         <h2>Please enter the necessary information to work in Ulula Labs</h2>
-        <div v-if="requiredRole === STUDENT_ROLE" class="edit-field">
+        <div v-if="requiredRole & STUDENT_ROLE" class="edit-field">
           <label for="req-fullname" class="field-label">Full Name</label>
           <input id="req-fullname" v-model="requiredForm.full_name" type="text" class="task-input" />
         </div>
-        <div v-if="requiredRole === STUDENT_ROLE" class="edit-field">
+        <div v-if="requiredRole & STUDENT_ROLE" class="edit-field">
           <label for="req-group" class="field-label">Group</label>
           <select id="req-group" v-model="requiredForm.group_number" class="task-input">
             <option value="" disabled>Select group</option>
             <option v-for="g in groups" :key="g.id" :value="g.number">{{ g.number }}</option>
           </select>
         </div>
-        <div v-if="requiredRole === TEACHER_ROLE" class="edit-field">
+        <div v-if="requiredRole & TEACHER_ROLE" class="edit-field">
           <label for="req-fio" class="field-label">Full Name</label>
           <input id="req-fio" v-model="requiredForm.FIO" type="text" class="task-input" />
         </div>
@@ -184,6 +184,45 @@
         </div>
       </div>
     </div>
+
+    <div v-if="showChangePasswordModal" class="modal-overlay">
+      <div class="modal">
+        <h2>Change Password</h2>
+
+        <div class="edit-field">
+          <label class="field-label">Old Password</label>
+          <input
+            v-model="changePasswordForm.old_password"
+            type="password"
+            class="task-input"
+            placeholder="Enter old password"
+          />
+        </div>
+
+        <div class="edit-field">
+          <label class="field-label">New Password</label>
+          <input
+            v-model="changePasswordForm.new_password"
+            type="password"
+            class="task-input"
+            placeholder="Enter new password"
+          />
+        </div>
+
+        <div class="modal-actions">
+          <button @click="closeChangePasswordModal">Cancel</button>
+          <button @click="submitChangePassword">OK</button>
+        </div>
+      </div>
+    </div>
+
+
+    <div v-if="showMessage" class="modal-overlay">
+        <div class="modal">
+          <span class="close-button" @click="closeMessage">&times;</span>
+          <p class="message-text">{{ messageText }}</p>
+        </div>
+      </div>
 
 </div>
     
@@ -225,12 +264,19 @@ export default {
       requiredRole: null,
       requiredForm: { full_name: '', group_number: '', FIO: '' },
       sharedLinks: [],
-      sharedBaseUrl: 'http://185.95.159.198/api' + '/shared_links/pretty',
+      sharedBaseUrl: 'http://127.0.0.1:8000' + '/shared_links/pretty',
+      showMessage: false,
+      messageText: '',
+      showChangePasswordModal: false,
+      changePasswordForm: {
+        old_password: '',
+        new_password: ''
+      }
     }
   },
   computed: {
     isStudent() { 
-      return this.userRole === STUDENT_ROLE; 
+      return this.userRole & STUDENT_ROLE; 
     },
     currentToken() {
       return getRefreshToken();
@@ -251,7 +297,7 @@ export default {
         if (user_response.status !== 200) throw new Error(`Error ${user_response.status}`);
         this.userRole = user_response.data.role;
 
-        if (this.userRole === STUDENT_ROLE) {
+        if (this.userRole & STUDENT_ROLE) {
           const student_response = await api.get('/students/me');
 
           if (student_response.status !== 200) throw new Error(`Error ${student_response.status}`);
@@ -266,7 +312,7 @@ export default {
             telegram: student_response.data.telegram
           };
         }
-        else {
+        else if (this.userRole & TEACHER_ROLE){
           const teacher_response = await api.get('/teachers/me');
           if (teacher_response.status !== 200) throw new Error(`Error ${teacher_response.status}`);
           
@@ -281,38 +327,44 @@ export default {
           };
         }
       } catch (error) {
-        const resp = error.response;
-        if (resp && resp.status === 404) {
-          this.requiredRole = this.userRole || (await this.detectRole());
-          this.showRequiredDataModal = true;
-        } else {
-          console.error(error);
-        }
+        console.error(error);
       }        
     },
-    async detectRole() {
-      try { 
-        await api.get('/students/me'); 
-        return STUDENT_ROLE; 
-      }
-      catch {
-         return TEACHER_ROLE; 
-      }
-    },
+
      async submitRequiredData() {
       try {
-        if (this.requiredRole === STUDENT_ROLE) {
-          await api.post('/students', {
+        let response;
+
+        if (this.requiredRole & this.STUDENT_ROLE) {
+          response = await api.post('/students', {
             full_name: this.requiredForm.full_name,
             group_number: this.requiredForm.group_number
           });
-        } else {
-          await api.post('/teachers/register', { FIO: this.requiredForm.FIO });
+        } else if (this.requiredRole & this.TEACHER_ROLE) {
+          response = await api.post('/teachers/register', {
+            FIO: this.requiredForm.FIO
+          });
         }
-        this.showRequiredDataModal = false;
-        this.fetchUser();
+
+
+        if (response.status !== 201) {
+          this.messageText = 'The required data could not be saved. Please try again';
+          this.showMessage = true;
+          throw new Error(`Unexpected status ${response ? response.status : 'no response'}`);
+        }
+        else {
+          this.showRequiredDataModal = false;
+          this.fetchUser();
+        }
+
+        
+
       } catch (err) {
-        console.error('Registration failed', err);
+        console.error('submitRequiredData failed:', err);
+        if (!this.showMessage) {
+          this.messageText = 'The required data could not be saved. Please try again';
+          this.showMessage = true;
+        }
       }
     },
 
@@ -375,7 +427,12 @@ export default {
         if (this.isStudent) {
           const response = await api.put('/students/me', payload);
 
-          if (response.status !== 200) throw new Error(`Error ${response.status}`);
+          if (response.status !== 200) {
+            this.messageText = 'An error occurred while updating user information';
+            this.showMessage = true;
+            throw new Error(`Error ${response.status}`);
+          }
+          
           else {
             this.user = {
             fullName: response.data.full_name,
@@ -387,13 +444,20 @@ export default {
             telegram: response.data.telegram
           };
 
+            this.messageText = 'User information has been successfully updated';
+            this.showMessage = true;
+
             console.log('User updated:', response.data);
           }
         }
         else {
           const response = await api.put('/teachers/me', payload);
 
-          if (response.status !== 200) throw new Error(`Error ${response.status}`);
+          if (response.status !== 200) {
+            this.messageText = 'An error occurred while updating user information';
+            this.showMessage = true;
+            throw new Error(`Error ${response.status}`);
+          }
           else {
             this.user = {
             fullName: response.data.FIO,
@@ -404,6 +468,9 @@ export default {
             achievements: null,
             telegram: response.data.telegram
           };
+
+          this.messageText = 'User information has been successfully updated';
+          this.showMessage = true;
             
             console.log('User updated:', response.data);
           }
@@ -449,6 +516,35 @@ export default {
           }));
       } catch (error) {
         console.error('Failed to fetch tasks:', error);
+      }
+    },
+    async submitChangePassword() {
+      const oldPwd = this.changePasswordForm.old_password?.trim()
+      const newPwd = this.changePasswordForm.new_password?.trim()
+      if (!oldPwd || !newPwd){
+        this.messageText = 'Password input fields should not be empty'
+        this.showMessage = true
+        return;
+      }
+
+      try {
+        const payload = {
+          old_password: this.changePasswordForm.old_password,
+          new_password: this.changePasswordForm.new_password
+        }
+        const resp = await api.patch('/users', payload)
+
+        if (resp.status === 200) {
+          this.messageText = 'Password changed successfully'
+        } else {
+          this.messageText = 'Password change failed'
+        }
+      } catch (err) {
+        console.error('Change password error:', err)
+        this.messageText = 'Password change failed'
+      } finally {
+        this.showMessage = true
+        this.closeChangePasswordModal()
       }
     },
     getTaskText(taskId) {
@@ -506,6 +602,18 @@ export default {
   },
   shortToken(token) {
     return token ? token.slice(-10) : '–';
+  },
+  closeMessage() {
+    this.showMessage = false;
+    this.messageText = '';
+  },
+  handleChangePassword() {
+    this.changePasswordForm.old_password = ''
+    this.changePasswordForm.new_password = ''
+    this.showChangePasswordModal = true
+  },
+  closeChangePasswordModal() {
+    this.showChangePasswordModal = false
   }
   }
 }
@@ -817,6 +925,7 @@ button {
   z-index: 1000; 
 }
 .modal {
+  position: relative;
   background: #fff;
   padding: 24px;
   border-radius: 8px;
@@ -889,6 +998,24 @@ button {
 .modal-actions button:first-of-type { 
   background: #ccc; 
   color: #000; 
+}
+.modal button:hover {
+  background: #007BA5;
+}
+.modal .close-button {
+  color: #000000;
+  position: absolute;
+  top: 1px;
+  right: 10px;
+  cursor: pointer;
+  font-size: 36px;
+}
+.message-text {
+  font-size: 27px;
+  font-family: 'Raleway', sans-serif;
+  font-weight: bold;
+  margin-bottom: 10px;
+  text-align: center;
 }
 .shared-links-container { margin-top: 24px; }
 .link-info { 

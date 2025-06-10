@@ -16,6 +16,7 @@ from app.services.task_service import TaskService
 from app.services.teacher_service import TeacherService
 from app.services.subject_service import SubjectService
 from app.services.achievement_service import AchievementService
+from app.services.submission_service import SubmissionService
 
 async def get_auth_service(db: AsyncSession = Depends(get_db)) -> AuthService:
     return AuthService(db)
@@ -49,3 +50,6 @@ async def get_achievement_service(db: AsyncSession = Depends(get_db)) -> Achieve
 
 async def get_shared_links_service(db: AsyncSession = Depends(get_db)) -> SharedLinkService:
     return SharedLinkService(db)
+
+async def get_submission_service(db: AsyncSession = Depends(get_db)) -> SubmissionService:
+    return SubmissionService(db)

@@ -212,12 +212,12 @@
               localStorage.setItem('session_token', data.session_token || '');
               this.showTwoFactor = true;
             } else if (this.action === 'signup') {
-              this.messageTitle = 'Sign up Successful';
+              this.messageTitle = 'Sign up successful';
               this.messageText = 'Registration completed successfully';
               this.showMessage = true;
             }
           } else {
-            this.messageText = 'signin' ? 'Sign in Failed' : 'Sign up Failed';
+            this.messageText = this.action === 'signin' ? 'Sign in failed' : 'Sign up failed';
             this.showMessage = true;
           }
     } catch (error) {
