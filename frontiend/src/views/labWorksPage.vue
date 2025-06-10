@@ -87,6 +87,44 @@
       <button class="add-btn" @click="openCreateTemplateModal(null)">+</button>
     </div>
   </div>
+
+  <div v-if="showCreateModal" class="modal-overlay">
+    <div class="modal">
+      <h3>Создать лабораторную</h3>
+      <div class="modal-body">
+        <div class="form-group">
+          <label for="lab-title">Title:</label>
+          <input id="lab-title" v-model="createForm.title" type="text" />
+        </div>
+
+        <div class="form-group">
+          <label for="lab-desc">Description:</label>
+          <textarea id="lab-desc" v-model="createForm.description" rows="4"></textarea>
+        </div>
+
+        <div class="form-group">
+          <label for="lab-subject">Subject:</label>
+          <select id="lab-subject" v-model="createForm.subject_id" @change="fetchFiles()">
+            <option disabled value="">Select subject</option>
+            <option v-for="subj in teacherSubjects" :key="subj.id" :value="subj.id">{{ subj.name }}</option>
+          </select>
+        </div>
+        
+        <div class="form-group">
+          <label for="lab-file">File (optional):</label>
+          <select id="lab-file" v-model="createForm.file_id">
+            <option :value="null">Without file</option>
+            <option v-for="file in filesList" :key="file.id" :value="file.id">{{ file.filename }}</option>
+          </select>
+        </div>
+      </div>
+      <div class="modal-actions">
+        <button @click="closeCreateModal">Отмена</button>
+        <button @click="submitCreateLab">Создать</button>
+      </div>
+    </div>
+  </div>
+
 </template>
 
 <script>
@@ -105,6 +143,13 @@ export default {
       modalSubject: null,
       modalTemplate: null,
       modalAssignment: null,
+      filesList: [],
+      createForm: {
+        subject_id: null,
+        title: '',
+        description: '',
+        file_id: null
+      }
     };
   },
   methods: {
@@ -179,6 +224,52 @@ export default {
       } catch (error) {
         console.error(`Failed to download file for template ${template.id}:`, error);
       }
+    },
+    async fetchFiles() {
+      try {
+        const subj = this.teacherSubjects.find(s => s.id === this.createForm.subject_id);
+        const groupsRes = await api.get(`/subjects/groups/${encodeURIComponent(subj.name)}`);
+        const groupNames = groupsRes.data;
+        const allFiles = [];
+        await Promise.all(groupNames.map(async group_number => {
+          const params = { group_number, subject: subj.name };
+          const res = await api.get('/files', { params });
+          if (res.status === 200) {
+            allFiles.push(...res.data);
+          }
+        }));
+        this.filesList = allFiles;
+      } catch (e) {
+        console.error('Failed to fetch files by groups:', e);
+      }
+    },
+    async submitCreateLab() {
+      try {
+        const payload = {
+          title: this.createForm.title,
+          description: this.createForm.description,
+          subject_name: this.teacherSubjects.find(s => s.id === this.createForm.subject_id).name,
+          file_id: this.createForm.file_id
+        };
+        const res = await api.post('/teachers/lab_work', payload);
+        if (res.status === 201) {
+          const subj = this.teacherSubjects.find(s => s.id === this.createForm.subject_id);
+          await this.fetchTemplates(subj);
+          this.closeCreateModal();
+        } else {
+          console.error('Create lab failed:', res.status);
+        }
+      } catch (e) {
+        console.error('Error creating lab:', e);
+      }
+    },
+    closeCreateModal() {
+      this.showCreateModal = false;
+      this.resetCreateForm();
+    },
+    resetCreateForm() {
+      this.createForm = { subject_id: null, title: '', description: '', file_id: null };
+      this.filesList = [];
     },
     toggleSubject(i) {
       const subj = this.teacherSubjects[i];
@@ -379,5 +470,69 @@ export default {
 }
 .file-item:hover {
   color: #0056b3;
+}
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+.modal {
+  position: relative;
+  z-index: 1001;
+  background: #fff;
+  border-radius: 8px;
+  padding: 24px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  width: 60%;
+  max-width: 500px;
+}
+.file-link {
+  margin-top: 8px;
+  text-align: left;
+  width: 100%;
+}
+.file-item {
+  cursor: pointer;
+  color: #007bff;
+  text-decoration: underline;
+}
+.file-item:hover {
+  color: #0056b3;
+}
+.form-group {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 16px;
+  width: 100%;
+}
+
+.form-group label {
+  font-weight: bold;
+  margin-bottom: 6px;
+  text-align: left;
+}
+
+.form-group input,
+.form-group textarea,
+.form-group select {
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  width: 100%;
+  box-sizing: border-box;
+  font-size: 14px;
+}
+.form-group textarea {
+  min-height: 100px;
+  max-height: 300px; 
+  resize: vertical;  
+  overflow-y: auto;  
 }
 </style>
