@@ -119,11 +119,36 @@
         </div>
       </div>
       <div class="modal-actions">
-        <button @click="closeCreateModal">Отмена</button>
-        <button @click="submitCreateLab">Создать</button>
+        <button @click="closeCreateModal">Cancel</button>
+        <button @click="submitCreateLab">Create</button>
       </div>
     </div>
   </div>
+
+  <div v-if="showAssignModal" class="modal-overlay">
+  <div class="modal">
+    <h3>Assignment of laboratory work</h3>
+    <div class="modal-body">
+      <div class="form-group">
+        <label for="assign-group">Group number:</label>
+        <select id="assign-group" v-model="assignForm.group_number">
+          <option disabled value="">Choose group number</option>
+          <option v-for="g in availableGroups" :key="g" :value="g">{{ g }}</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="assign-deadline">Deadline:</label>
+        <input id="assign-deadline" type="date" v-model="assignForm.deadline" />
+      </div>
+    </div>
+
+    <div class="modal-actions">
+      <button @click="closeAssignModal">Cancel</button>
+      <button @click="submitAssignment">OK</button>
+    </div>
+  </div>
+</div>
 
 </template>
 
@@ -149,7 +174,13 @@ export default {
         title: '',
         description: '',
         file_id: null
-      }
+      },
+      assignForm: {
+        group_number: '',
+        deadline: ''
+      },
+      availableGroups: [],
+      currentLabId: null,
     };
   },
   methods: {
@@ -263,6 +294,58 @@ export default {
         console.error('Error creating lab:', e);
       }
     },
+    async fetchAvailableGroups(template) {
+      try {
+          const subject = this.teacherSubjects.find(s => s.id === template.subject_id);
+          const res = await api.get(`/subjects/groups/${encodeURIComponent(subject.name)}`);
+          if (res.status !== 200) throw new Error(`Error ${res.status}`);
+          this.availableGroups = res.data; 
+        } catch (error) {
+          console.error(`Failed to fetch groups for ${subject.name}:`, error);
+        }
+    },
+    async submitAssignment() {
+        try {
+        if (!this.assignForm.group_number || !this.assignForm.deadline) {
+            return alert('Укажите группу и дедлайн');
+        }
+        const idRes = await api.get('/groups/get_group_id', {
+            params: { group_number: this.assignForm.group_number }
+        });
+        const group_id = idRes.data;
+
+        const payload = {
+            group_id,
+            lab_id: this.currentLabId,
+            created_at: new Date().toISOString(),
+            deadline_at: new Date(this.assignForm.deadline).toISOString(),
+            status: 0
+        };
+
+        const res = await api.post('/teachers/assignments', payload);
+        if (res.status === 201) {
+            await this.fetchAssignments(this.modalTemplate);
+            this.closeAssignModal();
+        } else {
+            console.error('Не удалось выдать лабораторную:', res.status);
+        }
+        } catch (e) {
+        console.error('Ошибка выдачи:', e);
+        }
+    },
+    openAssignModal(template) {
+        this.modalTemplate = template;
+        this.currentLabId = template.id;
+        this.assignForm = { group_number: '', deadline: '' };
+        this.availableGroups = []; 
+        this.fetchAvailableGroups(template);
+        this.showAssignModal = true;
+    },
+    closeAssignModal() {
+        this.showAssignModal = false;
+        this.assignForm = { group_number: '', deadline: '' };
+        this.availableGroups = [];
+    },
     closeCreateModal() {
       this.showCreateModal = false;
       this.resetCreateForm();
@@ -304,10 +387,6 @@ export default {
     openEditTemplateModal(template) {
       this.modalTemplate = template;
       this.showEditTemplateModal = true;
-    },
-    openAssignModal(template) {
-      this.modalTemplate = template;
-      this.showAssignModal = true;
     },
     editAssignment(a) {
       this.modalAssignment = a;
