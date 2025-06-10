@@ -22,7 +22,8 @@ class SubmissionsRepository(TemplateRepository):
                                         student_id=student_id,
                                         status=status,
                                         mark=mark,
-                                        comment=comment
+                                        comment=comment,
+                                        level=3
                                         )
             self.db.add(new_submission)
             await self.db.commit()
@@ -47,6 +48,7 @@ class SubmissionsRepository(TemplateRepository):
                      status: Optional[int] = None,
                      mark: Optional[int] = None,
                      comment: Optional[str] = None,
+                     level: Optional[int] = None
                      ):
         if assignment_id is not None:
             submission.assignment_id = assignment_id
@@ -58,6 +60,8 @@ class SubmissionsRepository(TemplateRepository):
             submission.mark = mark
         if comment is not None:
             submission.comment = comment
+        if level is not None:
+            submission.level = level
 
         await self.db.commit()
         await self.db.refresh(submission)
@@ -67,6 +71,7 @@ class SubmissionsRepository(TemplateRepository):
                            status: Optional[int] = None,
                            mark: Optional[int] = None,
                            comment: Optional[str] = None,
+
                            ) -> list[Submission]:
         data = select(Submission)
 

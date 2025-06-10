@@ -1,12 +1,13 @@
+import datetime
 from tokenize import group
 from uuid import UUID
 from fastapi import  HTTPException, status
-
+from typing import Optional
 from app.database.models.subjects import student_subjects
 from app.repositoryes.student_repository import Repository
 from app.repositoryes.group_repository import Repository as GroupRepository
 from sqlalchemy.ext.asyncio import AsyncSession
-
+from app.database.models.assignments import Assignment
 from app.repositoryes.user_repository import UserRepository
 from app.shemas.auth import UserOut
 from app.shemas.students import StudentBase, StudentOut, StudentIn, Achievement, StudentUpdateIn
@@ -15,6 +16,7 @@ from app.database import Student
 from app.database import Submission
 from app.repositoryes.submission_repository import SubmissionsRepository
 from app.repositoryes.achievements_repository import AchivementRepository
+from app.repositoryes.assignments_repository import AssignmentRepository
 from app.repositoryes.subject_repository import Repository as SubjectRepository
 
 
@@ -47,6 +49,7 @@ class StudentService:
         self.subject_repo =SubjectRepository(db)
         self.submission_repo = SubmissionsRepository(db)
         self.achievement_repo = AchivementRepository(db)
+        self.assignmemt_repo = AssignmentRepository(db)
 
     async def _get(self, id) -> Student:
         student = await self.repo.get(id)
@@ -190,12 +193,12 @@ class StudentService:
         submissions = await self.submission_repo.get_filtered(student_id=id)
         return submissions
 
-    async def change_status_submission(self, id: int, status: int):
+    async def change_status_submission(self, id: int, lab_status: Optional[int]=None, level: Optional[int]=None):
         submission = await self.submission_repo.get(id)
         if not submission:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
                                 detail="Submission not found")
-        return await self.submission_repo.update(submission=submission, status=status)
+        return await self.submission_repo.update(submission=submission, status=lab_status, level=level)
 
     async def _get_reiting(self, id):
         reiting = 0
@@ -218,6 +221,24 @@ class StudentService:
         return rate
 
 
+    async def get_route(self, id: int)->list:
+        # получить все submissions
+        submissions = await self.get_submissions(id)
+        route=[]
+        # составить словарь: {submission, реальный дедлайн}
+        for submission in submissions:
+        # дедлайн=дедлайн ассаймента, от которого создано задание
+            assigment_id = submission.assignment_id
+            assigment = await self.assignmemt_repo.get(assigment_id)
+            deadline = assigment.deadline_at
+        # реальный дедлайн: текущая дата + {дедлайн-текущая дата}*сложность/5
+            delta = deadline - datetime.date.today()
+            delta = datetime.timedelta(days = delta.days*submission.level//5)
+            real_deadline = datetime.datetime.now() + delta
+            route.append({'lab': submission, 'deadline': real_deadline})
 
-
+        # отсортировать по дедлайнам
+        sorted_route = sorted(route, key=lambda x: x["deadline"])
+        # вывести список
+        return sorted_route
 

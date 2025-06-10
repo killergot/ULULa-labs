@@ -1,9 +1,11 @@
+from wtforms.validators import Optional
+
 from app.api.depencies.guard import  get_current_user, require_role
 from app.api.depencies.services import get_student_service
 from app.shemas.students import StudentBase, StudentIn, StudentID, StudentOut, StudentUpdateIn
 from app.shemas.groups import GroupNumber
 from app.shemas.auth import UserOut
-from app.shemas.submissions import SubmissionsID, SubmissionsMark, SubmissionsStatus
+from app.shemas.submissions import SubmissionsID, SubmissionsMark, SubmissionsStatus, SubmissionsUpdate
 from fastapi import Depends, status
 from fastapi.routing import APIRouter
 from app.api.depencies.validation import get_submission_status, get_submission_id
@@ -138,12 +140,12 @@ async def get(student: UserOut = Depends(get_current_user), service=Depends(get_
     # Получение номера группы студента по его id
     return await service.get_submissions(student.id)
 
-@router.patch("/submissions/{submissions_id}&{status}",
+@router.patch("/submissions",
             summary='Update submission',
             description='Change labs submission status: ready or not.\n')
-async def get(id_schema: SubmissionsID = Depends(get_submission_id), status_schema: SubmissionsStatus = Depends(get_submission_status), service=Depends(get_student_service)):
+async def update(update_submission: SubmissionsUpdate, service=Depends(get_student_service)):
     # Получение номера группы студента по его id
-    return await service.change_status_submission(id_schema.id, status_schema.status)
+    return await service.change_status_submission(update_submission.id,update_submission.status, update_submission.level)
 
 @router.get("/rate",
             summary='Get rate',
@@ -151,3 +153,10 @@ async def get(id_schema: SubmissionsID = Depends(get_submission_id), status_sche
 async def get(student: UserOut = Depends(get_current_user), service=Depends(get_student_service)):
     # Получение номера группы студента по его id
     return await service.get_rate(student.id)
+
+@router.get("/route",
+            summary='Get route',
+            description='Get personal route for doing labs.\n')
+async def get(student: UserOut = Depends(get_current_user), service=Depends(get_student_service)):
+    # Получение номера группы студента по его id
+    return await service.get_route(student.id)

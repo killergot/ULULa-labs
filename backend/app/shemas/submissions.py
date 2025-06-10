@@ -9,6 +9,11 @@ class SubmissionsMark(BaseModel):
     comment: Optional[str] = Field(min_length=1, max_length=300)
     status: Optional[int] = Field(ge=0)
 
+class SubmissionsUpdate(BaseModel):
+    id: int = Field(ge=1)
+    level: Optional[int] = Field(ge=1)
+    status: Optional[int] = Field(ge=0)
+
 class SubmissionsID(BaseModel):
     id: int = Field(ge=1)
 

@@ -18,6 +18,7 @@ class Submission(Base):
     student_id: Mapped[int] = mapped_column(Integer, ForeignKey('students.id', ondelete='CASCADE'), nullable=False)
     status: Mapped[int] = mapped_column(Integer, nullable=False) # сделал/не сделал/готов сдавать
     mark: Mapped[int] = mapped_column(Integer, nullable=False) #Оценка (1/0 или иное)
+    level: Mapped[int] = mapped_column(Integer, nullable=False, default=3)
     comment: Mapped[str] = mapped_column(String(300))
      # type: ignore
     students: Mapped["database.models.students.Student"] = relationship("database.models.students.Student", back_populates="submission")
