@@ -110,7 +110,42 @@
       </transition>
     </section>
 
+
+    <section class="section">
+        <header @click="collapsedLab = !collapsedLab">
+          <h2>Laboratory work</h2>
+          <span class="toggle-icon" :class="{ rotated: !collapsedLab }">❯</span>
+        </header>
+        <transition name="collapse">
+          <div v-show="!collapsedLab" class="section-content">
+            <ul>
+              <li
+                v-for="sub in submissions"
+                :key="sub.id"
+                class="task-item"
+              >
+
+                <label>
+                  <input
+                    type="checkbox"
+                    :checked="sub.status === 1"
+                    @change="markDone(sub)"
+                  />
+                </label>
+                <div class="submission-info">
+                  <div><strong>ID:</strong> {{ sub.id }}</div>
+                  <div><strong>Mark:</strong> {{ sub.mark }}</div>
+                  <div><strong>Comment:</strong> {{ sub.comment }}</div>
+                </div>
+              </li>
+            </ul>
+          </div>
+        </transition>
+      </section>
+
   </div>
+
+
 
     <button class="add-btn" @click="openAddModal">+</button>
 
@@ -196,6 +231,8 @@
         collapsedImportant: false,
         collapsedOthers: false,
         collapsedCompleted: false,
+        collapsedLab: false,
+        submissions: [],
 
       };
     },
@@ -364,6 +401,26 @@
         this.showShareModal = true;
       }
     },
+    async loadStudentSubmissions() {
+      try {
+        const res = await api.get('/students/submissions');
+        this.submissions = res.data; 
+      } catch (e) {
+        console.error('Не удалось загрузить submissions студента:', e);
+      }
+    },
+
+    async markDone(sub) {
+      const newStatus = sub.status === 1 ? 0 : 1;
+      try {
+        await api.patch(
+          `/students/submissions/${sub.id}&${newStatus}?id=${sub.id}`
+        );
+        sub.status = newStatus;
+      } catch (e) {
+        console.error('Не удалось изменить статус submission:', e);
+      }
+    },
     
     closeShareModal() {
       this.showShareModal = false;
@@ -426,9 +483,10 @@
         return diffInDays < 0 || diffInDays <= 3;
       }
     },
-    created() {
-      this.checkProfileComplete()
-      .then(() => this.fetchTasks());
+    async created() {
+      await this.checkProfileComplete();
+      await this.fetchTasks();
+      await this.loadStudentSubmissions();
     },
   };
   </script>
